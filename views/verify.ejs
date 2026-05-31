@@ -7,272 +7,396 @@
 <link rel="icon" type="image/png" href="/img/Group 1597880519.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --brand-900: #071840; --brand-700: #0f3270; --brand-500: #1a56a8;
-  --brand-50: #e8eef8; --brand-100: #bdd0ef;
-  --green-600: #16a34a; --green-50: #f0fdf4; --green-100: #dcfce7; --green-700: #15803d;
-  --red-50: #fef3f2; --red-500: #e03e2d; --red-600: #b53025;
-  --gray-50: #f8f9fa; --gray-100: #f1f3f5; --gray-200: #dde1e7;
-  --gray-400: #9aa3b2; --gray-500: #6b7890; --gray-600: #4a5568;
-  --gray-700: #334155; --gray-800: #1e293b; --gray-900: #0f172a;
-  --amber-50: #fdf8ee; --amber-600: #a06605;
-  --font: 'DM Sans', sans-serif;
-  --mono: 'DM Mono', monospace;
-}
-html { font-size: 15px; }
-body { font-family: var(--font); background: var(--gray-100); color: var(--gray-900); -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; flex-direction: column; }
 
-.vfy-header {
-  background: var(--brand-900);
-  padding: 14px 24px;
-  display: flex; align-items: center; gap: 12px;
+/* ── ANIMATED BACKGROUND ── */
+body {
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow-x: hidden;
+  background: #060f2e;
 }
-.vfy-header-logo { width: 32px; height: 32px; object-fit: contain; }
-.vfy-header-brand { display: flex; flex-direction: column; line-height: 1.15; }
-.vfy-header-name { font-size: 14px; font-weight: 700; color: #fff; }
-.vfy-header-sub { font-size: 10px; color: rgba(255,255,255,.5); letter-spacing: .5px; text-transform: uppercase; }
 
-.vfy-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px 16px; }
-.vfy-card {
-  background: #fff; border-radius: 20px;
-  box-shadow: 0 8px 40px rgba(0,0,0,.1);
-  width: 100%; max-width: 520px;
+/* Gradient mesh that shifts */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(26,86,168,.55) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 60% at 80% 70%, rgba(15,50,112,.6) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 80% at 50% 10%, rgba(7,24,64,.8) 0%, transparent 70%);
+  animation: bgShift 12s ease-in-out infinite alternate;
+  z-index: 0;
+}
+
+@keyframes bgShift {
+  0%   { background-position: 0% 0%, 100% 100%, 50% 0%; }
+  50%  {
+    background:
+      radial-gradient(ellipse 80% 60% at 60% 50%, rgba(26,86,168,.5) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 60% at 20% 80%, rgba(15,50,112,.55) 0%, transparent 60%),
+      radial-gradient(ellipse 90% 80% at 80% 20%, rgba(7,24,64,.8) 0%, transparent 70%);
+  }
+  100% {
+    background:
+      radial-gradient(ellipse 80% 60% at 80% 20%, rgba(26,86,168,.5) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 60% at 10% 60%, rgba(15,50,112,.5) 0%, transparent 60%),
+      radial-gradient(ellipse 90% 80% at 50% 90%, rgba(7,24,64,.8) 0%, transparent 70%);
+  }
+}
+
+/* Floating orbs */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: .25;
+  z-index: 0;
+  animation: floatOrb linear infinite;
+}
+.orb-1 { width: 400px; height: 400px; background: #1a56a8; top: -100px; left: -100px; animation-duration: 20s; }
+.orb-2 { width: 300px; height: 300px; background: #0f3270; bottom: -80px; right: -80px; animation-duration: 16s; animation-delay: -5s; }
+.orb-3 { width: 250px; height: 250px; background: #2e6abf; top: 40%; left: 60%; animation-duration: 24s; animation-delay: -10s; }
+
+@keyframes floatOrb {
+  0%,100% { transform: translate(0, 0) scale(1); }
+  25%      { transform: translate(30px, -40px) scale(1.05); }
+  50%      { transform: translate(-20px, 30px) scale(.95); }
+  75%      { transform: translate(40px, 20px) scale(1.03); }
+}
+
+/* Grid dot overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  z-index: 0;
+}
+
+/* ── CARD ── */
+.card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  background: #fff;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.08),
+    0 8px 16px rgba(0,0,0,.2),
+    0 32px 80px rgba(0,0,0,.35);
+}
+
+/* ── HEADER VALID ── */
+.header-valid {
+  background: linear-gradient(160deg, #071840 0%, #0f3270 55%, #1a56a8 100%);
+  padding: 40px 28px 52px;
+  text-align: center;
+  position: relative;
   overflow: hidden;
 }
+.header-valid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255,255,255,.08) 0%, transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(255,255,255,.05) 0%, transparent 45%);
+}
+.header-valid::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 36px;
+  background: #fff;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
 
-/* VALID */
-.vfy-status-valid {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-  padding: 32px 28px 28px;
-  text-align: center; color: #fff;
+/* ── HEADER INVALID ── */
+.header-invalid {
+  background: linear-gradient(160deg, #1a0a0a 0%, #7f1d1d 55%, #c0392b 100%);
+  padding: 40px 28px 52px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
 }
-.vfy-status-invalid {
-  background: linear-gradient(135deg, #e03e2d 0%, #b53025 100%);
-  padding: 32px 28px 28px;
-  text-align: center; color: #fff;
+.header-invalid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(255,255,255,.07) 0%, transparent 45%);
 }
-.vfy-big-icon {
-  width: 72px; height: 72px; border-radius: 50%;
-  background: rgba(255,255,255,.2);
+.header-invalid::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 36px;
+  background: #fff;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+
+.badge-ring {
+  position: relative;
+  z-index: 1;
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.3);
+  background: rgba(255,255,255,.15);
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 16px; backdrop-filter: blur(4px);
+  margin: 0 auto 20px;
+  backdrop-filter: blur(6px);
 }
-.vfy-status-title { font-size: 22px; font-weight: 700; letter-spacing: -.3px; margin-bottom: 6px; }
-.vfy-status-sub { font-size: 14px; opacity: .85; }
 
-.vfy-content { padding: 28px; }
+.header-eyebrow {
+  position: relative; z-index: 1;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+  margin-bottom: 8px;
+}
+.header-title {
+  position: relative; z-index: 1;
+  font-size: 22px; font-weight: 700;
+  color: #fff; letter-spacing: -.3px; margin-bottom: 6px;
+}
+.header-sub {
+  position: relative; z-index: 1;
+  font-size: 13px; color: rgba(255,255,255,.65);
+}
 
-/* Signature preview */
-.vfy-sig-wrap {
-  background: var(--gray-50); border: 1.5px solid var(--gray-200);
-  border-radius: 12px; padding: 16px;
+/* ── BODY ── */
+.body { padding: 8px 28px 28px; }
+
+.signer {
+  display: flex; align-items: center; gap: 14px;
+  padding: 20px 0;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 18px;
+}
+.signer-av {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(135deg, #0f3270, #1a56a8);
+  color: #fff; font-size: 16px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
-  min-height: 90px; margin-bottom: 20px;
+  flex-shrink: 0; letter-spacing: -1px;
 }
-.vfy-sig-img { max-height: 80px; max-width: 100%; object-fit: contain; }
+.signer-name { font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+.signer-sub  { font-size: 13px; color: #6b7280; }
 
-/* Data rows */
-.vfy-data { display: flex; flex-direction: column; gap: 0; border: 1.5px solid var(--gray-200); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
-.vfy-row { display: flex; align-items: flex-start; padding: 11px 16px; border-bottom: 1px solid var(--gray-100); }
-.vfy-row:last-child { border-bottom: none; }
-.vfy-row-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px; }
-.vfy-row-key { font-size: 11.5px; text-transform: uppercase; letter-spacing: .4px; color: var(--gray-400); font-weight: 600; margin-bottom: 1px; }
-.vfy-row-val { font-size: 14px; font-weight: 500; color: var(--gray-800); line-height: 1.3; }
-.vfy-row-val.mono { font-family: var(--mono); font-size: 12.5px; }
-
-/* Verified stamp */
-.vfy-stamp {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--green-50); border: 1.5px solid var(--green-100);
-  border-radius: 12px; padding: 12px 16px;
-  font-size: 13px; font-weight: 500; color: var(--green-700);
+/* Info rows */
+.info-list { margin-bottom: 16px; }
+.info-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f5f7fa;
 }
+.info-row:last-child { border-bottom: none; }
+.info-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 5px;
+}
+.dot-amber { background: #f59e0b; }
+.dot-blue  { background: #3b82f6; }
+.dot-red   { background: #ef4444; }
+.info-label {
+  font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: #9ca3af; margin-bottom: 3px;
+}
+.info-value { font-size: 14px; font-weight: 500; color: #111827; line-height: 1.4; }
+.info-sub   { font-size: 11.5px; color: #9ca3af; margin-top: 2px; }
+.info-sub a { color: #1a56a8; text-decoration: none; }
+
+/* Scan badge */
+.scan-badge {
+  display: flex; align-items: center; gap: 8px;
+  background: #f0f5ff;
+  border: 1px solid #c7d9f5;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 13px; color: #374151;
+}
+.scan-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #1a56a8;
+  animation: blink 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:.2; } }
+
+/* Stamp */
+.stamp {
+  display: flex; align-items: center; gap: 12px;
+  background: #f0f5ff;
+  border: 1px solid #bfcfed;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.stamp-icon {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #0f3270, #1a56a8);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.stamp-text { font-size: 13px; color: #1e3a6e; line-height: 1.5; }
 
 /* Invalid */
-.vfy-invalid-msg {
-  background: var(--red-50); border: 1.5px solid #fdd9d7;
-  border-radius: 12px; padding: 16px;
-  font-size: 13.5px; color: var(--red-600);
-  text-align: center; margin-top: 20px;
+.invalid-box {
+  margin: 8px 0 0;
+  background: #fff5f5; border: 1px solid #fecaca;
+  border-radius: 12px; padding: 24px 20px; text-align: center;
 }
+.invalid-title { font-size: 15px; font-weight: 700; color: #991b1b; margin-bottom: 8px; }
+.invalid-desc  { font-size: 13px; color: #7f1d1d; line-height: 1.6; }
 
-.vfy-footer { text-align: center; padding: 16px 28px 20px; border-top: 1px solid var(--gray-100); font-size: 12px; color: var(--gray-400); }
-.vfy-footer a { color: var(--brand-500); text-decoration: none; }
-
-@media (max-width: 560px) {
-  .vfy-card { border-radius: 16px; }
-  .vfy-content { padding: 20px; }
-  .vfy-status-valid, .vfy-status-invalid { padding: 24px 20px; }
+/* Footer */
+.footer {
+  padding: 14px 28px 20px;
+  border-top: 1px solid #f5f5f5;
+  text-align: center;
 }
+.footer-brand {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; margin-bottom: 4px;
+}
+.footer-logo { width: 15px; height: 15px; object-fit: contain; opacity: .35; }
+.footer-name { font-size: 12px; font-weight: 600; color: #9ca3af; }
+.footer-note { font-size: 11px; color: #c4c9d4; }
 </style>
 </head>
 <body>
 
-<header class="vfy-header">
-  <img src="/img/Group 1597880519.png" class="vfy-header-logo" alt="Inspira">
-  <div class="vfy-header-brand">
-    <span class="vfy-header-name">Inspira Mailer</span>
-    <span class="vfy-header-sub">Sistem Verifikasi Tanda Tangan Digital</span>
+<!-- Animated orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="card">
+
+<%
+if (valid && sig) {
+  const d     = new Date(sig.signedAt);
+  const sd    = scanTime;
+  const M     = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const p     = n => String(n).padStart(2,'0');
+  const fdt   = dt => `${dt.getDate()} ${M[dt.getMonth()]} ${dt.getFullYear()}, ${p(dt.getHours())}.${p(dt.getMinutes())}.${p(dt.getSeconds())}`;
+  const inits = sig.fullName.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+%>
+
+  <div class="header-valid">
+    <div class="badge-ring">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <path d="M7 15l6 6 10-10" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="header-eyebrow">Verifikasi Berhasil</div>
+    <div class="header-title">Dokumen Sah &amp; Terverifikasi</div>
+    <div class="header-sub">Tanda tangan digital ini valid dan dapat dipercaya</div>
   </div>
-</header>
 
-<div class="vfy-body">
-  <div class="vfy-card">
+  <div class="body">
 
-    <% if (valid && sig) { %>
-
-    <!-- VALID -->
-    <div class="vfy-status-valid">
-      <div class="vfy-big-icon">
-        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-          <path d="M8 18l7 7 13-13" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+    <div class="signer">
+      <div class="signer-av"><%= inits %></div>
+      <div>
+        <div class="signer-name"><%= sig.fullName %></div>
+        <div class="signer-sub">
+          <% if (sig.position && sig.organization) { %><%= sig.position %> &middot; <%= sig.organization %>
+          <% } else { %><%= sig.position || sig.organization || '' %><% } %>
+        </div>
       </div>
-      <div class="vfy-status-title">Dokumen Sah & Terverifikasi</div>
-      <div class="vfy-status-sub">Tanda tangan digital ini valid dan dapat dipercaya</div>
     </div>
 
-    <div class="vfy-content">
-      <!-- Signature image -->
-      <% if (sig.imagePath || sig.imageData) { %>
-      <div class="vfy-sig-wrap">
-        <img src="<%= sig.imagePath || sig.imageData %>" class="vfy-sig-img" alt="Tanda Tangan">
+    <div class="info-list">
+      <div class="info-row">
+        <div class="info-dot dot-amber"></div>
+        <div>
+          <div class="info-label">Waktu Penandatanganan</div>
+          <div class="info-value"><%= fdt(d) %> WIB</div>
+        </div>
+      </div>
+      <% if (sig.location && (sig.location.label || sig.location.lat)) { %>
+      <div class="info-row">
+        <div class="info-dot dot-red"></div>
+        <div>
+          <div class="info-label">Lokasi</div>
+          <div class="info-value"><%= sig.location.label || 'Tidak diketahui' %></div>
+          <% if (sig.location.lat && sig.location.lng) { %>
+          <div class="info-sub">
+            <%= sig.location.lat.toFixed(5) %>, <%= sig.location.lng.toFixed(5) %>
+            &nbsp;&middot;&nbsp;
+            <a href="https://maps.google.com/?q=<%= sig.location.lat %>,<%= sig.location.lng %>" target="_blank" rel="noopener">Lihat peta</a>
+          </div>
+          <% } %>
+        </div>
       </div>
       <% } %>
-
-      <!-- Data table -->
-      <div class="vfy-data">
-        <div class="vfy-row">
-          <div class="vfy-row-icon" style="background:#ede9fe;">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="#5b21b6" stroke-width="1.5"/><path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#5b21b6" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <div>
-            <div class="vfy-row-key">Ditandatangani oleh</div>
-            <div class="vfy-row-val" style="font-size:16px;font-weight:700;color:var(--gray-900);"><%= sig.fullName %></div>
-          </div>
-        </div>
-
-        <% if (sig.position) { %>
-        <div class="vfy-row">
-          <div class="vfy-row-icon" style="background:var(--brand-50);">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="3" y="7" width="14" height="10" rx="2" stroke="var(--brand-600)" stroke-width="1.5"/><path d="M7 7V5a3 3 0 016 0v2" stroke="var(--brand-600)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <div>
-            <div class="vfy-row-key">Jabatan</div>
-            <div class="vfy-row-val"><%= sig.position %></div>
-          </div>
-        </div>
-        <% } %>
-
-        <% if (sig.organization) { %>
-        <div class="vfy-row">
-          <div class="vfy-row-icon" style="background:#f0fdf4;">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 18V8l7-5 7 5v10M8 18v-5h4v5" stroke="#15803d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div>
-            <div class="vfy-row-key">Instansi / Organisasi</div>
-            <div class="vfy-row-val"><%= sig.organization %></div>
-          </div>
-        </div>
-        <% } %>
-
-        <div class="vfy-row">
-          <div class="vfy-row-icon" style="background:var(--amber-50);">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="var(--amber-600)" stroke-width="1.5"/><path d="M10 6v4l2.5 2.5" stroke="var(--amber-600)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <div>
-            <div class="vfy-row-key">Waktu Penandatanganan</div>
-            <div class="vfy-row-val mono">
-              <%
-                const d = new Date(sig.signedAt);
-                const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-                const pad = n => String(n).padStart(2,'0');
-                const dateStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-                const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} WIB`;
-              %>
-              <%= dateStr %> &bull; <%= timeStr %>
-            </div>
-          </div>
-        </div>
-
-        <% if (sig.location && (sig.location.label || sig.location.lat)) { %>
-        <div class="vfy-row">
-          <div class="vfy-row-icon" style="background:#fef3f2;">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 016 6c0 4-6 10-6 10S4 12 4 8a6 6 0 016-6z" stroke="#e03e2d" stroke-width="1.5"/><circle cx="10" cy="8" r="2" stroke="#e03e2d" stroke-width="1.5"/></svg>
-          </div>
-          <div>
-            <div class="vfy-row-key">Lokasi Penandatanganan</div>
-            <div class="vfy-row-val">
-              <% if (sig.location.label) { %>
-                <%= sig.location.label %>
-              <% } %>
-              <% if (sig.location.lat && sig.location.lng) { %>
-                <div style="font-size:11.5px;color:var(--gray-400);font-family:var(--mono);margin-top:2px;">
-                  <%= sig.location.lat.toFixed(6) %>, <%= sig.location.lng.toFixed(6) %>
-                  &nbsp;<a href="https://maps.google.com/?q=<%= sig.location.lat %>,<%= sig.location.lng %>" target="_blank" rel="noopener" style="font-size:11px;color:var(--brand-500);">Lihat peta</a>
-                </div>
-              <% } %>
-            </div>
-          </div>
-        </div>
-        <% } %>
-
-        <div class="vfy-row">
-          <div class="vfy-row-icon" style="background:var(--gray-100);">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z" stroke="var(--gray-500)" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="var(--gray-500)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <div>
-            <div class="vfy-row-key">Waktu Pemindaian QR</div>
-            <div class="vfy-row-val mono">
-              <%
-                const sd = scanTime;
-                const scanStr = `${sd.getDate()} ${months[sd.getMonth()]} ${sd.getFullYear()} &bull; ${pad(sd.getHours())}:${pad(sd.getMinutes())}:${pad(sd.getSeconds())} WIB`;
-              %>
-              <%- scanStr %>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Verified stamp -->
-      <div class="vfy-stamp">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="var(--green-600)"/><path d="M6 10l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Dokumen ini <strong style="margin:0 4px;">SAH</strong> dan telah ditandatangani secara digital melalui Inspira Mailer.
-      </div>
     </div>
 
-    <% } else { %>
+    <div class="scan-badge">
+      <div class="scan-dot"></div>
+      <span>Dipindai pada <%= fdt(sd) %> WIB</span>
+    </div>
 
-    <!-- INVALID -->
-    <div class="vfy-status-invalid">
-      <div class="vfy-big-icon">
-        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-          <path d="M10 10l16 16M26 10L10 26" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <div class="stamp">
+      <div class="stamp-icon">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+          <path d="M4 10l3.5 3.5 8-8" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <div class="vfy-status-title">Verifikasi Gagal</div>
-      <div class="vfy-status-sub">Tanda tangan ini tidak dapat diverifikasi</div>
-    </div>
-
-    <div class="vfy-content">
-      <div class="vfy-invalid-msg">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        QR Code ini <strong>tidak valid</strong>, sudah dihapus, atau telah dimodifikasi.<br>
-        <span style="font-size:12px;opacity:.8;margin-top:4px;display:block;">Hubungi penerbit dokumen untuk konfirmasi keabsahan.</span>
+      <div class="stamp-text">
+        Dokumen ini <strong>SAH</strong> dan telah ditandatangani secara digital melalui <strong>Inspira Mailer</strong>.
       </div>
-    </div>
-
-    <% } %>
-
-    <div class="vfy-footer">
-      Diverifikasi oleh sistem <a href="/">Inspira Mailer</a> &bull; Jangan percaya dokumen yang QR-nya tidak terverifikasi
     </div>
 
   </div>
-</div>
 
+<% } else { %>
+
+  <div class="header-invalid">
+    <div class="badge-ring">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <path d="M8 8l14 14M22 8L8 22" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="header-eyebrow">Verifikasi Gagal</div>
+    <div class="header-title">Dokumen Tidak Valid</div>
+    <div class="header-sub">QR Code ini tidak dapat diverifikasi</div>
+  </div>
+
+  <div class="body">
+    <div class="invalid-box">
+      <div class="invalid-title">QR Code Tidak Dikenali</div>
+      <div class="invalid-desc">
+        QR Code ini tidak valid, sudah dihapus, atau telah dimodifikasi.<br>
+        Hubungi penerbit dokumen untuk konfirmasi.
+      </div>
+    </div>
+  </div>
+
+<% } %>
+
+  <div class="footer">
+    <div class="footer-brand">
+      <img src="/img/Group 1597880519.png" class="footer-logo" alt="">
+      <span class="footer-name">Inspira Mailer</span>
+    </div>
+    <div class="footer-note">Jangan percaya dokumen yang QR-nya tidak terverifikasi</div>
+  </div>
+
+</div>
 </body>
 </html>
