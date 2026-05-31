@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
+const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
 
@@ -105,25 +106,23 @@ function requireRole(minRole) {
 const requireAdmin = requireRole('admin');
 const requireDirektur = requireRole('direktur');
 
-// Multer for avatar upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, 'uploads', 'avatars');
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, req.session.userId + path.extname(file.originalname));
-  }
-});
+// Multer for avatar — memory storage, resized then saved to MongoDB as base64
 const upload = multer({
-  storage,
-  limits: { fileSize: 2 * 1024 * 1024 },
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) cb(null, true);
-    else cb(new Error('Hanya file gambar'));
+    else cb(new Error('Hanya file gambar yang diizinkan.'));
   }
 });
+
+async function processAvatar(buffer) {
+  const resized = await sharp(buffer)
+    .resize(200, 200, { fit: 'cover', position: 'centre' })
+    .jpeg({ quality: 82, mozjpeg: true })
+    .toBuffer();
+  return 'data:image/jpeg;base64,' + resized.toString('base64');
+}
 
 // Email transporter
 let transporter = null;
@@ -508,9 +507,20 @@ app.post('/profile/password', requireAuth, async (req, res) => {
 
 app.post('/profile/avatar', requireAuth, (req, res) => {
   upload.single('avatar')(req, res, async (err) => {
-    if (!err && req.file) {
-      await User.findByIdAndUpdate(req.user._id, { avatar: '/uploads/avatars/' + req.file.filename });
+    const counts = await getMailCounts(req.user._id);
+    if (err) {
+      return res.render('profile', {
+        active: 'profile', title: 'Profil Saya',
+        success: null, error: err.message, ...counts
+      });
+    }
+    if (!req.file) return res.redirect('/profile');
+    try {
+      const base64 = await processAvatar(req.file.buffer);
+      await User.findByIdAndUpdate(req.user._id, { avatar: base64 });
       await log(req, 'avatar_update', 'profile', `${req.user.name} memperbarui foto profil`);
+    } catch (e) {
+      console.error('Avatar processing error:', e.message);
     }
     res.redirect('/profile');
   });
