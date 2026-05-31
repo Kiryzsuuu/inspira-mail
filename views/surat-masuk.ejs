@@ -1,0 +1,207 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Surat Masuk</div>
+    <h1 class="page-title">Surat Masuk</h1>
+    <p class="page-subtitle">Pencatatan surat masuk dari instansi / pihak eksternal</p>
+  </div>
+  <div class="page-actions">
+    <button class="btn btn-primary" onclick="openModal()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Catat Surat Masuk
+    </button>
+  </div>
+</div>
+
+<% if (typeof error !== 'undefined' && error) { %>
+<div class="flash-msg flash-error">
+  <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  <%= error %>
+</div>
+<% } %>
+
+<!-- Stats -->
+<div class="stats-bar" style="margin-bottom:20px;">
+  <div class="stat-card">
+    <div class="stat-icon blue">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 4h14a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div><div class="stat-label">Total Masuk</div><div class="stat-value"><%= stats.total || 0 %></div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div><div class="stat-label">Baru</div><div class="stat-value"><%= stats.baru || 0 %></div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div><div class="stat-label">Ditindaklanjuti</div><div class="stat-value"><%= stats.ditindaklanjuti || 0 %></div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div><div class="stat-label">Selesai</div><div class="stat-value"><%= stats.selesai || 0 %></div></div>
+  </div>
+</div>
+
+<!-- List -->
+<div class="mail-list-wrap">
+  <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
+    <span class="mail-list-title"><%= surats.length %> surat tercatat</span>
+    <form method="GET" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <select name="klasifikasi" class="admin-role-select" onchange="this.form.submit()" style="padding:7px 28px 7px 10px;">
+        <option value="">Semua Klasifikasi</option>
+        <% ['Urgent','Penting','Normal','Info'].forEach(k => { %>
+        <option value="<%= k %>" <%= (filter.klasifikasi === k) ? 'selected' : '' %>><%= k %></option>
+        <% }) %>
+      </select>
+      <select name="status" class="admin-role-select" onchange="this.form.submit()" style="padding:7px 28px 7px 10px;">
+        <option value="">Semua Status</option>
+        <% ['baru','dibaca','ditindaklanjuti','selesai'].forEach(s => { %>
+        <option value="<%= s %>" <%= (filter.status === s) ? 'selected' : '' %>><%= s.charAt(0).toUpperCase() + s.slice(1) %></option>
+        <% }) %>
+      </select>
+      <input type="text" name="q" class="search-input" placeholder="Cari perihal, instansi, nomor..." value="<%= filter.q || '' %>" style="max-width:220px;padding:7px 12px;">
+      <button type="submit" class="btn btn-secondary" style="padding:7px 14px;font-size:13px;">Cari</button>
+      <% if (filter.status || filter.klasifikasi || filter.q) { %>
+      <a href="/surat-masuk" class="btn btn-ghost" style="padding:7px 12px;font-size:13px;">Reset</a>
+      <% } %>
+    </form>
+  </div>
+
+  <% if (surats.length === 0) { %>
+  <div class="empty-state">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M6 10h36a2 2 0 012 2v24a2 2 0 01-2 2H6a2 2 0 01-2-2V12a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5"/><path d="M4 14l20 14L44 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <p>Belum ada surat masuk yang dicatat.</p>
+    <button class="btn btn-primary" style="margin-top:12px;" onclick="openModal()">Catat Surat Pertama</button>
+  </div>
+  <% } %>
+
+  <%
+  const tagClass = { Urgent:'tag-urgent', Penting:'tag-penting', Normal:'tag-normal', Info:'tag-info' };
+  const stClass  = { baru:'sm-baru', dibaca:'sm-dibaca', ditindaklanjuti:'sm-tindak', selesai:'sm-selesai' };
+  const stLabel  = { baru:'Baru', dibaca:'Dibaca', ditindaklanjuti:'Ditindaklanjuti', selesai:'Selesai' };
+  %>
+
+  <% surats.forEach(function(s) {
+    const inisial = s.dariInstansi.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  %>
+  <a href="/surat-masuk/<%= s._id %>" class="mail-item <%= s.status === 'baru' ? 'unread' : '' %>"
+     data-tag="<%= s.klasifikasi.toLowerCase() %>" data-read="<%= s.status !== 'baru' %>">
+    <div class="mail-avatar av-blue"><%= inisial %></div>
+    <div class="mail-body">
+      <div class="mail-from"><%= s.dariInstansi %></div>
+      <div class="mail-subject"><%= s.perihal %></div>
+      <div class="mail-berkas">
+        <% if (s.nomorSurat) { %>No. <%= s.nomorSurat %> &nbsp;&bull;&nbsp;<% } %>
+        Diterima: <%= formatDate(s.tanggalTerima) %>
+        <% if (s.file) { %>&nbsp;&bull;&nbsp;
+          <svg width="11" height="11" viewBox="0 0 20 20" fill="none"><path d="M13 2H5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7l-4-5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 2v5h5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          Ada lampiran
+        <% } %>
+      </div>
+    </div>
+    <div class="mail-meta">
+      <span class="mail-tag <%= tagClass[s.klasifikasi] || 'tag-normal' %>"><%= s.klasifikasi %></span>
+      <span class="sm-status-badge <%= stClass[s.status] %>"><%= stLabel[s.status] %></span>
+    </div>
+  </a>
+  <% }) %>
+</div>
+
+<!-- Modal: Catat Surat Masuk -->
+<div class="modal-overlay" id="smModal" onclick="closeModal(event)">
+  <div class="modal-card modal-card-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">Catat Surat Masuk</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <form action="/surat-masuk" method="POST" enctype="multipart/form-data" class="compose-form" style="padding:16px 24px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Dari Instansi / Pengirim <span class="req">*</span></label>
+          <input type="text" name="dariInstansi" class="form-control" placeholder="Nama instansi atau organisasi pengirim" required autofocus>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nomor Surat</label>
+          <input type="text" name="nomorSurat" class="form-control" placeholder="Contoh: 001/BPJS/VI/2026">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Perihal <span class="req">*</span></label>
+        <input type="text" name="perihal" class="form-control" placeholder="Isi pokok surat" required>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Tanggal Surat</label>
+          <input type="date" name="tanggalSurat" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tanggal Diterima <span class="req">*</span></label>
+          <input type="date" name="tanggalTerima" class="form-control"
+            value="<%= new Date().toISOString().substring(0,10) %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Klasifikasi</label>
+          <div class="select-wrap">
+            <select name="klasifikasi" class="form-control form-select">
+              <option value="Normal">Normal</option>
+              <option value="Penting">Penting</option>
+              <option value="Urgent">Urgent</option>
+              <option value="Info">Info</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Upload Scan Surat</label>
+        <div class="sm-upload-area" onclick="document.getElementById('fileSurat').click()">
+          <input type="file" id="fileSurat" name="fileSurat" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="showFileName(this)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="display:block;margin:0 auto;"><path d="M12 5v10M8 9l4-4 4 4M5 18h14" stroke="var(--brand-500)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <p id="uploadLabel" style="font-size:12.5px;color:var(--gray-500);text-align:center;margin-top:6px;">
+            Klik untuk unggah scan surat<br>
+            <span style="font-size:11px;color:var(--gray-400);">PDF, JPG, PNG — maks. 10MB</span>
+          </p>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Catatan</label>
+        <textarea name="catatan" class="form-control textarea" rows="2" placeholder="Disposisi, tindak lanjut, atau catatan tambahan..."></textarea>
+      </div>
+      <div class="compose-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Simpan Catatan
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openModal() {
+  document.getElementById('smModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('smModal')) return;
+  document.getElementById('smModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function showFileName(input) {
+  const label = document.getElementById('uploadLabel');
+  if (input.files[0]) {
+    const name = input.files[0].name;
+    const size = (input.files[0].size / 1024).toFixed(0);
+    label.innerHTML = `<strong>${name}</strong><br><span style="font-size:11px;color:var(--gray-400);">${size} KB</span>`;
+  }
+}
+</script>
+
+<%- include('./partials/footer') %>

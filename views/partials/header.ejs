@@ -39,6 +39,11 @@
         Kotak Masuk
         <% if (inboxCount > 0) { %><span class="badge"><%= inboxCount %></span><% } %>
       </a>
+      <a href="/surat-masuk" class="nav-item <%= active === 'surat-masuk' ? 'active' : '' %>">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M3 4h14a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 11l-5 4M12 11l5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Surat Masuk
+        <% if (inboxCount > 0) { %><span class="badge"><%= inboxCount %></span><% } %>
+      </a>
       <a href="/sent" class="nav-item <%= active === 'sent' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Terkirim

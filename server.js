@@ -19,6 +19,7 @@ const Task = require('./models/Task');
 const Signature = require('./models/Signature');
 const Agreement = require('./models/Agreement');
 const DocCounter = require('./models/DocCounter');
+const SuratMasuk = require('./models/SuratMasuk');
 const QRCode = require('qrcode');
 
 const app = express();
@@ -1101,6 +1102,170 @@ app.delete('/agreements/:id', requireAuth, requireAdmin, async (req, res) => {
   } catch (err) {
     res.json({ ok: false });
   }
+});
+
+// ── SURAT MASUK ──
+
+const smUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(__dirname, 'uploads', 'suratmasuk');
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname);
+      cb(null, Date.now() + '-' + Math.random().toString(36).slice(2) + ext);
+    }
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['application/pdf','image/jpeg','image/png','image/jpg'];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Hanya file PDF, JPG, atau PNG yang diizinkan.'));
+  }
+});
+
+app.get('/surat-masuk', requireAuth, async (req, res) => {
+  try {
+    const { status, klasifikasi, q } = req.query;
+    const filter = {};
+    if (status)     filter.status     = status;
+    if (klasifikasi) filter.klasifikasi = klasifikasi;
+    if (q) filter.$or = [
+      { perihal:      { $regex: q, $options: 'i' } },
+      { dariInstansi: { $regex: q, $options: 'i' } },
+      { nomorSurat:   { $regex: q, $options: 'i' } }
+    ];
+
+    const [surats, counts] = await Promise.all([
+      SuratMasuk.find(filter).sort({ tanggalTerima: -1 }),
+      getMailCounts(req.user._id)
+    ]);
+
+    const stats = {
+      total:           await SuratMasuk.countDocuments(),
+      baru:            await SuratMasuk.countDocuments({ status: 'baru' }),
+      ditindaklanjuti: await SuratMasuk.countDocuments({ status: 'ditindaklanjuti' }),
+      selesai:         await SuratMasuk.countDocuments({ status: 'selesai' })
+    };
+
+    res.render('surat-masuk', {
+      active: 'surat-masuk', title: 'Surat Masuk',
+      surats, stats, filter: { status, klasifikasi, q },
+      formatDate, ...counts
+    });
+  } catch (err) {
+    console.error(err);
+    res.redirect('/inbox');
+  }
+});
+
+app.post('/surat-masuk', requireAuth, (req, res) => {
+  smUpload.single('fileSurat')(req, res, async (err) => {
+    const counts = await getMailCounts(req.user._id);
+    const fail = (msg) => res.render('surat-masuk', {
+      active: 'surat-masuk', title: 'Surat Masuk',
+      surats: [], stats: {}, filter: {},
+      error: msg, formatDate, ...counts
+    });
+
+    if (err) return fail(err.message);
+
+    try {
+      const { nomorSurat, dariInstansi, perihal, tanggalSurat,
+              tanggalTerima, klasifikasi, catatan } = req.body;
+
+      if (!dariInstansi?.trim() || !perihal?.trim() || !tanggalTerima) {
+        return fail('Instansi pengirim, perihal, dan tanggal terima wajib diisi.');
+      }
+
+      const data = {
+        nomorSurat:    nomorSurat?.trim() || '',
+        dariInstansi:  dariInstansi.trim(),
+        perihal:       perihal.trim(),
+        tanggalSurat:  tanggalSurat  ? new Date(tanggalSurat)  : null,
+        tanggalTerima: new Date(tanggalTerima),
+        klasifikasi:   klasifikasi   || 'Normal',
+        catatan:       catatan?.trim() || '',
+        dicatatOleh: {
+          userId: req.user._id,
+          name:   req.user.name,
+          email:  req.user.email
+        },
+        status: 'baru'
+      };
+
+      if (req.file) {
+        data.file = {
+          originalName: req.file.originalname,
+          path:         '/uploads/suratmasuk/' + req.file.filename,
+          mimetype:     req.file.mimetype,
+          size:         req.file.size
+        };
+      }
+
+      await SuratMasuk.create(data);
+      await log(req, 'system', 'email',
+        `Surat masuk dicatat: "${perihal}" dari ${dariInstansi}`,
+        { nomorSurat, dariInstansi }
+      );
+
+      res.redirect('/surat-masuk');
+    } catch (e) {
+      console.error(e);
+      fail('Terjadi kesalahan, coba lagi.');
+    }
+  });
+});
+
+app.get('/surat-masuk/:id', requireAuth, async (req, res) => {
+  try {
+    const surat = await SuratMasuk.findById(req.params.id);
+    if (!surat) return res.redirect('/surat-masuk');
+    const counts = await getMailCounts(req.user._id);
+    res.render('surat-masuk-detail', {
+      active: 'surat-masuk', title: 'Detail Surat Masuk',
+      surat, formatDate, formatDateTime, ...counts
+    });
+  } catch (err) {
+    res.redirect('/surat-masuk');
+  }
+});
+
+app.post('/surat-masuk/:id/status', requireAuth, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const valid = ['baru','dibaca','ditindaklanjuti','selesai'];
+    if (!valid.includes(status)) return res.json({ ok: false });
+    await SuratMasuk.findByIdAndUpdate(req.params.id, { status });
+    res.json({ ok: true });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
+app.delete('/surat-masuk/:id', requireAuth, async (req, res) => {
+  try {
+    const surat = await SuratMasuk.findById(req.params.id);
+    if (!surat) return res.json({ ok: false });
+    // Delete physical file if exists
+    if (surat.file?.path) {
+      const fp = path.join(__dirname, surat.file.path);
+      if (fs.existsSync(fp)) fs.unlinkSync(fp);
+    }
+    await SuratMasuk.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
+// Serve uploaded letter files (protected)
+app.get('/uploads/suratmasuk/:filename', requireAuth, (req, res) => {
+  const fp = path.join(__dirname, 'uploads', 'suratmasuk', req.params.filename);
+  if (!fs.existsSync(fp)) return res.status(404).send('File tidak ditemukan.');
+  res.sendFile(fp);
 });
 
 // ── START ──

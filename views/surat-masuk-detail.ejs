@@ -1,0 +1,186 @@
+<%- include('./partials/header') %>
+
+<%
+const tagClass = { Urgent:'tag-urgent', Penting:'tag-penting', Normal:'tag-normal', Info:'tag-info' };
+const stClass  = { baru:'sm-baru', dibaca:'sm-dibaca', ditindaklanjuti:'sm-tindak', selesai:'sm-selesai' };
+const stLabel  = { baru:'Baru', dibaca:'Dibaca', ditindaklanjuti:'Ditindaklanjuti', selesai:'Selesai' };
+%>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / <a href="/surat-masuk">Surat Masuk</a> / Detail</div>
+    <h1 class="page-title"><%= surat.perihal %></h1>
+    <p class="page-subtitle">Dari: <%= surat.dariInstansi %></p>
+  </div>
+  <div class="page-actions">
+    <span class="mail-tag <%= tagClass[surat.klasifikasi] || 'tag-normal' %>" style="font-size:13px;padding:5px 14px;">
+      <%= surat.klasifikasi %>
+    </span>
+    <button class="btn btn-secondary" style="color:var(--red-500);" onclick="deleteSurat()">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Hapus
+    </button>
+  </div>
+</div>
+
+<div class="ag-detail-layout">
+
+  <!-- Detail -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="compose-card">
+      <div class="compose-card-header">
+        <span class="compose-card-title">Informasi Surat</span>
+        <span class="sm-status-badge <%= stClass[surat.status] %>"><%= stLabel[surat.status] %></span>
+      </div>
+      <div style="padding:20px;">
+        <div class="ag-detail-grid">
+          <% if (surat.nomorSurat) { %>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Nomor Surat</span>
+            <span class="ag-detail-val ag-nomor-big"><%= surat.nomorSurat %></span>
+          </div>
+          <% } %>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Dari</span>
+            <span class="ag-detail-val" style="font-weight:600;"><%= surat.dariInstansi %></span>
+          </div>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Perihal</span>
+            <span class="ag-detail-val"><%= surat.perihal %></span>
+          </div>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Tanggal Surat</span>
+            <span class="ag-detail-val">
+              <%= surat.tanggalSurat ? new Date(surat.tanggalSurat).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) : '—' %>
+            </span>
+          </div>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Tanggal Diterima</span>
+            <span class="ag-detail-val" style="font-weight:500;">
+              <%= new Date(surat.tanggalTerima).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) %>
+            </span>
+          </div>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Dicatat oleh</span>
+            <span class="ag-detail-val"><%= surat.dicatatOleh?.name || '-' %></span>
+          </div>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Dicatat pada</span>
+            <span class="ag-detail-val"><%= formatDateTime(surat.createdAt) %></span>
+          </div>
+        </div>
+
+        <% if (surat.catatan) { %>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--gray-100);">
+          <div style="font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--gray-400);margin-bottom:6px;">Catatan / Disposisi</div>
+          <p style="font-size:13.5px;color:var(--gray-700);line-height:1.7;"><%= surat.catatan %></p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- File lampiran -->
+    <% if (surat.file) { %>
+    <div class="compose-card">
+      <div class="compose-card-header">
+        <span class="compose-card-title">Lampiran Scan Surat</span>
+      </div>
+      <div style="padding:16px 20px;">
+        <div class="sm-file-row">
+          <div class="sm-file-icon">
+            <% if (surat.file.mimetype === 'application/pdf') { %>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 2h7l4 4v12H4V2h1z" stroke="var(--red-500)" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 2v4h4" stroke="var(--red-500)" stroke-width="1.5" stroke-linejoin="round"/><text x="5" y="15" font-size="5" fill="var(--red-500)" font-weight="bold">PDF</text></svg>
+            <% } else { %>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="16" height="16" rx="2" stroke="var(--brand-500)" stroke-width="1.5"/><circle cx="7" cy="8" r="1.5" stroke="var(--brand-500)" stroke-width="1.5"/><path d="M2 14l4-4 3 3 3-3 4 4" stroke="var(--brand-500)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <% } %>
+          </div>
+          <div class="sm-file-info">
+            <div class="sm-file-name"><%= surat.file.originalName %></div>
+            <div class="sm-file-size"><%= Math.round(surat.file.size/1024) %> KB</div>
+          </div>
+          <a href="<%= surat.file.path %>" target="_blank" class="btn btn-secondary" style="padding:7px 14px;font-size:13px;">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 9l4 4 4-4M3 17h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Unduh / Lihat
+          </a>
+        </div>
+
+        <% if (surat.file.mimetype && surat.file.mimetype.startsWith('image/')) { %>
+        <div style="margin-top:14px;border:1px solid var(--gray-200);border-radius:var(--radius-md);overflow:hidden;">
+          <img src="<%= surat.file.path %>" style="width:100%;display:block;" alt="Scan surat">
+        </div>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- Sidebar -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="compose-card">
+      <div class="compose-card-header">
+        <span class="compose-card-title">Ubah Status</span>
+      </div>
+      <div class="compose-form">
+        <div class="form-group">
+          <label class="form-label">Status Saat Ini</label>
+          <div style="margin-bottom:10px;">
+            <span class="sm-status-badge <%= stClass[surat.status] %>" style="font-size:13px;padding:5px 14px;">
+              <%= stLabel[surat.status] %>
+            </span>
+          </div>
+          <div class="select-wrap">
+            <select id="newStatus" class="form-control form-select">
+              <% ['baru','dibaca','ditindaklanjuti','selesai'].filter(s => s !== surat.status).forEach(s => { %>
+              <option value="<%= s %>"><%= stLabel[s] %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="updateStatus()">Simpan Status</button>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-title">Ringkasan</div>
+      <div class="info-item">
+        <span class="info-key">Klasifikasi</span>
+        <span class="info-val"><span class="mail-tag <%= tagClass[surat.klasifikasi] %>"><%= surat.klasifikasi %></span></span>
+      </div>
+      <div class="info-item" style="border-bottom:none;">
+        <span class="info-key">Ada Lampiran</span>
+        <span class="info-val"><%= surat.file ? 'Ya' : 'Tidak' %></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="admin-toast" id="smToast"></div>
+
+<script>
+function showToast(msg, ok) {
+  const t = document.getElementById('smToast');
+  t.textContent = msg;
+  t.className = 'admin-toast admin-toast-' + (ok ? 'success' : 'error') + ' admin-toast-show';
+  setTimeout(() => t.className = 'admin-toast', 3000);
+}
+async function updateStatus() {
+  const status = document.getElementById('newStatus').value;
+  const res  = await fetch('/surat-masuk/<%= surat._id %>/status', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  });
+  const data = await res.json();
+  if (data.ok) { showToast('Status diperbarui.', true); setTimeout(() => location.reload(), 1000); }
+  else showToast('Gagal mengubah status.', false);
+}
+async function deleteSurat() {
+  if (!confirm('Hapus catatan surat masuk ini?')) return;
+  const res  = await fetch('/surat-masuk/<%= surat._id %>', { method: 'DELETE' });
+  const data = await res.json();
+  if (data.ok) window.location.href = '/surat-masuk';
+  else showToast('Gagal menghapus.', false);
+}
+</script>
+
+<%- include('./partials/footer') %>

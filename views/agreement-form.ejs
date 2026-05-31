@@ -2,7 +2,7 @@
 
 <div class="page-header">
   <div class="page-title-group">
-    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> › <a href="/agreements">Dokumen</a> › Buat Baru</div>
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / <a href="/agreements">Dokumen</a> / Buat Baru</div>
     <h1 class="page-title">Buat Dokumen Baru</h1>
     <p class="page-subtitle">Nomor akan digenerate otomatis sesuai jenis & urutan</p>
   </div>
@@ -153,7 +153,7 @@ function updatePreview() {
   const type = document.querySelector('input[name="type"]:checked')?.value;
   const el = document.getElementById('nomorPreview');
   if (!type) { el.textContent = 'Pilih jenis dokumen terlebih dahulu'; el.className = 'ag-nomor-preview'; return; }
-  el.textContent = `${type}/NNN/INSPIRA/${BULAN}/${TAHUN}  ← nomor urut otomatis`;
+  el.textContent = `${type}/NNN/INSPIRA/${BULAN}/${TAHUN}  (nomor urut otomatis)`;
   el.className = 'ag-nomor-preview ag-nomor-preview-active';
 }
 // init if editing

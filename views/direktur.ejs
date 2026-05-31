@@ -2,7 +2,7 @@
 
 <div class="page-header">
   <div class="page-title-group">
-    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> › Ringkasan Organisasi</div>
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Ringkasan Organisasi</div>
     <h1 class="page-title">Ringkasan Organisasi</h1>
     <p class="page-subtitle">Pantau sirkulasi surat dinas di seluruh organisasi</p>
   </div>
@@ -54,7 +54,7 @@
   <div class="mail-item" data-tag="<%= (m.tag || 'normal').toLowerCase() %>">
     <div class="mail-avatar <%= avColor %>"><%= initials %></div>
     <div class="mail-body">
-      <div class="mail-from">Dari: <%= m.fromName %> &rarr; <%= m.toNames %></div>
+      <div class="mail-from">Dari: <%= m.fromName %> ke <%= m.toNames %></div>
       <div class="mail-subject"><%= m.subject %></div>
       <% if (m.berkas) { %><div class="mail-berkas"><%= m.berkas %></div><% } %>
     </div>
