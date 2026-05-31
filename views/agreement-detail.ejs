@@ -1,0 +1,237 @@
+<%- include('./partials/header') %>
+
+<%
+const statusColor = { draft:'tag-draft', review:'tag-penting', aktif:'tag-info', berakhir:'tag-normal', dibatalkan:'tag-urgent' };
+const typeColor   = { MOU:'ag-mou', PKS:'ag-pks', SPK:'ag-spk', KONTRAK:'ag-kontrak' };
+const canChangeStatus = (user.role === 'admin' || user.role === 'direktur' ||
+                         doc.createdBy.userId.toString() === user._id.toString());
+%>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> › <a href="/agreements">Dokumen</a> › <%= doc.type %></div>
+    <h1 class="page-title"><%= doc.nomor %></h1>
+    <p class="page-subtitle"><%= doc.judul %></p>
+  </div>
+  <div class="page-actions">
+    <span class="mail-tag <%= statusColor[doc.status] || 'tag-normal' %>" style="font-size:13px;padding:5px 14px;">
+      <%= doc.status.charAt(0).toUpperCase() + doc.status.slice(1) %>
+    </span>
+    <% if (user.role === 'admin') { %>
+    <button class="btn btn-secondary" style="color:var(--red-500);" onclick="deleteDoc()">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Hapus
+    </button>
+    <% } %>
+  </div>
+</div>
+
+<div class="ag-detail-layout">
+
+  <!-- Main info -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <div class="compose-card">
+      <div class="compose-card-header">
+        <span class="compose-card-title">Informasi Dokumen</span>
+        <div class="ag-type-badge <%= typeColor[doc.type] %>" style="font-size:12px;padding:4px 12px;"><%= doc.type %></div>
+      </div>
+      <div style="padding:20px;">
+        <div class="ag-detail-grid">
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Nomor Dokumen</span>
+            <span class="ag-detail-val ag-nomor-big"><%= doc.nomor %></span>
+          </div>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Judul / Perihal</span>
+            <span class="ag-detail-val"><%= doc.judul %></span>
+          </div>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Pihak Pertama</span>
+            <span class="ag-detail-val"><%= doc.pihakPertama || '-' %></span>
+          </div>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Pihak Kedua</span>
+            <span class="ag-detail-val"><%= doc.pihakKedua || '-' %></span>
+          </div>
+          <% if (doc.nilaiKontrak) { %>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Nilai Kontrak</span>
+            <span class="ag-detail-val" style="font-weight:600;color:var(--green-600);">
+              <%= formatRupiah(doc.nilaiKontrak) %>
+            </span>
+          </div>
+          <% } %>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Tanggal Mulai</span>
+            <span class="ag-detail-val">
+              <%= doc.tanggalMulai ? new Date(doc.tanggalMulai).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) : '—' %>
+            </span>
+          </div>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Tanggal Berakhir</span>
+            <span class="ag-detail-val">
+              <% if (doc.tanggalBerakhir) {
+                const now = new Date(); const end = new Date(doc.tanggalBerakhir);
+                const diff = Math.ceil((end - now) / (1000*60*60*24));
+              %>
+              <%= end.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) %>
+              <% if (doc.status === 'aktif') { %>
+                <% if (diff < 0) { %>
+                  <span style="color:var(--red-500);font-size:12px;font-weight:600;"> (Sudah berakhir)</span>
+                <% } else if (diff <= 30) { %>
+                  <span style="color:var(--amber-600);font-size:12px;font-weight:600;"> (<%= diff %> hari lagi)</span>
+                <% } else { %>
+                  <span style="color:var(--gray-400);font-size:12px;"> (<%= diff %> hari lagi)</span>
+                <% } %>
+              <% } %>
+              <% } else { %>—<% } %>
+            </span>
+          </div>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Dibuat oleh</span>
+            <span class="ag-detail-val"><%= doc.createdBy.name %> (<%= doc.createdBy.role %>)</span>
+          </div>
+          <div class="ag-detail-row">
+            <span class="ag-detail-key">Tanggal Buat</span>
+            <span class="ag-detail-val"><%= new Date(doc.createdAt).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) %></span>
+          </div>
+        </div>
+
+        <% if (doc.deskripsi) { %>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--gray-100);">
+          <div style="font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--gray-400);margin-bottom:6px;">Deskripsi / Ruang Lingkup</div>
+          <p style="font-size:13.5px;color:var(--gray-700);line-height:1.7;"><%= doc.deskripsi %></p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Riwayat Status -->
+    <div class="compose-card">
+      <div class="compose-card-header">
+        <span class="compose-card-title">Riwayat Status</span>
+      </div>
+      <div style="padding:16px 20px;">
+        <div class="ag-timeline">
+          <% doc.riwayat.slice().reverse().forEach(function(r, i) { %>
+          <div class="ag-timeline-item <%= i === 0 ? 'ag-timeline-latest' : '' %>">
+            <div class="ag-timeline-dot"></div>
+            <div class="ag-timeline-content">
+              <div class="ag-timeline-status">
+                <span class="mail-tag <%= statusColor[r.status] || 'tag-normal' %>">
+                  <%= r.status.charAt(0).toUpperCase() + r.status.slice(1) %>
+                </span>
+                <span style="font-size:12px;color:var(--gray-400);">oleh <%= r.oleh %></span>
+              </div>
+              <% if (r.catatan) { %>
+              <div style="font-size:13px;color:var(--gray-600);margin-top:3px;"><%= r.catatan %></div>
+              <% } %>
+              <div style="font-size:11.5px;color:var(--gray-400);margin-top:2px;">
+                <%= new Date(r.waktu).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) %>
+                <%= new Date(r.waktu).toLocaleTimeString('id-ID') %>
+              </div>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sidebar: Status change -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <% if (canChangeStatus) { %>
+    <div class="compose-card">
+      <div class="compose-card-header">
+        <span class="compose-card-title">Ubah Status</span>
+      </div>
+      <div class="compose-form">
+        <div class="form-group">
+          <label class="form-label">Status Baru</label>
+          <div class="select-wrap">
+            <select id="newStatus" class="form-control form-select">
+              <% ['draft','review','aktif','berakhir','dibatalkan']
+                .filter(s => s !== doc.status)
+                .forEach(s => { %>
+              <option value="<%= s %>"><%= s.charAt(0).toUpperCase() + s.slice(1) %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Catatan</label>
+          <textarea id="statusCatatan" class="form-control textarea" rows="2" placeholder="Alasan perubahan status (opsional)"></textarea>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="changeStatus()">
+          Simpan Perubahan Status
+        </button>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="info-card">
+      <div class="info-card-title">Info Dokumen</div>
+      <div class="info-item">
+        <span class="info-key">Jenis</span>
+        <span class="info-val"><%= doc.type %></span>
+      </div>
+      <div class="info-item">
+        <span class="info-key">Urutan ke-</span>
+        <span class="info-val">#<%= doc.urutan %> / <%= doc.tahun %></span>
+      </div>
+      <div class="info-item">
+        <span class="info-key">Bulan Terbit</span>
+        <span class="info-val">
+          <% const bNames = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']; %>
+          <%= bNames[doc.bulan] %> <%= doc.tahun %>
+        </span>
+      </div>
+      <div class="info-item" style="border-bottom:none;">
+        <span class="info-key">Versi Nomor</span>
+        <span class="info-val" style="font-family:var(--mono);font-size:11px;"><%= doc.nomor %></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="admin-toast" id="agToast"></div>
+
+<script>
+function showToast(msg, ok) {
+  const t = document.getElementById('agToast');
+  t.textContent = msg;
+  t.className = 'admin-toast admin-toast-' + (ok ? 'success' : 'error') + ' admin-toast-show';
+  setTimeout(() => t.className = 'admin-toast', 3500);
+}
+
+async function changeStatus() {
+  const status  = document.getElementById('newStatus').value;
+  const catatan = document.getElementById('statusCatatan').value;
+  try {
+    const res  = await fetch('/agreements/<%= doc._id %>/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, catatan })
+    });
+    const data = await res.json();
+    if (data.ok) { showToast('Status berhasil diubah.', true); setTimeout(() => location.reload(), 1200); }
+    else showToast(data.message || 'Gagal mengubah status.', false);
+  } catch (e) {
+    showToast('Terjadi kesalahan.', false);
+  }
+}
+
+async function deleteDoc() {
+  if (!confirm('Hapus dokumen ini permanen? Nomor tidak dapat digunakan ulang.')) return;
+  const res  = await fetch('/agreements/<%= doc._id %>', { method: 'DELETE' });
+  const data = await res.json();
+  if (data.ok) window.location.href = '/agreements';
+  else showToast('Gagal menghapus.', false);
+}
+</script>
+
+<%- include('./partials/footer') %>

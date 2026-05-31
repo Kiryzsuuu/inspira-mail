@@ -17,6 +17,8 @@ const ActivityLog = require('./models/ActivityLog');
 const ShortUrl = require('./models/ShortUrl');
 const Task = require('./models/Task');
 const Signature = require('./models/Signature');
+const Agreement = require('./models/Agreement');
+const DocCounter = require('./models/DocCounter');
 const QRCode = require('qrcode');
 
 const app = express();
@@ -939,6 +941,165 @@ app.get('/verify/:token', async (req, res) => {
     });
   } catch (err) {
     res.render('verify', { title: 'Verifikasi Tanda Tangan', valid: false, sig: null, scanTime: new Date() });
+  }
+});
+
+// ── AGREEMENT (MOU / PKS / SPK / KONTRAK) ──
+
+const ROMAN = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+const ORG_CODE = process.env.ORG_CODE || 'INSPIRA';
+
+function buildNomor(type, seq, bulan, tahun) {
+  const pad = String(seq).padStart(3, '0');
+  return `${type}/${pad}/${ORG_CODE}/${ROMAN[bulan]}/${tahun}`;
+}
+
+function formatRupiah(n) {
+  if (!n) return '-';
+  return 'Rp ' + Number(n).toLocaleString('id-ID');
+}
+
+app.get('/agreements', requireAuth, async (req, res) => {
+  try {
+    const { type, status, q } = req.query;
+    const filter = {};
+    if (type)   filter.type   = type;
+    if (status) filter.status = status;
+    if (q)      filter.judul  = { $regex: q, $options: 'i' };
+
+    const [docs, counts] = await Promise.all([
+      Agreement.find(filter).sort({ createdAt: -1 }),
+      getMailCounts(req.user._id)
+    ]);
+
+    const stats = {
+      total:    await Agreement.countDocuments(),
+      aktif:    await Agreement.countDocuments({ status: 'aktif' }),
+      draft:    await Agreement.countDocuments({ status: 'draft' }),
+      berakhir: await Agreement.countDocuments({ status: 'berakhir' })
+    };
+
+    res.render('agreements', {
+      active: 'agreements', title: 'Dokumen & Penomoran',
+      docs, stats, filter: { type, status, q },
+      formatRupiah, ROMAN,
+      ...counts
+    });
+  } catch (err) {
+    console.error(err);
+    res.redirect('/inbox');
+  }
+});
+
+app.get('/agreements/new', requireAuth, async (req, res) => {
+  const counts = await getMailCounts(req.user._id);
+  res.render('agreement-form', {
+    active: 'agreements', title: 'Buat Dokumen Baru',
+    doc: null, error: null, ...counts
+  });
+});
+
+app.post('/agreements/new', requireAuth, async (req, res) => {
+  const counts = await getMailCounts(req.user._id);
+  const fail = (msg) => res.render('agreement-form', {
+    active: 'agreements', title: 'Buat Dokumen Baru',
+    doc: req.body, error: msg, ...counts
+  });
+
+  try {
+    const { type, judul, pihakPertama, pihakKedua, nilaiKontrak,
+            tanggalMulai, tanggalBerakhir, deskripsi } = req.body;
+
+    if (!type || !judul?.trim()) return fail('Jenis dokumen dan judul wajib diisi.');
+    if (!['MOU','PKS','SPK','KONTRAK'].includes(type)) return fail('Jenis dokumen tidak valid.');
+
+    const now   = new Date();
+    const tahun = now.getFullYear();
+    const bulan = now.getMonth() + 1;
+
+    const seq   = await DocCounter.nextSeq(type, tahun);
+    const nomor = buildNomor(type, seq, bulan, tahun);
+
+    const agreement = await Agreement.create({
+      type, nomor, urutan: seq, tahun, bulan,
+      judul: judul.trim(),
+      pihakPertama: pihakPertama?.trim() || ORG_CODE,
+      pihakKedua:   pihakKedua?.trim()   || '',
+      nilaiKontrak: nilaiKontrak ? parseFloat(nilaiKontrak) : null,
+      tanggalMulai:   tanggalMulai   ? new Date(tanggalMulai)   : null,
+      tanggalBerakhir: tanggalBerakhir ? new Date(tanggalBerakhir) : null,
+      deskripsi: deskripsi?.trim() || '',
+      status: 'draft',
+      createdBy: {
+        userId: req.user._id,
+        name:   req.user.name,
+        email:  req.user.email,
+        role:   req.user.role
+      },
+      riwayat: [{ status: 'draft', catatan: 'Dokumen dibuat', oleh: req.user.name }]
+    });
+
+    await log(req, 'system', 'system',
+      `Dokumen ${type} dibuat: ${nomor} — ${judul}`,
+      { agreementId: agreement._id, nomor }
+    );
+
+    res.redirect('/agreements/' + agreement._id);
+  } catch (err) {
+    console.error(err);
+    fail('Terjadi kesalahan, coba lagi.');
+  }
+});
+
+app.get('/agreements/:id', requireAuth, async (req, res) => {
+  try {
+    const doc = await Agreement.findById(req.params.id);
+    if (!doc) return res.redirect('/agreements');
+    const counts = await getMailCounts(req.user._id);
+    res.render('agreement-detail', {
+      active: 'agreements', title: doc.nomor,
+      doc, ROMAN, formatRupiah, ...counts
+    });
+  } catch (err) {
+    res.redirect('/agreements');
+  }
+});
+
+app.post('/agreements/:id/status', requireAuth, async (req, res) => {
+  try {
+    const { status, catatan } = req.body;
+    const valid = ['draft','review','aktif','berakhir','dibatalkan'];
+    if (!valid.includes(status)) return res.json({ ok: false, message: 'Status tidak valid.' });
+
+    const doc = await Agreement.findById(req.params.id);
+    if (!doc) return res.json({ ok: false, message: 'Dokumen tidak ditemukan.' });
+
+    // Only direktur/admin can move to aktif
+    if (status === 'aktif' && !['direktur','admin'].includes(req.user.role)) {
+      return res.json({ ok: false, message: 'Hanya Direktur / Admin yang dapat mengaktifkan dokumen.' });
+    }
+
+    doc.status = status;
+    doc.riwayat.push({ status, catatan: catatan || '', oleh: req.user.name });
+    await doc.save();
+
+    await log(req, 'system', 'system',
+      `Status dokumen ${doc.nomor} diubah menjadi "${status}" oleh ${req.user.name}`,
+      { agreementId: doc._id, nomor: doc.nomor, status }
+    );
+
+    res.json({ ok: true, status });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
+app.delete('/agreements/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await Agreement.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.json({ ok: false });
   }
 });
 

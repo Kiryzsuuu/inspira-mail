@@ -1,0 +1,163 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> › <a href="/agreements">Dokumen</a> › Buat Baru</div>
+    <h1 class="page-title">Buat Dokumen Baru</h1>
+    <p class="page-subtitle">Nomor akan digenerate otomatis sesuai jenis & urutan</p>
+  </div>
+</div>
+
+<% if (error) { %>
+<div class="flash-msg flash-error">
+  <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  <%= error %>
+</div>
+<% } %>
+
+<div class="feature-layout">
+  <form action="/agreements/new" method="POST" class="compose-card">
+    <div class="compose-card-header">
+      <span class="compose-card-title">Detail Dokumen</span>
+    </div>
+    <div class="compose-form">
+
+      <!-- Type selector -->
+      <div class="form-group">
+        <label class="form-label">Jenis Dokumen <span class="req">*</span></label>
+        <div class="ag-type-grid">
+          <% [
+            { key:'MOU', label:'MOU', sub:'Memorandum of Understanding' },
+            { key:'PKS', label:'PKS', sub:'Perjanjian Kerja Sama' },
+            { key:'SPK', label:'SPK', sub:'Surat Perintah Kerja' },
+            { key:'KONTRAK', label:'Kontrak', sub:'Perjanjian Kontrak Proyek' }
+          ].forEach(t => { %>
+          <label class="ag-type-option">
+            <input type="radio" name="type" value="<%= t.key %>"
+              <%= (doc && doc.type === t.key) ? 'checked' : '' %>
+              onchange="updatePreview()" required>
+            <div class="ag-type-card ag-<%= t.key.toLowerCase() %>-card">
+              <div class="ag-type-key"><%= t.label %></div>
+              <div class="ag-type-sub"><%= t.sub %></div>
+            </div>
+          </label>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Nomor preview -->
+      <div class="form-group">
+        <label class="form-label">Nomor Dokumen (Otomatis)</label>
+        <div class="ag-nomor-preview" id="nomorPreview">
+          Pilih jenis dokumen terlebih dahulu
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Judul / Perihal <span class="req">*</span></label>
+        <input type="text" name="judul" class="form-control"
+          value="<%= doc ? (doc.judul||'') : '' %>"
+          placeholder="Contoh: Kerja Sama Pengelolaan Sistem Informasi" required>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Pihak Pertama (Internal)</label>
+          <input type="text" name="pihakPertama" class="form-control"
+            value="<%= doc ? (doc.pihakPertama||'') : 'Inspira Tekno' %>"
+            placeholder="Nama instansi / organisasi Anda">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pihak Kedua (External)</label>
+          <input type="text" name="pihakKedua" class="form-control"
+            value="<%= doc ? (doc.pihakKedua||'') : '' %>"
+            placeholder="Nama mitra / vendor / instansi luar">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Nilai Kontrak (Rp)</label>
+          <input type="number" name="nilaiKontrak" class="form-control"
+            value="<%= doc ? (doc.nilaiKontrak||'') : '' %>"
+            placeholder="0" min="0" step="1000">
+          <small class="form-hint">Kosongkan jika tidak ada nilai</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tanggal Mulai</label>
+          <input type="date" name="tanggalMulai" class="form-control"
+            value="<%= doc && doc.tanggalMulai ? doc.tanggalMulai.substring(0,10) : '' %>">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tanggal Berakhir</label>
+          <input type="date" name="tanggalBerakhir" class="form-control"
+            value="<%= doc && doc.tanggalBerakhir ? doc.tanggalBerakhir.substring(0,10) : '' %>">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Deskripsi / Ruang Lingkup</label>
+        <textarea name="deskripsi" class="form-control textarea" rows="4"
+          placeholder="Uraikan ruang lingkup, tujuan, atau klausul penting dari dokumen ini..."><%= doc ? (doc.deskripsi||'') : '' %></textarea>
+      </div>
+
+      <div class="compose-actions">
+        <a href="/agreements" class="btn btn-secondary">Batal</a>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Buat & Generate Nomor
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Right info -->
+  <div class="compose-sidebar">
+    <div class="info-card">
+      <div class="info-card-title">Format Penomoran</div>
+      <div style="font-size:13px;color:var(--gray-600);line-height:1.9;">
+        <code style="background:var(--gray-100);padding:2px 6px;border-radius:4px;font-size:12px;display:block;margin-bottom:8px;">
+          TYPE/NNN/ORG/BULAN/TAHUN
+        </code>
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;">
+          <div><span style="font-weight:600;color:var(--brand-700);">MOU</span>/001/INSPIRA/VI/2026</div>
+          <div><span style="font-weight:600;color:var(--green-600);">PKS</span>/003/INSPIRA/VI/2026</div>
+          <div><span style="font-weight:600;color:var(--amber-600);">SPK</span>/001/INSPIRA/VI/2026</div>
+          <div><span style="font-weight:600;color:var(--red-500);">KONTRAK</span>/002/INSPIRA/VI/2026</div>
+        </div>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-title">Alur Status</div>
+      <div class="digsig-steps">
+        <div class="digsig-step"><div class="digsig-step-num">1</div><div class="digsig-step-text"><strong>Draft</strong> — Dokumen dibuat, belum final</div></div>
+        <div class="digsig-step"><div class="digsig-step-num">2</div><div class="digsig-step-text"><strong>Review</strong> — Sedang diperiksa Direktur</div></div>
+        <div class="digsig-step"><div class="digsig-step-num">3</div><div class="digsig-step-text"><strong>Aktif</strong> — Ditandatangani, berlaku</div></div>
+        <div class="digsig-step"><div class="digsig-step-num">4</div><div class="digsig-step-text"><strong>Berakhir</strong> — Masa berlaku habis</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+<%
+const now = new Date();
+const bulanRoman = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+const bln = bulanRoman[now.getMonth() + 1];
+const thn = now.getFullYear();
+%>
+const BULAN = '<%= bln %>';
+const TAHUN = '<%= thn %>';
+
+function updatePreview() {
+  const type = document.querySelector('input[name="type"]:checked')?.value;
+  const el = document.getElementById('nomorPreview');
+  if (!type) { el.textContent = 'Pilih jenis dokumen terlebih dahulu'; el.className = 'ag-nomor-preview'; return; }
+  el.textContent = `${type}/NNN/INSPIRA/${BULAN}/${TAHUN}  ← nomor urut otomatis`;
+  el.className = 'ag-nomor-preview ag-nomor-preview-active';
+}
+// init if editing
+updatePreview();
+</script>
+
+<%- include('./partials/footer') %>

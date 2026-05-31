@@ -49,6 +49,10 @@
         <% if (draftCount > 0) { %><span class="badge badge-muted"><%= draftCount %></span><% } %>
       </a>
       <div class="nav-divider"></div>
+      <a href="/agreements" class="nav-item <%= active === 'agreements' ? 'active' : '' %>">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M6 2h8l4 4v12H2V2h4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 2v4h4M6 9h8M6 13h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        MOU / PKS / Kontrak
+      </a>
       <a href="/digsig" class="nav-item <%= active === 'digsig' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 3l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Digsig
