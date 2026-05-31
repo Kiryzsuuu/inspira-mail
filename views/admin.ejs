@@ -1,0 +1,417 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> › Admin</div>
+    <h1 class="page-title">Admin Dashboard</h1>
+    <p class="page-subtitle">Kelola pengguna, pantau statistik, dan lacak aktivitas sistem</p>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-bar" style="margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-icon blue">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="8" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 18c0-3.314 2.686-6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="15" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M9 18c0-3.314 2.686-6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div>
+      <div class="stat-label">Total Pengguna</div>
+      <div class="stat-value"><%= stats.totalUsers %></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 4h14a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div>
+      <div class="stat-label">Total Surat</div>
+      <div class="stat-value"><%= stats.totalEmails %></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div>
+      <div class="stat-label">Terkirim</div>
+      <div class="stat-value"><%= stats.totalSent %></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 4h12M4 8h8M4 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div>
+      <div class="stat-label">Draf</div>
+      <div class="stat-value"><%= stats.totalDraft %></div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab navigation -->
+<div class="admin-tabs">
+  <button class="admin-tab active" onclick="showTab(this,'tabUsers')" data-tab="users">
+    <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><circle cx="8" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 18c0-3.314 2.686-6 6-6s6 2.686 6 6M14 3h4v4M14 5h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Manajemen Pengguna (<%= users.length %>)
+  </button>
+  <button class="admin-tab" onclick="showTab(this,'tabLogs')" data-tab="logs">
+    <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M4 4h12M4 8h12M4 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="15" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+    Log Aktivitas (<%= logs.length %><%= logs.length >= 50 ? '+' : '' %>)
+  </button>
+</div>
+
+<!-- Tab: Users -->
+<div id="tabUsers" class="admin-tab-panel">
+  <div class="mail-list-wrap">
+    <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
+      <span class="mail-list-title">Daftar Pengguna</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="text" class="search-input" placeholder="Cari pengguna..." style="max-width:200px;padding:7px 12px;" oninput="filterUsers(this.value)">
+        <select class="admin-role-select" onchange="filterByRole(this.value)" style="padding:7px 28px 7px 10px;">
+          <option value="">Semua Role</option>
+          <option value="admin">Admin</option>
+          <option value="direktur">Direktur</option>
+          <option value="user">Pengguna</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="usersTable">
+        <thead>
+          <tr>
+            <th>Pengguna</th>
+            <th>Instansi</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Login Terakhir</th>
+            <th>Bergabung</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% users.forEach(function(u) {
+            const initials = u.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+            const isCurrentUser = u._id.toString() === user._id.toString();
+            const roleLabel = { admin: 'Administrator', direktur: 'Direktur', user: 'Pengguna' }[u.role] || 'Pengguna';
+          %>
+          <tr class="admin-user-row" data-name="<%= u.name.toLowerCase() %>" data-email="<%= u.email.toLowerCase() %>" data-role="<%= u.role %>">
+            <td>
+              <div class="admin-user-cell">
+                <% if (u.avatar) { %>
+                  <img src="<%= u.avatar %>" class="admin-user-avatar admin-user-avatar-img" alt="">
+                <% } else { %>
+                  <div class="admin-user-avatar"><%= initials %></div>
+                <% } %>
+                <div>
+                  <div class="admin-user-name">
+                    <%= u.name %>
+                    <% if (isCurrentUser) { %><span class="admin-you-tag">Anda</span><% } %>
+                  </div>
+                  <div class="admin-user-email"><%= u.email %></div>
+                </div>
+              </div>
+            </td>
+            <td><span class="admin-org"><%= u.organization || '-' %></span></td>
+            <td>
+              <% if (!isCurrentUser) { %>
+              <select class="admin-role-select" onchange="changeRole('<%= u._id %>', this.value, this)">
+                <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>Pengguna</option>
+                <option value="direktur" <%= u.role === 'direktur' ? 'selected' : '' %>>Direktur</option>
+                <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Administrator</option>
+              </select>
+              <% } else { %>
+              <span class="profile-badge profile-badge-<%= u.role %>"><%= roleLabel %></span>
+              <% } %>
+            </td>
+            <td>
+              <span class="admin-status-badge admin-status-<%= u.isActive ? 'active' : 'inactive' %>">
+                <span class="admin-status-dot"></span>
+                <%= u.isActive ? 'Aktif' : 'Nonaktif' %>
+              </span>
+            </td>
+            <td class="admin-date">
+              <% if (u.lastLogin) { %>
+                <%= new Date(u.lastLogin).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+              <% } else { %>
+                <span style="color:var(--gray-300);">Belum pernah</span>
+              <% } %>
+            </td>
+            <td class="admin-date">
+              <%= new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+            </td>
+            <td>
+              <div class="admin-actions">
+                <% if (!isCurrentUser) { %>
+                <button class="admin-btn admin-btn-toggle" onclick="toggleUser('<%= u._id %>', this)" data-active="<%= u.isActive %>" title="<%= u.isActive ? 'Nonaktifkan' : 'Aktifkan' %>">
+                  <% if (u.isActive) { %>
+                    <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M7 10h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    Nonaktifkan
+                  <% } else { %>
+                    <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Aktifkan
+                  <% } %>
+                </button>
+                <button class="admin-btn admin-btn-delete" onclick="deleteUser('<%= u._id %>','<%= u.name.replace(/'/g,"\\'") %>',this)">
+                  <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                  Hapus
+                </button>
+                <% } else { %>
+                <span class="admin-self-label">—</span>
+                <% } %>
+              </div>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% if (users.length === 0) { %>
+      <div class="empty-state"><p>Belum ada pengguna terdaftar.</p></div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Role hierarchy info -->
+  <div class="role-hierarchy-card">
+    <div class="role-hierarchy-title">Hierarki Role</div>
+    <div class="role-hierarchy-items">
+      <div class="role-hi-item role-hi-admin">
+        <div class="role-hi-icon">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.4 4.8 5.3.8-3.85 3.75.91 5.3L10 14.25 5.2 16.65l.91-5.3L2.26 7.6l5.3-.8L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="role-hi-name">Administrator (Admin)</div>
+          <div class="role-hi-desc">Akses penuh — kelola pengguna, lihat semua log, ubah role, hapus data</div>
+        </div>
+      </div>
+      <div class="role-hi-separator"></div>
+      <div class="role-hi-item role-hi-direktur">
+        <div class="role-hi-icon">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="role-hi-name">Direktur</div>
+          <div class="role-hi-desc">Lihat ringkasan organisasi, semua surat yang beredar, dan laporan</div>
+        </div>
+      </div>
+      <div class="role-hi-separator"></div>
+      <div class="role-hi-item role-hi-user">
+        <div class="role-hi-icon">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="role-hi-name">Pengguna (User)</div>
+          <div class="role-hi-desc">Kirim, terima, dan kelola surat dinas milik sendiri</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Logs -->
+<div id="tabLogs" class="admin-tab-panel" style="display:none;">
+  <div class="mail-list-wrap">
+    <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
+      <span class="mail-list-title">Log Aktivitas Terbaru</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select class="admin-role-select" id="logCategoryFilter" onchange="filterLogs()" style="padding:7px 28px 7px 10px;">
+          <option value="">Semua Kategori</option>
+          <option value="auth">Autentikasi</option>
+          <option value="email">Surat</option>
+          <option value="user_management">Manajemen Pengguna</option>
+          <option value="profile">Profil</option>
+        </select>
+        <select class="admin-role-select" id="logStatusFilter" onchange="filterLogs()" style="padding:7px 28px 7px 10px;">
+          <option value="">Semua Status</option>
+          <option value="success">Berhasil</option>
+          <option value="failed">Gagal</option>
+        </select>
+        <input type="text" id="logSearch" class="search-input" placeholder="Cari log..." style="max-width:200px;padding:7px 12px;" oninput="filterLogs()">
+      </div>
+    </div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="logsTable">
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>Pengguna</th>
+            <th>Aksi</th>
+            <th>Kategori</th>
+            <th>Keterangan</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="logsBody">
+          <% logs.forEach(function(l) {
+            const actionLabels = {
+              login: 'Masuk',
+              logout: 'Keluar',
+              login_failed: 'Login Gagal',
+              register: 'Daftar',
+              password_change: 'Ubah Password',
+              password_reset_request: 'Reset Password',
+              password_reset: 'Password Direset',
+              profile_update: 'Update Profil',
+              avatar_update: 'Update Avatar',
+              email_sent: 'Surat Terkirim',
+              email_draft: 'Simpan Draf',
+              email_read: 'Baca Surat',
+              email_deleted: 'Hapus Surat',
+              user_created: 'Buat User',
+              user_updated: 'Update User',
+              user_deleted: 'Hapus User',
+              user_role_changed: 'Ubah Role',
+              user_toggled: 'Toggle Status',
+              system: 'Sistem'
+            };
+            const catLabels = { auth: 'Auth', email: 'Surat', user_management: 'User', profile: 'Profil', system: 'Sistem' };
+          %>
+          <tr class="log-row" data-category="<%= l.category %>" data-status="<%= l.status %>" data-search="<%= (l.description || '').toLowerCase() %> <%= (l.userName || '').toLowerCase() %> <%= (l.userEmail || '').toLowerCase() %>">
+            <td class="admin-date" style="white-space:nowrap;"><%= l.dateTime %></td>
+            <td>
+              <div style="font-size:13px;font-weight:500;color:var(--gray-800);"><%= l.userName || '-' %></div>
+              <div style="font-size:11.5px;color:var(--gray-400);"><%= l.userEmail || '' %></div>
+              <% if (l.userRole) { %>
+              <span class="profile-badge profile-badge-<%= l.userRole %>" style="font-size:10px;padding:1px 6px;"><%= l.userRole %></span>
+              <% } %>
+            </td>
+            <td><span class="log-action-badge log-action-<%= l.action %>"><%= actionLabels[l.action] || l.action %></span></td>
+            <td><span class="log-cat-badge log-cat-<%= l.category %>"><%= catLabels[l.category] || l.category %></span></td>
+            <td style="font-size:13px;color:var(--gray-600);max-width:300px;"><%= l.description %></td>
+            <td>
+              <span class="log-status-badge log-status-<%= l.status %>">
+                <%= l.status === 'success' ? 'Berhasil' : l.status === 'failed' ? 'Gagal' : 'Peringatan' %>
+              </span>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% if (logs.length === 0) { %>
+      <div class="empty-state"><p>Belum ada log aktivitas.</p></div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="admin-toast" id="adminToast"></div>
+
+<script>
+// Tab switching
+function showTab(btn, panelId) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-panel').forEach(p => p.style.display = 'none');
+  btn.classList.add('active');
+  document.getElementById(panelId).style.display = '';
+}
+
+// Toast
+function showToast(msg, ok) {
+  const t = document.getElementById('adminToast');
+  t.textContent = msg;
+  t.className = 'admin-toast admin-toast-' + (ok ? 'success' : 'error') + ' admin-toast-show';
+  setTimeout(() => t.className = 'admin-toast', 3500);
+}
+
+// Filter users
+function filterUsers(q) {
+  q = q.toLowerCase();
+  applyUserFilters();
+}
+function filterByRole(role) {
+  applyUserFilters();
+}
+function applyUserFilters() {
+  const q = document.querySelector('#tabUsers input[type=text]').value.toLowerCase();
+  const role = document.querySelector('#tabUsers select').value;
+  document.querySelectorAll('.admin-user-row').forEach(row => {
+    const matchQ = !q || (row.dataset.name || '').includes(q) || (row.dataset.email || '').includes(q);
+    const matchRole = !role || row.dataset.role === role;
+    row.style.display = (matchQ && matchRole) ? '' : 'none';
+  });
+}
+
+// Filter logs
+function filterLogs() {
+  const category = document.getElementById('logCategoryFilter').value;
+  const status = document.getElementById('logStatusFilter').value;
+  const q = document.getElementById('logSearch').value.toLowerCase();
+  document.querySelectorAll('.log-row').forEach(row => {
+    const matchCat = !category || row.dataset.category === category;
+    const matchStatus = !status || row.dataset.status === status;
+    const matchQ = !q || (row.dataset.search || '').includes(q);
+    row.style.display = (matchCat && matchStatus && matchQ) ? '' : 'none';
+  });
+}
+
+// Change role
+async function changeRole(id, role, sel) {
+  const prev = sel.options[sel.selectedIndex === 0 ? 1 : 0].value;
+  try {
+    const res = await fetch(`/admin/users/${id}/role`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('Role berhasil diubah.', true);
+      // update row data-role
+      sel.closest('tr').dataset.role = role;
+    } else {
+      sel.value = prev;
+      showToast(data.message || 'Gagal mengubah role.', false);
+    }
+  } catch (e) {
+    sel.value = prev;
+    showToast('Terjadi kesalahan.', false);
+  }
+}
+
+// Toggle user active
+async function toggleUser(id, btn) {
+  try {
+    const res = await fetch(`/admin/users/${id}/toggle`, { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) {
+      const row = btn.closest('tr');
+      const badge = row.querySelector('.admin-status-badge');
+      if (data.isActive) {
+        badge.className = 'admin-status-badge admin-status-active';
+        badge.innerHTML = '<span class="admin-status-dot"></span>Aktif';
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M7 10h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Nonaktifkan`;
+      } else {
+        badge.className = 'admin-status-badge admin-status-inactive';
+        badge.innerHTML = '<span class="admin-status-dot"></span>Nonaktif';
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Aktifkan`;
+      }
+      showToast('Status pengguna diperbarui.', true);
+    } else {
+      showToast(data.message || 'Gagal.', false);
+    }
+  } catch (e) {
+    showToast('Terjadi kesalahan.', false);
+  }
+}
+
+// Delete user
+async function deleteUser(id, name, btn) {
+  if (!confirm(`Hapus pengguna "${name}"? Tindakan ini tidak dapat dibatalkan.`)) return;
+  try {
+    const res = await fetch(`/admin/users/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.ok) {
+      btn.closest('tr').remove();
+      showToast(`Pengguna "${name}" dihapus.`, true);
+    } else {
+      showToast(data.message || 'Gagal menghapus.', false);
+    }
+  } catch (e) {
+    showToast('Terjadi kesalahan.', false);
+  }
+}
+</script>
+
+<%- include('./partials/footer') %>

@@ -1,0 +1,156 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> › Short URL</div>
+    <h1 class="page-title">Short URL</h1>
+    <p class="page-subtitle">Persingkat URL panjang menjadi tautan yang mudah dibagikan</p>
+  </div>
+</div>
+
+<% if (success) { %>
+<div class="flash-msg flash-success">
+  <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <%= success %>
+</div>
+<% } %>
+<% if (error) { %>
+<div class="flash-msg flash-error">
+  <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  <%= error %>
+</div>
+<% } %>
+
+<div class="feature-layout">
+  <!-- Form -->
+  <div class="compose-card">
+    <div class="compose-card-header">
+      <span class="compose-card-title">Buat Short URL Baru</span>
+    </div>
+    <form action="/shorturl" method="POST" class="compose-form">
+      <div class="form-group">
+        <label class="form-label">URL Asli <span class="req">*</span></label>
+        <input type="url" name="originalUrl" class="form-control" placeholder="https://contoh.com/url-yang-sangat-panjang-ini" required autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Judul / Keterangan</label>
+        <input type="text" name="title" class="form-control" placeholder="Deskripsi singkat URL ini (opsional)">
+      </div>
+      <div class="compose-actions">
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Buat Short URL
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Info -->
+  <div class="compose-sidebar">
+    <div class="info-card">
+      <div class="info-card-title">Cara Kerja</div>
+      <ul style="font-size:12.5px;color:var(--gray-600);line-height:1.9;padding-left:16px;">
+        <li>Masukkan URL panjang</li>
+        <li>Sistem otomatis membuat kode pendek</li>
+        <li>Bagikan tautan <code style="font-size:11px;background:var(--gray-100);padding:1px 5px;border-radius:4px;">/s/kode</code></li>
+        <li>Klik terhitung otomatis</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <div class="info-card-title">Statistik</div>
+      <div class="info-item"><span class="info-key">Total URL</span><span class="info-val"><%= urls.length %></span></div>
+      <div class="info-item" style="border-bottom:none;"><span class="info-key">Total Klik</span><span class="info-val"><%= urls.reduce((a,u) => a + u.clicks, 0) %></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- URL List -->
+<div class="mail-list-wrap" style="margin-top:20px;">
+  <div class="mail-list-header">
+    <span class="mail-list-title"><%= urls.length %> Short URL tersimpan</span>
+  </div>
+
+  <% if (urls.length === 0) { %>
+  <div class="empty-state">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M20 28l8-8M16 24l-4 4a8 8 0 0011.3 11.3l4-4M32 24l4-4a8 8 0 00-11.3-11.3l-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <p>Belum ada short URL. Buat yang pertama!</p>
+  </div>
+  <% } %>
+
+  <% urls.forEach(function(u) { %>
+  <div class="url-item" id="url-<%= u._id %>">
+    <div class="url-item-main">
+      <div class="url-item-code">
+        <span class="url-short-code">/s/<%= u.shortCode %></span>
+        <button class="url-copy-btn" onclick="copyUrl('/s/<%= u.shortCode %>')" title="Salin URL">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="8" y="8" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 8V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v5.5A1.5 1.5 0 005 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="url-original">
+        <a href="<%= u.originalUrl %>" target="_blank" rel="noopener" class="url-link"><%= u.title || u.originalUrl %></a>
+        <span class="url-original-text"><%= u.originalUrl.length > 60 ? u.originalUrl.substring(0,60) + '…' : u.originalUrl %></span>
+      </div>
+    </div>
+    <div class="url-item-meta">
+      <span class="url-clicks"><svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v4M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> <%= u.clicks %> klik</span>
+      <span class="admin-status-badge admin-status-<%= u.isActive ? 'active' : 'inactive' %>">
+        <span class="admin-status-dot"></span><%= u.isActive ? 'Aktif' : 'Nonaktif' %>
+      </span>
+      <div class="admin-actions">
+        <button class="admin-btn admin-btn-toggle" onclick="toggleUrl('<%= u._id %>', this)">
+          <%= u.isActive ? 'Nonaktifkan' : 'Aktifkan' %>
+        </button>
+        <button class="admin-btn admin-btn-delete" onclick="deleteUrl('<%= u._id %>')">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <% }); %>
+</div>
+
+<!-- Toast -->
+<div class="admin-toast" id="urlToast"></div>
+
+<script>
+const BASE = window.location.origin;
+
+function showToast(msg, ok) {
+  const t = document.getElementById('urlToast');
+  t.textContent = msg;
+  t.className = 'admin-toast admin-toast-' + (ok ? 'success' : 'error') + ' admin-toast-show';
+  setTimeout(() => t.className = 'admin-toast', 3000);
+}
+
+function copyUrl(path) {
+  navigator.clipboard.writeText(BASE + path).then(() => {
+    showToast('URL berhasil disalin!', true);
+  }).catch(() => {
+    showToast('Gagal menyalin URL.', false);
+  });
+}
+
+async function toggleUrl(id, btn) {
+  const res = await fetch(`/shorturl/${id}/toggle`, { method: 'POST' });
+  const data = await res.json();
+  if (data.ok) {
+    location.reload();
+  } else {
+    showToast('Gagal mengubah status.', false);
+  }
+}
+
+async function deleteUrl(id) {
+  if (!confirm('Hapus short URL ini?')) return;
+  const res = await fetch(`/shorturl/${id}`, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.ok) {
+    document.getElementById('url-' + id)?.remove();
+    showToast('Short URL dihapus.', true);
+  } else {
+    showToast('Gagal menghapus.', false);
+  }
+}
+</script>
+
+<%- include('./partials/footer') %>

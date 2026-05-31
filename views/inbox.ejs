@@ -1,0 +1,76 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/">Dashboard</a> › Kotak Masuk</div>
+    <h1 class="page-title">Kotak Masuk</h1>
+    <p class="page-subtitle"><%= mails.filter(m => !m.read).length %> surat belum dibaca dari <%= mails.length %> total</p>
+  </div>
+  <div class="page-actions">
+    <a href="/compose" class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>Tulis Surat</span>
+    </a>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 4h14a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div><div class="stat-label">Kotak Masuk</div><div class="stat-value"><%= mails.length %></div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div><div class="stat-label">Belum Dibaca</div><div class="stat-value"><%= mails.filter(m => !m.read).length %></div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 3a7 7 0 100 14A7 7 0 0010 3z" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v4M10 7h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div><div class="stat-label">Urgent</div><div class="stat-value"><%= mails.filter(m => m.tag === 'Urgent').length %></div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div><div class="stat-label">Sudah Dibaca</div><div class="stat-value"><%= mails.filter(m => m.read).length %></div></div>
+  </div>
+</div>
+
+<div class="mail-list-wrap">
+  <div class="mail-list-header">
+    <span class="mail-list-title"><%= mails.length %> surat masuk</span>
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterMails(this,'all')">Semua</button>
+      <button class="filter-tab" onclick="filterMails(this,'unread')">Belum Dibaca</button>
+      <button class="filter-tab" onclick="filterMails(this,'penting')">Penting</button>
+    </div>
+  </div>
+
+  <% mails.forEach(function(m) {
+    var initials = m.from.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase();
+    var tagClass = { Penting: 'tag-penting', Urgent: 'tag-urgent', Info: 'tag-info', Normal: 'tag-normal', Draft: 'tag-draft' }[m.tag] || 'tag-normal';
+    var avatarColors = ['av-green','av-teal','av-blue','av-amber','av-purple'];
+    var avColor = avatarColors[m.id % avatarColors.length];
+  %>
+  <a href="#" class="mail-item <%= m.read ? '' : 'unread' %>" data-tag="<%= m.tag.toLowerCase() %>" data-read="<%= m.read %>">
+    <input type="checkbox" class="mail-checkbox" onclick="event.preventDefault(); event.stopPropagation();">
+    <div class="mail-avatar <%= avColor %>"><%= initials %></div>
+    <div class="mail-body">
+      <div class="mail-from"><%= m.from %></div>
+      <div class="mail-subject"><%= m.subject %></div>
+      <div class="mail-berkas"><%= m.berkas %></div>
+    </div>
+    <div class="mail-meta">
+      <span class="mail-date"><%= m.date %></span>
+      <span class="mail-tag <%= tagClass %>"><%= m.tag %></span>
+    </div>
+  </a>
+  <% }); %>
+</div>
+
+<%- include('./partials/footer') %>

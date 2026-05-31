@@ -1,0 +1,246 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/">Dashboard</a> › Tulis Surat</div>
+    <h1 class="page-title">Tulis Surat</h1>
+    <p class="page-subtitle">Buat dan kirimkan surat dinas baru</p>
+  </div>
+</div>
+
+<form action="/compose" method="POST" id="composeForm">
+  <input type="hidden" name="action" id="formAction" value="send">
+  <input type="hidden" name="body" id="bodyHidden">
+
+<div class="compose-layout">
+  <!-- Main form -->
+  <div class="compose-card">
+    <div class="compose-card-header">
+      <span class="compose-card-title">Detail Surat</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="font-size:11.5px;color:var(--gray-400);">Sifat:</span>
+        <span style="font-size:12px;font-weight:500;color:var(--green-600);background:var(--green-50);padding:3px 10px;border-radius:20px;">Biasa / Terbuka</span>
+      </div>
+    </div>
+    <div class="compose-form">
+
+      <div class="form-group">
+        <label class="form-label">Subjek / Perihal <span class="req">*</span></label>
+        <input type="text" name="subject" class="form-control" placeholder="Perihal surat..." required>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Klasifikasi / Berkas</label>
+          <div class="select-wrap">
+            <select name="berkas" class="form-control form-select">
+              <option value="">— Pilih Berkas —</option>
+              <option value="OPS.01.02">OPS.01.02 — On Time Performance</option>
+              <option value="OPS.01.03">OPS.01.03 — Analisis Runway Capacity</option>
+              <option value="OPS.01.04">OPS.01.04 — Pemantauan Delay</option>
+              <option value="OPS.02">OPS.02 — Collaborative Decision Making</option>
+              <option value="OPS.03">OPS.03 — Air Traffic System</option>
+              <option value="OPS.03.02">OPS.03.02 — Pembinaan Penggunaan Peralatan ATS</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tag / Prioritas</label>
+          <div class="select-wrap">
+            <select name="tag" class="form-control form-select">
+              <option value="Normal">Normal</option>
+              <option value="Penting">Penting</option>
+              <option value="Urgent">Urgent</option>
+              <option value="Info">Info</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recipients -->
+      <div class="form-group">
+        <label class="form-label">Tertuju (Penerima)</label>
+        <div class="multi-select-wrap" id="tertujuWrap">
+          <div class="multi-select-input" id="tertujuInput" onclick="toggleDropdown('tertuju')">
+            <span class="multi-placeholder" id="tertujuPlaceholder">Pilih penerima...</span>
+            <div class="selected-tags" id="tertujuTags"></div>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--gray-400);margin-left:auto;"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="multi-dropdown" id="tertujuDropdown">
+            <div style="padding:8px;border-bottom:1px solid var(--gray-100);">
+              <input type="text" class="form-control" placeholder="Cari pengguna..." style="padding:7px 10px;font-size:13px;" oninput="searchDropdownOptions('tertuju', this.value)">
+            </div>
+            <% if (users.length === 0) { %>
+            <div class="dropdown-group-label" style="padding:12px 14px;color:var(--gray-400);">Belum ada pengguna lain terdaftar.</div>
+            <% } else { %>
+            <div class="dropdown-group-label">Pengguna Terdaftar</div>
+            <% users.forEach(function(u) { %>
+            <label class="dropdown-opt" data-search="<%= u.name.toLowerCase() %> <%= u.email.toLowerCase() %>">
+              <input type="checkbox" name="to" value="<%= u._id %>" onchange="toggleUserTag('tertuju', this, '<%= u.name %>')">
+              <div>
+                <div style="font-size:13.5px;color:var(--gray-800);"><%= u.name %></div>
+                <div style="font-size:11.5px;color:var(--gray-400);"><%= u.email %> · <%= u.organization %></div>
+              </div>
+            </label>
+            <% }); %>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- CC -->
+      <div class="form-group">
+        <label class="form-label">Tembusan (CC)</label>
+        <div class="multi-select-wrap" id="tembusanWrap">
+          <div class="multi-select-input" id="tembusanInput" onclick="toggleDropdown('tembusan')">
+            <span class="multi-placeholder" id="tembusanPlaceholder">Pilih tembusan...</span>
+            <div class="selected-tags" id="tembusanTags"></div>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--gray-400);margin-left:auto;"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="multi-dropdown" id="tembusanDropdown">
+            <div style="padding:8px;border-bottom:1px solid var(--gray-100);">
+              <input type="text" class="form-control" placeholder="Cari pengguna..." style="padding:7px 10px;font-size:13px;" oninput="searchDropdownOptions('tembusan', this.value)">
+            </div>
+            <% if (users.length === 0) { %>
+            <div class="dropdown-group-label" style="padding:12px 14px;color:var(--gray-400);">Belum ada pengguna lain terdaftar.</div>
+            <% } else { %>
+            <div class="dropdown-group-label">Pengguna Terdaftar</div>
+            <% users.forEach(function(u) { %>
+            <label class="dropdown-opt" data-search="<%= u.name.toLowerCase() %> <%= u.email.toLowerCase() %>">
+              <input type="checkbox" name="cc" value="<%= u._id %>" onchange="toggleUserTag('tembusan', this, '<%= u.name %>')">
+              <div>
+                <div style="font-size:13.5px;color:var(--gray-800);"><%= u.name %></div>
+                <div style="font-size:11.5px;color:var(--gray-400);"><%= u.email %> · <%= u.organization %></div>
+              </div>
+            </label>
+            <% }); %>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rich text editor -->
+      <div class="form-group">
+        <label class="form-label">Isi Surat</label>
+        <div class="template-row" style="margin-bottom:6px;">
+          <div class="template-links"></div>
+        </div>
+        <div class="editor-toolbar">
+          <button class="toolbar-btn" title="Bold" type="button"><b>B</b></button>
+          <button class="toolbar-btn" title="Italic" type="button"><i>I</i></button>
+          <button class="toolbar-btn" title="Underline" type="button"><u>U</u></button>
+          <button class="toolbar-btn" title="Strikethrough" type="button"><s>S</s></button>
+          <div class="toolbar-sep"></div>
+          <button class="toolbar-btn" title="Align Left" type="button">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3h10M2 6h7M2 9h10M2 12h7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </button>
+          <button class="toolbar-btn" title="Align Center" type="button">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3h10M3.5 6h7M2 9h10M3.5 12h7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </button>
+          <button class="toolbar-btn" title="Align Right" type="button">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3h10M5 6h7M2 9h10M5 12h7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </button>
+          <div class="toolbar-sep"></div>
+          <button class="toolbar-btn" title="List" type="button">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="3" cy="4.5" r="1" fill="currentColor"/><circle cx="3" cy="9.5" r="1" fill="currentColor"/><path d="M5.5 4.5h6.5M5.5 9.5h6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="editor-area" id="editorArea" contenteditable="true" data-placeholder="Tulis isi surat di sini..."></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="compose-actions">
+        <button type="button" class="btn btn-ghost" onclick="submitForm('draft')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h10v10H2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M4 5h6M4 7h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Simpan Draf
+        </button>
+        <button type="submit" class="btn btn-primary" onclick="submitForm('send')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M13 1L6 8M13 1l-4 11-3-5-5-3 12-3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Kirim Surat
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right sidebar -->
+  <div class="compose-sidebar">
+    <div class="info-card">
+      <div class="info-card-title">Info Naskah</div>
+      <div class="info-item"><span class="info-key">Pengirim</span><span class="info-val"><%= user.name.split(' ')[0] %></span></div>
+      <div class="info-item"><span class="info-key">Status</span><span class="info-val" style="color:var(--amber-600);">Konsep</span></div>
+      <div class="info-item"><span class="info-key">Tanggal</span><span class="info-val" id="infoDate"></span></div>
+      <div class="info-item" style="border-bottom:none;"><span class="info-key">Penomoran</span><span class="info-val">Otomatis</span></div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-title">Petunjuk</div>
+      <ul style="font-size:12.5px;color:var(--gray-600);line-height:1.8;padding-left:16px;">
+        <li>Isi semua kolom wajib <span style="color:var(--red-500);">*</span></li>
+        <li>Pilih berkas sesuai klasifikasi</li>
+        <li>Pratinjau sebelum mengirim</li>
+        <li>Simpan draf jika belum selesai</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</form>
+
+<script>
+// Set today's date in sidebar
+const today = new Date();
+const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+document.getElementById('infoDate').textContent = `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+
+// Submit form with correct action
+function submitForm(action) {
+  document.getElementById('formAction').value = action;
+  document.getElementById('bodyHidden').value = document.getElementById('editorArea').innerHTML;
+  document.getElementById('composeForm').submit();
+}
+
+// Search users in dropdown
+function searchDropdownOptions(id, query) {
+  const dropdown = document.getElementById(id + 'Dropdown');
+  const opts = dropdown.querySelectorAll('.dropdown-opt');
+  const q = query.toLowerCase();
+  opts.forEach(opt => {
+    const search = opt.dataset.search || '';
+    opt.style.display = q === '' || search.includes(q) ? '' : 'none';
+  });
+}
+
+// Toggle user tag in multi-select
+function toggleUserTag(id, checkbox, name) {
+  const tagsEl = document.getElementById(id + 'Tags');
+  const placeholder = document.getElementById(id + 'Placeholder');
+  if (checkbox.checked) {
+    const tag = document.createElement('span');
+    tag.className = 'selected-tag';
+    tag.dataset.value = checkbox.value;
+    tag.innerHTML = (name.length > 20 ? name.substring(0, 18) + '…' : name);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.innerHTML = '×';
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      tag.remove();
+      checkbox.checked = false;
+      updatePlaceholder(id);
+    };
+    tag.appendChild(btn);
+    tagsEl.appendChild(tag);
+  } else {
+    const existing = tagsEl.querySelector('[data-value="' + checkbox.value + '"]');
+    if (existing) existing.remove();
+  }
+  updatePlaceholder(id);
+}
+
+function updatePlaceholder(id) {
+  const tags = document.getElementById(id + 'Tags');
+  const ph = document.getElementById(id + 'Placeholder');
+  if (ph) ph.style.display = tags.children.length > 0 ? 'none' : '';
+}
+</script>
+
+<%- include('./partials/footer') %>

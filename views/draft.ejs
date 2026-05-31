@@ -1,0 +1,49 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/">Dashboard</a> › Draf</div>
+    <h1 class="page-title">Draf</h1>
+    <p class="page-subtitle"><%= mails.length %> konsep surat tersimpan</p>
+  </div>
+  <div class="page-actions">
+    <a href="/compose" class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>Tulis Surat</span>
+    </a>
+  </div>
+</div>
+
+<div class="mail-list-wrap">
+  <div class="mail-list-header">
+    <span class="mail-list-title"><%= mails.length %> draf</span>
+  </div>
+
+  <% if (mails.length === 0) { %>
+  <div class="empty-state">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M12 12h24M12 20h16M12 28h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M32 30l4 4 8-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <p>Tidak ada draf tersimpan.</p>
+    <a href="/compose" class="btn btn-primary" style="margin-top:12px;">Tulis Surat Baru</a>
+  </div>
+  <% } %>
+
+  <% mails.forEach(function(m) { %>
+  <a href="/compose" class="mail-item">
+    <input type="checkbox" class="mail-checkbox" onclick="event.preventDefault(); event.stopPropagation();">
+    <div class="mail-avatar av-amber">DS</div>
+    <div class="mail-body">
+      <div class="mail-from" style="color: var(--gray-500); font-style: italic;">
+        <% if (m.to && m.to !== '-') { %>Kepada: <%= m.to %><% } else { %>Belum dikirim<% } %>
+      </div>
+      <div class="mail-subject"><%= m.subject %></div>
+      <% if (m.berkas) { %><div class="mail-berkas"><%= m.berkas %></div><% } %>
+    </div>
+    <div class="mail-meta">
+      <span class="mail-date"><%= m.date %></span>
+      <span class="mail-tag tag-draft">Draf</span>
+    </div>
+  </a>
+  <% }); %>
+</div>
+
+<%- include('./partials/footer') %>

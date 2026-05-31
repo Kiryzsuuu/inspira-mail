@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftar — Inspira Mailer</title>
+<link rel="icon" type="image/png" href="/img/Group 1597880519.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="auth-body">
+
+<div class="auth-wrap">
+  <div class="auth-panel">
+    <div class="auth-brand">
+      <img src="/img/Group 1597880519.png" alt="Inspira Logo" class="auth-logo">
+      <div>
+        <div class="auth-brand-name">Inspira Mailer</div>
+        <div class="auth-brand-sub">Sistem Surat Dinas Digital</div>
+      </div>
+    </div>
+
+    <h1 class="auth-title">Buat Akun Baru</h1>
+    <p class="auth-desc">Daftarkan diri Anda untuk mulai menggunakan layanan</p>
+
+    <% if (error) { %>
+    <div class="auth-alert auth-alert-error">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <%= error %>
+    </div>
+    <% } %>
+
+    <form action="/register" method="POST" class="auth-form">
+      <div class="auth-field">
+        <label class="auth-label" for="name">Nama Lengkap <span class="auth-req">*</span></label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          class="auth-input"
+          placeholder="Masukkan nama lengkap"
+          value="<%= data.name || '' %>"
+          required
+          autofocus
+          autocomplete="name"
+        >
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="email">Alamat Email <span class="auth-req">*</span></label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="auth-input"
+          placeholder="nama@perusahaan.com"
+          value="<%= data.email || '' %>"
+          required
+          autocomplete="email"
+        >
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="organization">Instansi / Organisasi</label>
+        <input
+          type="text"
+          id="organization"
+          name="organization"
+          class="auth-input"
+          placeholder="Nama instansi atau perusahaan"
+          value="<%= data.organization || '' %>"
+          autocomplete="organization"
+        >
+      </div>
+      <div class="auth-row">
+        <div class="auth-field">
+          <label class="auth-label" for="password">Kata Sandi <span class="auth-req">*</span></label>
+          <div class="auth-input-group">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="auth-input"
+              placeholder="Min. 8 karakter"
+              required
+              autocomplete="new-password"
+              oninput="checkStrength(this.value)"
+            >
+            <button type="button" class="auth-eye" onclick="toggleVisibility('password','eye1')" tabindex="-1">
+              <svg id="eye1" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 10s2-5 7-5 7 5 7 5-2 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+            </button>
+          </div>
+          <div class="password-strength" id="strengthBar">
+            <div class="strength-fill" id="strengthFill"></div>
+          </div>
+          <span class="strength-label" id="strengthLabel"></span>
+        </div>
+        <div class="auth-field">
+          <label class="auth-label" for="password2">Konfirmasi Kata Sandi <span class="auth-req">*</span></label>
+          <div class="auth-input-group">
+            <input
+              type="password"
+              id="password2"
+              name="password2"
+              class="auth-input"
+              placeholder="Ulangi kata sandi"
+              required
+              autocomplete="new-password"
+            >
+            <button type="button" class="auth-eye" onclick="toggleVisibility('password2','eye2')" tabindex="-1">
+              <svg id="eye2" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 10s2-5 7-5 7 5 7 5-2 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="auth-btn">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 3a7 7 0 107 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 3h3v3M17 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Buat Akun
+      </button>
+    </form>
+
+    <p class="auth-footer-text">
+      Sudah punya akun?
+      <a href="/login" class="auth-link">Masuk sekarang</a>
+    </p>
+  </div>
+
+  <div class="auth-deco" aria-hidden="true">
+    <div class="auth-deco-content">
+      <img src="/img/Group 1597880519.png" alt="" class="auth-deco-logo">
+      <h2 class="auth-deco-title">Mulai Hari Ini</h2>
+      <p class="auth-deco-sub">Bergabunglah dengan ribuan pengguna yang telah menggunakan Inspira Mailer untuk kebutuhan korespondensi profesional mereka.</p>
+      <div class="auth-deco-features">
+        <div class="auth-deco-feat">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Registrasi gratis dan mudah
+        </div>
+        <div class="auth-deco-feat">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Antarmuka yang intuitif
+        </div>
+        <div class="auth-deco-feat">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Dukungan tim teknis 24/7
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleVisibility(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.innerHTML = '<path d="M3 3l14 14M9.88 9.88A3 3 0 0110 7a3 3 0 013 3 3 3 0 01-.12.88M10.73 14.95A7 7 0 013 10s2-5 7-5a7 7 0 013.27.79M17 10s-2 5-7 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+  } else {
+    input.type = 'password';
+    icon.innerHTML = '<path d="M3 10s2-5 7-5 7 5 7 5-2 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>';
+  }
+}
+
+function checkStrength(val) {
+  const fill = document.getElementById('strengthFill');
+  const label = document.getElementById('strengthLabel');
+  if (!fill) return;
+  let score = 0;
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const levels = [
+    { w: '0%', color: 'transparent', text: '' },
+    { w: '25%', color: '#e03e2d', text: 'Lemah' },
+    { w: '50%', color: '#f5a623', text: 'Cukup' },
+    { w: '75%', color: '#3b82f6', text: 'Kuat' },
+    { w: '100%', color: '#16a34a', text: 'Sangat Kuat' }
+  ];
+  const lvl = val.length === 0 ? levels[0] : levels[Math.max(1, score)];
+  fill.style.width = lvl.w;
+  fill.style.background = lvl.color;
+  label.textContent = lvl.text;
+  label.style.color = lvl.color;
+}
+</script>
+</body>
+</html>

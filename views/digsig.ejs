@@ -1,0 +1,260 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> › Tanda Tangan Digital</div>
+    <h1 class="page-title">Tanda Tangan Digital</h1>
+    <p class="page-subtitle">Setiap QR Code bersifat unik dan hanya berlaku sekali pakai</p>
+  </div>
+</div>
+
+<% if (success) { %>
+<div class="flash-msg flash-success">
+  <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <%= success %>
+</div>
+<% } %>
+
+<div class="digsig-layout">
+
+  <!-- LEFT: Form -->
+  <div class="compose-card">
+    <div class="compose-card-header">
+      <span class="compose-card-title">Informasi Penandatangan</span>
+    </div>
+    <div class="compose-form">
+
+      <div class="sig-fields-grid">
+        <div class="form-group">
+          <label class="form-label">Nama Lengkap <span class="req">*</span></label>
+          <input type="text" id="sigName" class="form-control"
+            value="<%= sig ? (sig.fullName || user.name) : user.name %>"
+            placeholder="Nama lengkap Anda">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jabatan</label>
+          <input type="text" id="sigPosition" class="form-control"
+            value="<%= sig ? (sig.position || '') : '' %>"
+            placeholder="Jabatan / posisi Anda">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instansi / Organisasi</label>
+          <input type="text" id="sigOrg" class="form-control"
+            value="<%= sig ? (sig.organization || user.organization || '') : (user.organization || '') %>"
+            placeholder="Nama instansi">
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            Lokasi Penandatanganan
+            <button type="button" class="auth-link-sm" onclick="detectLocation()" style="font-size:11.5px;margin-left:4px;">
+              <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Deteksi otomatis
+            </button>
+          </label>
+          <input type="text" id="sigLocation" class="form-control"
+            value="<%= sig && sig.location ? (sig.location.label || '') : '' %>"
+            placeholder="Kota, Provinsi, Negara">
+          <input type="hidden" id="sigLat" value="<%= sig && sig.location ? (sig.location.lat || '') : '' %>">
+          <input type="hidden" id="sigLng" value="<%= sig && sig.location ? (sig.location.lng || '') : '' %>">
+        </div>
+      </div>
+
+      <div class="digsig-warning">
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Setiap klik tombol di bawah akan membuat QR Code baru. QR sebelumnya otomatis <strong>tidak berlaku</strong>.
+      </div>
+
+      <div class="compose-actions">
+        <button type="button" class="btn btn-primary btn-generate" id="generateBtn" onclick="generateQR()">
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
+            <rect x="2" y="2" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="11" y="2" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="2" y="11" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="13" y="13" width="2" height="2" fill="currentColor"/>
+            <rect x="16" y="13" width="2" height="2" fill="currentColor"/>
+            <rect x="13" y="16" width="5" height="2" fill="currentColor"/>
+          </svg>
+          Generate Tanda Tangan Digital
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: QR Result -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <div class="qr-card" id="qrResultCard">
+
+      <% if (sig && sig.qrCodeDataUrl) { %>
+      <!-- Existing signature -->
+      <div class="qr-card-header">
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="13" y="13" width="2" height="2" fill="currentColor"/><rect x="16" y="13" width="2" height="2" fill="currentColor"/><rect x="13" y="16" width="5" height="2" fill="currentColor"/></svg>
+        QR Code Aktif
+        <span class="qr-live-badge">LIVE</span>
+      </div>
+      <div class="qr-code-wrap">
+        <img src="<%= sig.qrCodeDataUrl %>" class="qr-code-img" alt="QR Code" id="qrImage">
+      </div>
+      <div class="qr-info">
+        <div class="qr-info-name" id="qrName"><%= sig.fullName %></div>
+        <% if (sig.position) { %><div class="qr-info-pos" id="qrPos"><%= sig.position %></div><% } %>
+        <% if (sig.organization) { %><div class="qr-info-org" id="qrOrg"><%= sig.organization %></div><% } %>
+        <div class="qr-timestamp" id="qrTime">
+          <svg width="11" height="11" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <%= new Date(sig.signedAt).toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'}) %>
+          <%= new Date(sig.signedAt).toLocaleTimeString('id-ID') %> WIB
+        </div>
+        <% if (sig.location && sig.location.label) { %>
+        <div class="qr-location" id="qrLoc">
+          <svg width="11" height="11" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 016 6c0 4-6 10-6 10S4 12 4 8a6 6 0 016-6z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/></svg>
+          <%= sig.location.label %>
+        </div>
+        <% } %>
+      </div>
+      <div class="qr-card-footer">
+        <a href="/verify/<%= sig.verifyToken %>" target="_blank" class="qr-verify-link">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M6 10l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Buka halaman verifikasi
+        </a>
+        <button class="admin-btn admin-btn-delete" onclick="deleteSig()">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Hapus
+        </button>
+      </div>
+
+      <% } else { %>
+      <!-- Empty state -->
+      <div class="qr-empty-state">
+        <div class="qr-empty-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <rect x="3" y="3" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="20" y="3" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="3" y="20" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="22" y="22" width="4" height="4" fill="currentColor" opacity=".4"/>
+            <rect x="28" y="22" width="4" height="4" fill="currentColor" opacity=".4"/>
+            <rect x="22" y="28" width="10" height="4" fill="currentColor" opacity=".4"/>
+          </svg>
+        </div>
+        <p class="qr-empty-text">Isi form dan klik<br><strong>Generate Tanda Tangan Digital</strong></p>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- Info card -->
+    <div class="info-card">
+      <div class="info-card-title">Mengapa QR berubah setiap kali?</div>
+      <div class="digsig-steps">
+        <div class="digsig-step">
+          <div class="digsig-step-num">1</div>
+          <div class="digsig-step-text">Setiap QR mengandung token unik yang tidak bisa ditebak</div>
+        </div>
+        <div class="digsig-step">
+          <div class="digsig-step-num">2</div>
+          <div class="digsig-step-text">QR lama otomatis hangus — tidak bisa dipakai ulang</div>
+        </div>
+        <div class="digsig-step">
+          <div class="digsig-step-num">3</div>
+          <div class="digsig-step-text">Timestamp & lokasi tercatat tepat saat QR dibuat</div>
+        </div>
+        <div class="digsig-step">
+          <div class="digsig-step-num">4</div>
+          <div class="digsig-step-text">Scan QR → verifikasi instan, tidak bisa dipalsukan</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="qr-loading-overlay" id="loadingOverlay">
+  <div class="qr-loading-box">
+    <div class="qr-spinner"></div>
+    <div class="qr-loading-text">Membuat QR Code unik...</div>
+  </div>
+</div>
+
+<div class="admin-toast" id="sigToast"></div>
+
+<script>
+function showToast(msg, ok) {
+  const t = document.getElementById('sigToast');
+  t.textContent = msg;
+  t.className = 'admin-toast admin-toast-' + (ok ? 'success' : 'error') + ' admin-toast-show';
+  setTimeout(() => t.className = 'admin-toast', 3500);
+}
+
+function detectLocation() {
+  if (!navigator.geolocation) { showToast('Browser tidak mendukung geolokasi.', false); return; }
+  showToast('Mendeteksi lokasi...', true);
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const { latitude: lat, longitude: lng } = pos.coords;
+    document.getElementById('sigLat').value = lat;
+    document.getElementById('sigLng').value = lng;
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+      const d = await r.json();
+      const city  = d.address?.city || d.address?.town || d.address?.county || '';
+      const state = d.address?.state || '';
+      const country = d.address?.country || '';
+      const label = [city, state, country].filter(Boolean).join(', ');
+      document.getElementById('sigLocation').value = label;
+      showToast('Lokasi: ' + label, true);
+    } catch {
+      document.getElementById('sigLocation').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      showToast('Koordinat disimpan.', true);
+    }
+  }, () => showToast('Izinkan akses lokasi di browser Anda.', false));
+}
+
+async function generateQR() {
+  const name = document.getElementById('sigName').value.trim();
+  if (!name) { showToast('Nama lengkap wajib diisi.', false); document.getElementById('sigName').focus(); return; }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  document.getElementById('loadingOverlay').style.display = 'flex';
+
+  const payload = {
+    fullName:      name,
+    position:      document.getElementById('sigPosition').value.trim(),
+    organization:  document.getElementById('sigOrg').value.trim(),
+    locationLabel: document.getElementById('sigLocation').value.trim(),
+    lat:           document.getElementById('sigLat').value,
+    lng:           document.getElementById('sigLng').value
+  };
+
+  try {
+    const res  = await fetch('/digsig/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      // Reload to show fresh QR from server
+      location.reload();
+    } else {
+      showToast(data.message || 'Gagal membuat QR Code.', false);
+      btn.disabled = false;
+      document.getElementById('loadingOverlay').style.display = 'none';
+    }
+  } catch (e) {
+    showToast('Terjadi kesalahan koneksi.', false);
+    btn.disabled = false;
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+}
+
+async function deleteSig() {
+  if (!confirm('Hapus tanda tangan ini? QR Code akan langsung tidak valid.')) return;
+  const res  = await fetch('/digsig', { method: 'DELETE' });
+  const data = await res.json();
+  if (data.ok) location.reload();
+  else showToast('Gagal menghapus.', false);
+}
+</script>
+
+<%- include('./partials/footer') %>

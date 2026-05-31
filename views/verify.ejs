@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verifikasi Tanda Tangan — Inspira Mailer</title>
+<link rel="icon" type="image/png" href="/img/Group 1597880519.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --brand-900: #071840; --brand-700: #0f3270; --brand-500: #1a56a8;
+  --brand-50: #e8eef8; --brand-100: #bdd0ef;
+  --green-600: #16a34a; --green-50: #f0fdf4; --green-100: #dcfce7; --green-700: #15803d;
+  --red-50: #fef3f2; --red-500: #e03e2d; --red-600: #b53025;
+  --gray-50: #f8f9fa; --gray-100: #f1f3f5; --gray-200: #dde1e7;
+  --gray-400: #9aa3b2; --gray-500: #6b7890; --gray-600: #4a5568;
+  --gray-700: #334155; --gray-800: #1e293b; --gray-900: #0f172a;
+  --amber-50: #fdf8ee; --amber-600: #a06605;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+html { font-size: 15px; }
+body { font-family: var(--font); background: var(--gray-100); color: var(--gray-900); -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; flex-direction: column; }
+
+.vfy-header {
+  background: var(--brand-900);
+  padding: 14px 24px;
+  display: flex; align-items: center; gap: 12px;
+}
+.vfy-header-logo { width: 32px; height: 32px; object-fit: contain; }
+.vfy-header-brand { display: flex; flex-direction: column; line-height: 1.15; }
+.vfy-header-name { font-size: 14px; font-weight: 700; color: #fff; }
+.vfy-header-sub { font-size: 10px; color: rgba(255,255,255,.5); letter-spacing: .5px; text-transform: uppercase; }
+
+.vfy-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px 16px; }
+.vfy-card {
+  background: #fff; border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.1);
+  width: 100%; max-width: 520px;
+  overflow: hidden;
+}
+
+/* VALID */
+.vfy-status-valid {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  padding: 32px 28px 28px;
+  text-align: center; color: #fff;
+}
+.vfy-status-invalid {
+  background: linear-gradient(135deg, #e03e2d 0%, #b53025 100%);
+  padding: 32px 28px 28px;
+  text-align: center; color: #fff;
+}
+.vfy-big-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px; backdrop-filter: blur(4px);
+}
+.vfy-status-title { font-size: 22px; font-weight: 700; letter-spacing: -.3px; margin-bottom: 6px; }
+.vfy-status-sub { font-size: 14px; opacity: .85; }
+
+.vfy-content { padding: 28px; }
+
+/* Signature preview */
+.vfy-sig-wrap {
+  background: var(--gray-50); border: 1.5px solid var(--gray-200);
+  border-radius: 12px; padding: 16px;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 90px; margin-bottom: 20px;
+}
+.vfy-sig-img { max-height: 80px; max-width: 100%; object-fit: contain; }
+
+/* Data rows */
+.vfy-data { display: flex; flex-direction: column; gap: 0; border: 1.5px solid var(--gray-200); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+.vfy-row { display: flex; align-items: flex-start; padding: 11px 16px; border-bottom: 1px solid var(--gray-100); }
+.vfy-row:last-child { border-bottom: none; }
+.vfy-row-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px; }
+.vfy-row-key { font-size: 11.5px; text-transform: uppercase; letter-spacing: .4px; color: var(--gray-400); font-weight: 600; margin-bottom: 1px; }
+.vfy-row-val { font-size: 14px; font-weight: 500; color: var(--gray-800); line-height: 1.3; }
+.vfy-row-val.mono { font-family: var(--mono); font-size: 12.5px; }
+
+/* Verified stamp */
+.vfy-stamp {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--green-50); border: 1.5px solid var(--green-100);
+  border-radius: 12px; padding: 12px 16px;
+  font-size: 13px; font-weight: 500; color: var(--green-700);
+}
+
+/* Invalid */
+.vfy-invalid-msg {
+  background: var(--red-50); border: 1.5px solid #fdd9d7;
+  border-radius: 12px; padding: 16px;
+  font-size: 13.5px; color: var(--red-600);
+  text-align: center; margin-top: 20px;
+}
+
+.vfy-footer { text-align: center; padding: 16px 28px 20px; border-top: 1px solid var(--gray-100); font-size: 12px; color: var(--gray-400); }
+.vfy-footer a { color: var(--brand-500); text-decoration: none; }
+
+@media (max-width: 560px) {
+  .vfy-card { border-radius: 16px; }
+  .vfy-content { padding: 20px; }
+  .vfy-status-valid, .vfy-status-invalid { padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<header class="vfy-header">
+  <img src="/img/Group 1597880519.png" class="vfy-header-logo" alt="Inspira">
+  <div class="vfy-header-brand">
+    <span class="vfy-header-name">Inspira Mailer</span>
+    <span class="vfy-header-sub">Sistem Verifikasi Tanda Tangan Digital</span>
+  </div>
+</header>
+
+<div class="vfy-body">
+  <div class="vfy-card">
+
+    <% if (valid && sig) { %>
+
+    <!-- VALID -->
+    <div class="vfy-status-valid">
+      <div class="vfy-big-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <path d="M8 18l7 7 13-13" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="vfy-status-title">Dokumen Sah & Terverifikasi</div>
+      <div class="vfy-status-sub">Tanda tangan digital ini valid dan dapat dipercaya</div>
+    </div>
+
+    <div class="vfy-content">
+      <!-- Signature image -->
+      <% if (sig.imagePath || sig.imageData) { %>
+      <div class="vfy-sig-wrap">
+        <img src="<%= sig.imagePath || sig.imageData %>" class="vfy-sig-img" alt="Tanda Tangan">
+      </div>
+      <% } %>
+
+      <!-- Data table -->
+      <div class="vfy-data">
+        <div class="vfy-row">
+          <div class="vfy-row-icon" style="background:#ede9fe;">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="#5b21b6" stroke-width="1.5"/><path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="#5b21b6" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <div class="vfy-row-key">Ditandatangani oleh</div>
+            <div class="vfy-row-val" style="font-size:16px;font-weight:700;color:var(--gray-900);"><%= sig.fullName %></div>
+          </div>
+        </div>
+
+        <% if (sig.position) { %>
+        <div class="vfy-row">
+          <div class="vfy-row-icon" style="background:var(--brand-50);">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="3" y="7" width="14" height="10" rx="2" stroke="var(--brand-600)" stroke-width="1.5"/><path d="M7 7V5a3 3 0 016 0v2" stroke="var(--brand-600)" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <div class="vfy-row-key">Jabatan</div>
+            <div class="vfy-row-val"><%= sig.position %></div>
+          </div>
+        </div>
+        <% } %>
+
+        <% if (sig.organization) { %>
+        <div class="vfy-row">
+          <div class="vfy-row-icon" style="background:#f0fdf4;">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 18V8l7-5 7 5v10M8 18v-5h4v5" stroke="#15803d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="vfy-row-key">Instansi / Organisasi</div>
+            <div class="vfy-row-val"><%= sig.organization %></div>
+          </div>
+        </div>
+        <% } %>
+
+        <div class="vfy-row">
+          <div class="vfy-row-icon" style="background:var(--amber-50);">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="var(--amber-600)" stroke-width="1.5"/><path d="M10 6v4l2.5 2.5" stroke="var(--amber-600)" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <div class="vfy-row-key">Waktu Penandatanganan</div>
+            <div class="vfy-row-val mono">
+              <%
+                const d = new Date(sig.signedAt);
+                const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                const pad = n => String(n).padStart(2,'0');
+                const dateStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+                const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} WIB`;
+              %>
+              <%= dateStr %> &bull; <%= timeStr %>
+            </div>
+          </div>
+        </div>
+
+        <% if (sig.location && (sig.location.label || sig.location.lat)) { %>
+        <div class="vfy-row">
+          <div class="vfy-row-icon" style="background:#fef3f2;">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 016 6c0 4-6 10-6 10S4 12 4 8a6 6 0 016-6z" stroke="#e03e2d" stroke-width="1.5"/><circle cx="10" cy="8" r="2" stroke="#e03e2d" stroke-width="1.5"/></svg>
+          </div>
+          <div>
+            <div class="vfy-row-key">Lokasi Penandatanganan</div>
+            <div class="vfy-row-val">
+              <% if (sig.location.label) { %>
+                <%= sig.location.label %>
+              <% } %>
+              <% if (sig.location.lat && sig.location.lng) { %>
+                <div style="font-size:11.5px;color:var(--gray-400);font-family:var(--mono);margin-top:2px;">
+                  <%= sig.location.lat.toFixed(6) %>, <%= sig.location.lng.toFixed(6) %>
+                  &nbsp;<a href="https://maps.google.com/?q=<%= sig.location.lat %>,<%= sig.location.lng %>" target="_blank" rel="noopener" style="font-size:11px;color:var(--brand-500);">Lihat peta</a>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        <% } %>
+
+        <div class="vfy-row">
+          <div class="vfy-row-icon" style="background:var(--gray-100);">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z" stroke="var(--gray-500)" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="var(--gray-500)" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <div class="vfy-row-key">Waktu Pemindaian QR</div>
+            <div class="vfy-row-val mono">
+              <%
+                const sd = scanTime;
+                const scanStr = `${sd.getDate()} ${months[sd.getMonth()]} ${sd.getFullYear()} &bull; ${pad(sd.getHours())}:${pad(sd.getMinutes())}:${pad(sd.getSeconds())} WIB`;
+              %>
+              <%- scanStr %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verified stamp -->
+      <div class="vfy-stamp">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="var(--green-600)"/><path d="M6 10l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Dokumen ini <strong style="margin:0 4px;">SAH</strong> dan telah ditandatangani secara digital melalui Inspira Mailer.
+      </div>
+    </div>
+
+    <% } else { %>
+
+    <!-- INVALID -->
+    <div class="vfy-status-invalid">
+      <div class="vfy-big-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <path d="M10 10l16 16M26 10L10 26" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="vfy-status-title">Verifikasi Gagal</div>
+      <div class="vfy-status-sub">Tanda tangan ini tidak dapat diverifikasi</div>
+    </div>
+
+    <div class="vfy-content">
+      <div class="vfy-invalid-msg">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        QR Code ini <strong>tidak valid</strong>, sudah dihapus, atau telah dimodifikasi.<br>
+        <span style="font-size:12px;opacity:.8;margin-top:4px;display:block;">Hubungi penerbit dokumen untuk konfirmasi keabsahan.</span>
+      </div>
+    </div>
+
+    <% } %>
+
+    <div class="vfy-footer">
+      Diverifikasi oleh sistem <a href="/">Inspira Mailer</a> &bull; Jangan percaya dokumen yang QR-nya tidak terverifikasi
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
