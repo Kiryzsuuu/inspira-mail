@@ -52,12 +52,14 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
   position: relative; width: 794px; min-height: 1123px;
   background: #fff; box-shadow: 0 8px 40px rgba(0,0,0,.5); flex-shrink: 0; overflow: hidden;
   font-family: 'Times New Roman', serif; font-size: 12pt; color: #000;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 .a4-page * { color: #000 !important; }
 
 /* KOP SURAT */
 .doc-header {
-  padding: 20px 113px 16px 151px;
+  padding: 20px 96px 16px 96px;
   display: flex; align-items: center;
 }
 .doc-header-logo-area { display: flex; align-items: center; flex-shrink: 0; }
@@ -66,7 +68,13 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 .doc-header-contacts { display: grid; grid-template-columns: auto auto; gap: 5px 28px; font-size: 10.5px; color: #374151; }
 .doc-contact-row { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .doc-contact-icon { color: #1a56a8; flex-shrink: 0; }
-.doc-header-line { height: 2px; background: linear-gradient(to right, transparent 0%, #2E6DA4 15%, #1F4E79 50%, #2E6DA4 85%, transparent 100%); margin: 0; border: none; }
+.doc-header-line {
+  height: 2px;
+  background: linear-gradient(to right, transparent 0%, #2E6DA4 15%, #1F4E79 50%, #2E6DA4 85%, transparent 100%);
+  margin: 0; border: none;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
 
 /* Watermark */
 .doc-watermark {
@@ -98,8 +106,8 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 .doc-pill { font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 3px; border: 1px solid #d1d5db; color: #374151; background: #fff; }
 .doc-pill.tipe { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
 
-/* Body container — margin: Top 4cm, Left 4cm, Bottom 3cm, Right 3cm */
-.doc-body { padding: 20px 113px 113px 151px; position: relative; z-index: 1; line-height: 1.6; }
+/* Body container — margin: 2.54cm (1 inch) semua sisi */
+.doc-body { padding: 20px 96px 96px 96px; position: relative; z-index: 1; line-height: 1.6; }
 .doc-title {
   font-size: 13pt; font-weight: bold; color: #000; margin: 14px 0 4px;
   text-align: center; text-transform: uppercase;
@@ -155,9 +163,9 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 /* Surat field table — format sesuai template kv() */
 .surat-field-table { border-collapse: collapse; margin-bottom: 3px; }
 .surat-field-table tr { display: flex; margin-bottom: 3px; font-size: 12pt; line-height: 1.6; }
-.surat-field-table td { display: inline; border: none; padding: 0; vertical-align: top; }
-.surat-field-table td:nth-child(1) { min-width: 190px; padding-left: 40px; }
-.surat-field-table td:nth-child(2) { min-width: 16px; }
+.surat-field-table td { display: block; border: none; padding: 0; }
+.surat-field-table td:nth-child(1) { min-width: 150px; padding-left: 20px; }
+.surat-field-table td:nth-child(2) { min-width: 16px; padding: 0 4px; }
 .surat-field-table td:nth-child(3) { flex: 1; }
 
 /* Undangan event table */
@@ -177,7 +185,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 .statuta-table td:first-child { width: 40px; text-align: center; }
 
 /* Signature area */
-.doc-sig-area { padding: 20px 113px 113px 151px; border-top: none; position: relative; z-index: 1; }
+.doc-sig-area { padding: 20px 96px 96px 96px; border-top: none; position: relative; z-index: 1; }
 .doc-sig-hint { font-size: 12px; color: #9ca3af; font-style: italic; text-align: center; padding: 20px 0; }
 
 /* QR Stamp */
@@ -186,8 +194,10 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
   z-index: 50;
   border: none; outline: 2px dashed transparent; outline-offset: 3px; border-radius: 4px; transition: outline-color .15s;
   display: flex; flex-direction: column; align-items: center;
-  padding: 0; text-align: center; overflow: hidden;
+  padding: 0; text-align: center;
+  overflow: visible;
 }
+.qr-stamp-date { font-size: 11pt; font-family: 'Times New Roman', serif; color: #000; margin-bottom: 6px; white-space: nowrap; text-align: left; width: 100%; }
 .qr-stamp:hover, .qr-stamp.active { outline-color: #1a56a8; }
 .qr-stamp img { width: 100%; flex: 1; min-height: 0; object-fit: contain; display: block; }
 .qr-stamp-sig { width: 95%; border-top: 1.5px solid #111; margin: 5px 0 3px; flex-shrink: 0; }
@@ -891,7 +901,6 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 
       <!-- SIGNATURE AREA -->
       <div class="doc-sig-area">
-        <div style="font-size:12px;color:#374151;margin-bottom:6px;">Jakarta, <strong><%= fmtDate(email.createdAt) %></strong></div>
         <div id="sigHint" class="doc-sig-hint" style="<%= docSig.signers.length > 0 ? 'display:none' : '' %>">
           Tambahkan tanda tangan dari panel kanan. Seret untuk memindahkan posisi.
         </div>
@@ -904,11 +913,15 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         const dm = s.displayMode || 'full';
       %>
       <div class="qr-stamp" id="stamp-<%= s._id %>" data-id="<%= s._id %>"
+        data-dm="<%= dm %>"
+        data-show-date="<%= s.showDate === false ? '0' : '1' %>"
+        data-date-str="<%= fmtDate(email.createdAt) %>"
         style="left:<%= s.position.x %>px;top:<%= s.position.y %>px;width:<%= s.position.width %>px;height:<%= s.position.height %>px;">
+        <div class="qr-stamp-date">Jakarta, <%= fmtDate(email.createdAt) %></div>
         <% if (s.qrDataUrl) { %>
         <img src="<%= s.qrDataUrl %>" alt="QR" draggable="false">
         <% } else { %>
-        <div style="flex:1;width:100%;min-height:0;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;">Menunggu tanda tangan</div>
+        <div style="flex:1;width:100%;min-height:0;border:1px dashed #000;display:flex;align-items:center;justify-content:center;font-size:8px;">Menunggu tanda tangan</div>
         <% } %>
         <% if (dm !== 'qr_only') { %>
         <div class="qr-stamp-sig"></div>
@@ -916,7 +929,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         <% if (dm === 'full') { %><div class="qr-stamp-role"><%= jabatan %></div><% } %>
         <% } %>
         <div class="qr-resize"></div>
-        <button class="qr-delete" onclick="removeSigner('<%= s._id %>',event)">
+        <button class="qr-delete" onclick="removeSigner('<%= s._id %>',event)" title="Hapus tanda tangan">
           <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         </button>
       </div>
@@ -1027,11 +1040,15 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
           </div>
           <!-- Display mode toggle -->
           <div>
-            <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px;">Tampilan Tanda Tangan:</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px;">Tampilan:</div>
             <div class="display-mode-row" id="dm-<%= s._id %>">
-              <button type="button" class="dm-btn <%= dm==='full'?'active':'' %>" onclick="setDisplayMode('<%= s._id %>','full',this.closest('.display-mode-row'))">QR + Nama<br>+ Jabatan</button>
-              <button type="button" class="dm-btn <%= dm==='name_only'?'active':'' %>" onclick="setDisplayMode('<%= s._id %>','name_only',this.closest('.display-mode-row'))">QR +<br>Nama</button>
-              <button type="button" class="dm-btn <%= dm==='qr_only'?'active':'' %>" onclick="setDisplayMode('<%= s._id %>','qr_only',this.closest('.display-mode-row'))">QR<br>Saja</button>
+              <button type="button" class="dm-btn <%= dm==='full'?'active':'' %>" onclick="setDisplayMode('<%= s._id %>','full',this.closest('.display-mode-row'))">Semua</button>
+              <button type="button" class="dm-btn <%= dm==='name_only'?'active':'' %>" onclick="setDisplayMode('<%= s._id %>','name_only',this.closest('.display-mode-row'))">+Nama</button>
+              <button type="button" class="dm-btn <%= dm==='qr_only'?'active':'' %>" onclick="setDisplayMode('<%= s._id %>','qr_only',this.closest('.display-mode-row'))">QR Saja</button>
+            </div>
+            <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:6px;margin-bottom:4px;">Opsi:</div>
+            <div class="display-mode-row">
+              <button type="button" class="dm-btn <%= !s.showDate || s.showDate !== false ? 'active' : '' %>" id="btnDate-<%= s._id %>" onclick="toggleDate('<%= s._id %>',this)">Tanggal</button>
             </div>
           </div>
         </div>
@@ -1164,18 +1181,27 @@ function addStampToPage(s, dm) {
   const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
   const jabatan = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
   const mode = dm || s.displayMode || 'full';
+  const dateStr = '<%= fmtDate(email.createdAt) %>';
+  const showDate = s.showDate !== false;
+  const showName = mode !== 'qr_only';
+  const showRole = mode === 'full';
+
   const qrHtml = s.qrDataUrl
     ? `<img src="${s.qrDataUrl}" draggable="false">`
-    : `<div style="flex:1;width:100%;min-height:0;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;">Menunggu tanda tangan</div>`;
-  const nameHtml = mode !== 'qr_only' ? `<div class="qr-stamp-sig"></div><div class="qr-stamp-name">${s.userName}</div>` : '';
-  const roleHtml = mode === 'full' ? `<div class="qr-stamp-role">${jabatan}</div>` : '';
+    : `<div style="flex:1;width:100%;min-height:0;border:1px dashed #000;display:flex;align-items:center;justify-content:center;font-size:8px;">Menunggu</div>`;
+  const dateHtml  = showDate ? `<div class="qr-stamp-date">Jakarta, ${dateStr}</div>` : '';
+  const nameHtml  = showName ? `<div class="qr-stamp-sig"></div><div class="qr-stamp-name">${s.userName}</div>` : '';
+  const roleHtml  = showRole ? `<div class="qr-stamp-role">${jabatan}</div>` : '';
 
   const div = document.createElement('div');
   div.className = 'qr-stamp'; div.id = `stamp-${s._id}`; div.dataset.id = s._id;
+  div.dataset.dm = mode;
+  div.dataset.showDate = showDate ? '1' : '0';
+  div.dataset.dateStr = dateStr;
   div.style.cssText = `left:${s.position.x}px;top:${s.position.y}px;width:${s.position.width}px;height:${s.position.height}px;`;
-  div.innerHTML = `${qrHtml}${nameHtml}${roleHtml}
+  div.innerHTML = `${dateHtml}${qrHtml}${nameHtml}${roleHtml}
     <div class="qr-resize"></div>
-    <button class="qr-delete" onclick="removeSigner('${s._id}',event)">
+    <button class="qr-delete" onclick="removeSigner('${s._id}',event)" title="Hapus">
       <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     </button>`;
   page.appendChild(div); initStamp(div);
@@ -1218,42 +1244,55 @@ function addSignerToPanel(s) {
         <button type="button" class="dm-btn ${dm==='name_only'?'active':''}" onclick="setDisplayMode('${s._id}','name_only',this.closest('.display-mode-row'))">QR +<br>Nama</button>
         <button type="button" class="dm-btn ${dm==='qr_only'?'active':''}" onclick="setDisplayMode('${s._id}','qr_only',this.closest('.display-mode-row'))">QR<br>Saja</button>
       </div>
+      <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:6px;margin-bottom:4px;">Opsi:</div>
+      <div class="display-mode-row">
+        <button type="button" class="dm-btn ${s.showDate !== false ? 'active' : ''}" id="btnDate-${s._id}" onclick="toggleDate('${s._id}',this)">Tanggal</button>
+      </div>
     </div>`;
   document.getElementById('signerList').appendChild(item);
   document.getElementById('signerCount').textContent = parseInt(document.getElementById('signerCount').textContent)+1;
 }
 
 // ── DISPLAY MODE ──
+function rebuildStamp(id) {
+  const stamp = document.getElementById('stamp-' + id);
+  if (!stamp) return;
+  const img = stamp.querySelector('img');
+  const noQr = stamp.querySelector('div[style*="border:1px"]');
+  const qrEl = img ? img.outerHTML : (noQr ? noQr.outerHTML : '');
+  const jabEl = document.getElementById('jlbl-' + id);
+  const jabatan = jabEl ? jabEl.textContent : '';
+  const nameEl = jabEl?.closest('.signer-item')?.querySelector('.signer-name');
+  const signerName = nameEl ? nameEl.textContent : '';
+  const mode = stamp.dataset.dm || 'full';
+  const showDate = stamp.dataset.showDate !== '0';
+  const dateStr = stamp.dataset.dateStr || '';
+  const dateHtml = showDate && dateStr ? `<div class="qr-stamp-date">Jakarta, ${dateStr}</div>` : '';
+  const nameHtml = mode !== 'qr_only' ? `<div class="qr-stamp-sig"></div><div class="qr-stamp-name">${signerName}</div>` : '';
+  const roleHtml = mode === 'full' ? `<div class="qr-stamp-role">${jabatan}</div>` : '';
+  const delHtml = `<button class="qr-delete" onclick="removeSigner('${id}',event)" title="Hapus"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>`;
+  stamp.innerHTML = `${dateHtml}${qrEl}${nameHtml}${roleHtml}<div class="qr-resize"></div>${delHtml}`;
+  initStamp(stamp);
+}
+
 async function setDisplayMode(id, mode, row) {
   row.querySelectorAll('.dm-btn').forEach(b => b.classList.remove('active'));
   row.querySelector(`.dm-btn:nth-child(${mode==='full'?1:mode==='name_only'?2:3})`).classList.add('active');
-
-  // Update stamp on A4
   const stamp = document.getElementById('stamp-' + id);
-  if (stamp) {
-    const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
-    // Preserve QR img
-    const img = stamp.querySelector('img');
-    const noQr = stamp.querySelector('div[style*="border:1px dashed"]');
-    const qrEl = img ? img.outerHTML : (noQr ? noQr.outerHTML : '');
-    const jabEl = document.getElementById('jlbl-' + id);
-    const jabatan = jabEl ? jabEl.textContent : '';
-    const nameEl = document.getElementById('jlbl-' + id)?.closest('.signer-item')?.querySelector('.signer-name');
-    const signerName = nameEl ? nameEl.textContent : '';
-    const nameHtml = mode !== 'qr_only' ? `<div class="qr-stamp-sig"></div><div class="qr-stamp-name">${signerName}</div>` : '';
-    const roleHtml = mode === 'full' ? `<div class="qr-stamp-role">${jabatan}</div>` : '';
-    const rsz = stamp.querySelector('.qr-resize');
-    const del = stamp.querySelector('.qr-delete');
-    const rszHtml = rsz ? rsz.outerHTML : '<div class="qr-resize"></div>';
-    const delHtml = del ? del.outerHTML : '';
-    stamp.innerHTML = `${qrEl}${nameHtml}${roleHtml}${rszHtml}${delHtml}`;
-    initStamp(stamp);
-  }
-
+  if (stamp) { stamp.dataset.dm = mode; rebuildStamp(id); }
   await fetch(`/email/${EMAIL_ID}/sign/update-display-mode`, {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ signerId: id, displayMode: mode })
   });
+}
+
+function toggleDate(id, btn) {
+  const stamp = document.getElementById('stamp-' + id);
+  if (!stamp) return;
+  const isOn = stamp.dataset.showDate !== '0';
+  stamp.dataset.showDate = isOn ? '0' : '1';
+  btn.classList.toggle('active', !isOn);
+  rebuildStamp(id);
 }
 
 // ── JABATAN EDIT ──
