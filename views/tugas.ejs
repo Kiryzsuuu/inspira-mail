@@ -108,6 +108,12 @@ const statusLabel = { pending: 'Belum Dikerjakan', dikerjakan: 'Sedang Dikerjaka
         <% } else if (t.assignedTo && t.assignedTo.length > 0) { %>
           <span class="task-assign-badge">ke: <%= assigneeNames %></span>
         <% } %>
+        <% if (t.pemberiTugas) { %>
+          <span class="task-from-badge" style="background:rgba(99,102,241,.12);color:#818cf8;">
+            <svg width="10" height="10" viewBox="0 0 20 20" fill="none" style="flex-shrink:0"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <%= t.pemberiTugas %>
+          </span>
+        <% } %>
         <% if (t.dueDateFmt) { %>
           <span class="task-due <%= new Date(t.dueDate) < new Date() && t.status !== 'selesai' ? 'task-due-late' : '' %>">
             <svg width="11" height="11" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -138,6 +144,19 @@ const statusLabel = { pending: 'Belum Dikerjakan', dikerjakan: 'Sedang Dikerjaka
       <div class="form-group">
         <label class="form-label">Judul Tugas <span class="req">*</span></label>
         <input type="text" name="title" class="form-control" placeholder="Apa yang perlu dikerjakan?" required autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pemberi Tugas</label>
+        <div class="select-wrap">
+          <select name="pemberiTugas" class="form-control form-select" id="pemberiTugasSelect" onchange="togglePemberiCustom(this.value)">
+            <option value="">— Pilih jabatan —</option>
+            <option value="Direktur Utama">Direktur Utama</option>
+            <option value="Manajer Operasional">Manajer Operasional</option>
+            <option value="HRD / Kepala SDM">HRD / Kepala SDM</option>
+            <option value="lainnya">Lainnya (ketik sendiri)</option>
+          </select>
+        </div>
+        <input type="text" name="pemberiTugasCustom" id="pemberiTugasCustom" class="form-control" placeholder="Nama & jabatan pemberi tugas..." style="margin-top:8px;display:none;">
       </div>
       <div class="form-group">
         <label class="form-label">Deskripsi</label>
@@ -206,6 +225,10 @@ const statusLabel = { pending: 'Belum Dikerjakan', dikerjakan: 'Sedang Dikerjaka
 <div class="admin-toast" id="taskToast"></div>
 
 <script>
+function togglePemberiCustom(val) {
+  document.getElementById('pemberiTugasCustom').style.display = val === 'lainnya' ? '' : 'none';
+}
+
 function openModal() {
   document.getElementById('taskModal').classList.add('open');
   document.body.style.overflow = 'hidden';

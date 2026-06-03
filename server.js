@@ -1162,13 +1162,15 @@ app.get('/tugas', requireAuth, async (req, res) => {
 });
 
 app.post('/tugas', requireAuth, async (req, res) => {
-  const { title, description, priority, dueDate, assignedTo } = req.body;
+  const { title, description, priority, dueDate, assignedTo, pemberiTugas, pemberiTugasCustom } = req.body;
   try {
     const toIds = [].concat(assignedTo || []).filter(Boolean);
     const assignedUsers = await User.find({ _id: { $in: toIds } }).select('name email');
+    const pemberi = pemberiTugas === 'lainnya' ? (pemberiTugasCustom?.trim() || '') : (pemberiTugas?.trim() || '');
     const task = await Task.create({
       createdBy: { userId: req.user._id, name: req.user.name, email: req.user.email },
       assignedTo: assignedUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
+      pemberiTugas: pemberi,
       title: title?.trim(),
       description: description?.trim() || '',
       priority: priority || 'normal',

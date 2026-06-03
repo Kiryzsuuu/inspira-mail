@@ -11,6 +11,7 @@ const taskSchema = new mongoose.Schema({
     name: String,
     email: String
   }],
+  pemberiTugas: { type: String, default: '', trim: true },
   title: { type: String, required: true, trim: true },
   description: { type: String, default: '', trim: true },
   priority: { type: String, enum: ['rendah', 'normal', 'tinggi', 'urgent'], default: 'normal' },
