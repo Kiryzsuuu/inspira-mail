@@ -498,21 +498,67 @@ async function savePosition(id, el) {
 async function addSelf() {
   const btn = document.getElementById('btnAddSelf');
   btn.disabled = true; btn.textContent = 'Memproses...';
-  const res  = await fetch(`/email/${EMAIL_ID}/sign/add-signer`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ userId: CURRENT_USER_ID }) });
-  const data = await res.json();
-  if (data.ok) { addStampToPage(data.signer); addSignerToPanel(data.signer); btn.textContent = 'Sudah Ditambahkan'; }
-  else { alert(data.message||'Gagal.'); btn.disabled = false; btn.textContent = 'Tambah Tanda Tangan Saya'; }
+  try {
+    const res  = await fetch(`/email/${EMAIL_ID}/sign/add-self`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: CURRENT_USER_ID })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      if (data.action === 'updated') {
+        // Co-signer yang baru tandatangan — update stamp yang sudah ada
+        const stamp = document.getElementById('stamp-' + data.signer._id);
+        if (stamp) {
+          const img = stamp.querySelector('img');
+          if (img) img.src = data.signer.qrDataUrl;
+          const wait = stamp.querySelector('div[style*="border:1px dashed"]');
+          if (wait) {
+            const newImg = document.createElement('img');
+            newImg.src = data.signer.qrDataUrl; newImg.draggable = false;
+            wait.replaceWith(newImg);
+          }
+        }
+      } else {
+        addStampToPage(data.signer);
+        addSignerToPanel(data.signer);
+      }
+      btn.textContent = 'Sudah Ditandatangani';
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Sudah Ditandatangani`;
+    } else {
+      await showAlert(data.message || 'Gagal menambahkan tanda tangan.', { title: 'Gagal', type: 'warn' });
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Tambah Tanda Tangan Saya`;
+    }
+  } catch (err) {
+    console.error(err);
+    await showAlert('Terjadi kesalahan jaringan.', { title: 'Error', type: 'danger' });
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Tambah Tanda Tangan Saya`;
+  }
 }
 
 function toggleCoSign(cb) { document.getElementById('coSignPanel').classList.toggle('open', cb.checked); }
 
-async function addCoSigner() {
+async function inviteCosigner() {
   const sel = document.getElementById('coSignSelect');
-  if (!sel.value) { alert('Pilih pengguna.'); return; }
-  const res  = await fetch(`/email/${EMAIL_ID}/sign/add-signer`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ userId: sel.value }) });
-  const data = await res.json();
-  if (data.ok) { addStampToPage(data.signer); addSignerToPanel(data.signer); sel.querySelector(`option[value="${sel.value}"]`)?.remove(); sel.value=''; }
-  else alert(data.message||'Gagal.');
+  if (!sel.value) { await showAlert('Pilih pengguna terlebih dahulu.', { title: 'Pilih Pengguna', type: 'warn' }); return; }
+  try {
+    const res  = await fetch(`/email/${EMAIL_ID}/sign/invite-cosigner`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: sel.value })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      addStampToPage(data.signer);
+      addSignerToPanel(data.signer);
+      sel.querySelector(`option[value="${sel.value}"]`)?.remove();
+      sel.value = '';
+    } else {
+      await showAlert(data.message || 'Gagal mengundang co-signer.', { title: 'Gagal', type: 'warn' });
+    }
+  } catch (err) {
+    await showAlert('Terjadi kesalahan jaringan.', { title: 'Error', type: 'danger' });
+  }
 }
 
 function addStampToPage(s) {
