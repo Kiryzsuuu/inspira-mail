@@ -280,6 +280,23 @@
           <span class="sec-badge">SURAT TUGAS</span>
           Data Pelaksana & Tugas
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label">Pemberi Tugas <span style="font-size:11px;color:var(--gray-400);font-weight:400;">(nama &amp; jabatan yang mengeluarkan surat)</span></label>
+            <div style="display:flex;gap:10px;">
+              <div class="select-wrap" style="flex:0 0 220px;">
+                <select id="tugas_pemberi_preset" class="form-control form-select" onchange="onPemberiPresetChange()">
+                  <option value="">— Pilih jabatan —</option>
+                  <option value="Direktur Utama">Direktur Utama</option>
+                  <option value="Manajer Operasional">Manajer Operasional</option>
+                  <option value="HRD / Kepala SDM">HRD / Kepala SDM</option>
+                  <option value="lainnya">Lainnya...</option>
+                </select>
+              </div>
+              <input type="text" id="tugas_pemberi" class="form-control" placeholder="Nama &amp; jabatan pemberi tugas..." style="flex:1;">
+            </div>
+          </div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
           <div class="form-group">
             <label class="form-label">Nama Yang Ditugaskan</label>
@@ -1065,6 +1082,7 @@ function collectSuratData() {
     sd.tanggalKembali = v('sppd_tgl_kembali'); sd.mataPenggunaan = v('sppd_mata_anggaran');
   }
   else if (t === 'Surat Tugas') {
+    sd.pemberiTugas = v('tugas_pemberi');
     sd.namaPelaksana = v('tugas_nama'); sd.jabatanPelaksana = v('tugas_jabatan');
     sd.jenisTugas = v('tugas_jenis'); sd.tujuanTugas = v('tugas_tujuan');
     sd.lokasiTugas = v('tugas_lokasi'); sd.tanggalTugas = v('tugas_tanggal');
@@ -1139,6 +1157,21 @@ function collectSuratData() {
   return sd;
 }
 function v(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function onPemberiPresetChange() {
+  const sel = document.getElementById('tugas_pemberi_preset');
+  const input = document.getElementById('tugas_pemberi');
+  if (!sel || !input) return;
+  if (sel.value && sel.value !== 'lainnya') {
+    input.value = sel.value;
+    input.readOnly = true;
+    input.style.background = 'var(--gray-50,#f9fafb)';
+  } else {
+    input.value = '';
+    input.readOnly = false;
+    input.style.background = '';
+    input.focus();
+  }
+}
 function getListValues(listId) {
   return Array.from(document.getElementById(listId)?.querySelectorAll('input') || [])
     .map(i => i.value.trim()).filter(Boolean);
