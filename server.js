@@ -762,7 +762,7 @@ app.post('/email/:id/send', requireAuth, async (req, res) => {
             <a href="${appUrl}/email/${email._id}/preview"
                style="display:inline-flex;align-items:center;gap:8px;background:#071840;color:#fff;text-decoration:none;padding:10px 22px;border-radius:7px;font-size:13px;font-weight:600;letter-spacing:.2px;">
               <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2H5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7l-4-5z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 2v5h5" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
-              Lihat Dokumen Lengkap (PDF A4)
+              Download Dokumen (PDF A4)
             </a>
             <p style="font-size:11px;color:#94a3b8;margin-top:12px;">
               Dokumen A4 lengkap beserta tanda tangan digital tersedia di link di atas.

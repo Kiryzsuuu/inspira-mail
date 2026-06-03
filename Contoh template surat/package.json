@@ -1,0 +1,33 @@
+{
+  "name": "inspira-surat-generator",
+  "version": "1.0.0",
+  "description": "Generator Surat Otomatis PT Nusa Inspira Teknologi — 23 Jenis Surat",
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "scripts": {
+    "01": "node 01_surat_keputusan.js",
+    "02": "node 02_surat_edaran.js",
+    "03": "node 03_surat_undangan_dinas.js",
+    "04": "node 04_surat_kuasa.js",
+    "05": "node 05_surat_keterangan.js",
+    "06": "node 06_surat_pernyataan.js",
+    "07": "node 07_sppd.js",
+    "08": "node 08_surat_pengantar.js",
+    "09": "node 09_memo.js",
+    "10": "node 10_nota_dinas.js",
+    "11": "node 11_surat_instruksi.js",
+    "12": "node 12_surat_statuta.js",
+    "13": "node 13_surat_resmi.js",
+    "14": "node 14_surat_formal.js",
+    "15": "node 15_surat_biasa.js",
+    "16": "node 16_surat_konfidensial.js",
+    "17": "node 17_surat_rahasia.js",
+    "18": "node 18_mou.js",
+    "19": "node 19_pks.js",
+    "20": "node 20_kontrak.js",
+    "21": "node 21_spk.js",
+    "22": "node 22_surat_tugas_perorangan.js",
+    "23": "node 23_surat_tugas_pendelegasian.js"
+  }
+}
