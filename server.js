@@ -20,6 +20,7 @@ const Signature = require('./models/Signature');
 const Agreement = require('./models/Agreement');
 const DocCounter = require('./models/DocCounter');
 const SuratMasuk = require('./models/SuratMasuk');
+const DocumentSignature = require('./models/DocumentSignature');
 const QRCode = require('qrcode');
 
 const app = express();
@@ -1266,6 +1267,133 @@ app.get('/uploads/suratmasuk/:filename', requireAuth, (req, res) => {
   const fp = path.join(__dirname, 'uploads', 'suratmasuk', req.params.filename);
   if (!fs.existsSync(fp)) return res.status(404).send('File tidak ditemukan.');
   res.sendFile(fp);
+});
+
+// ── SURAT MASUK PDF EDITOR ──
+
+app.get('/surat-masuk/:id/pdf', requireAuth, async (req, res) => {
+  try {
+    const surat = await SuratMasuk.findById(req.params.id);
+    if (!surat) return res.redirect('/surat-masuk');
+    const [docSig, users, counts] = await Promise.all([
+      DocumentSignature.findOne({ suratId: surat._id }),
+      User.find({ isActive: true }, 'name email role organization _id').sort({ name: 1 }),
+      getMailCounts(req.user._id)
+    ]);
+    res.render('surat-pdf-editor', {
+      title: 'Editor PDF',
+      surat,
+      docSig: docSig || { signers: [] },
+      currentUser: req.user,
+      users,
+      formatDate,
+      ...counts
+    });
+  } catch (err) {
+    console.error(err);
+    res.redirect('/surat-masuk');
+  }
+});
+
+app.post('/surat-masuk/:id/pdf/add-signer', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const surat = await SuratMasuk.findById(req.params.id);
+    if (!surat) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
+
+    const targetUser = await User.findById(userId);
+    if (!targetUser) return res.json({ ok: false, message: 'Pengguna tidak ditemukan.' });
+
+    let docSig = await DocumentSignature.findOne({ suratId: surat._id });
+    if (!docSig) {
+      docSig = new DocumentSignature({ suratId: surat._id, createdBy: req.user._id, signers: [] });
+    }
+
+    if (docSig.signers.some(s => s.userId.toString() === userId.toString())) {
+      return res.json({ ok: false, message: 'Penandatangan sudah ditambahkan.' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const verifyUrl = `${appUrl}/verify/doc/${token}`;
+
+    const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+      errorCorrectionLevel: 'H',
+      margin: 2,
+      width: 200,
+      color: { dark: '#071840', light: '#ffffff' }
+    });
+
+    const signerCount = docSig.signers.length;
+    docSig.signers.push({
+      userId: targetUser._id,
+      userName: targetUser.name,
+      userRole: targetUser.role || '',
+      userOrg: targetUser.organization || '',
+      token,
+      qrDataUrl,
+      position: {
+        x: 60 + (signerCount * 140),
+        y: 680,
+        width: 110,
+        height: 110
+      }
+    });
+
+    await docSig.save();
+
+    const newSigner = docSig.signers[docSig.signers.length - 1];
+    res.json({ ok: true, signer: newSigner });
+  } catch (err) {
+    console.error(err);
+    res.json({ ok: false, message: 'Gagal menambahkan penandatangan.' });
+  }
+});
+
+app.post('/surat-masuk/:id/pdf/update-position', requireAuth, async (req, res) => {
+  try {
+    const { signerId, x, y, width, height } = req.body;
+    await DocumentSignature.updateOne(
+      { suratId: req.params.id, 'signers._id': signerId },
+      { $set: { 'signers.$.position': { x, y, width, height } } }
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
+app.delete('/surat-masuk/:id/pdf/signers/:signerId', requireAuth, async (req, res) => {
+  try {
+    const docSig = await DocumentSignature.findOne({ suratId: req.params.id });
+    if (!docSig) return res.json({ ok: false });
+
+    const signer = docSig.signers.id(req.params.signerId);
+    const wasCurrentUser = signer && signer.userId.toString() === req.user._id.toString();
+
+    await DocumentSignature.updateOne(
+      { suratId: req.params.id },
+      { $pull: { signers: { _id: req.params.signerId } } }
+    );
+    res.json({ ok: true, wasCurrentUser, removedUserId: signer?.userId?.toString() });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
+// Public: verify document QR
+app.get('/verify/doc/:token', async (req, res) => {
+  try {
+    const docSig = await DocumentSignature.findOne({ 'signers.token': req.params.token });
+    if (!docSig) {
+      return res.render('verify-doc', { title: 'Verifikasi Dokumen', valid: false, signer: null, surat: null, scanTime: new Date() });
+    }
+    const signer = docSig.signers.find(s => s.token === req.params.token);
+    const surat  = await SuratMasuk.findById(docSig.suratId);
+    res.render('verify-doc', { title: 'Verifikasi Dokumen', valid: true, signer, surat, scanTime: new Date() });
+  } catch (err) {
+    res.render('verify-doc', { title: 'Verifikasi Dokumen', valid: false, signer: null, surat: null, scanTime: new Date() });
+  }
 });
 
 // ── START ──

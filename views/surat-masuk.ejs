@@ -53,7 +53,7 @@
 <div class="mail-list-wrap">
   <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
     <span class="mail-list-title"><%= surats.length %> surat tercatat</span>
-    <form method="GET" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <form method="GET" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <select name="klasifikasi" class="admin-role-select" onchange="this.form.submit()" style="padding:7px 28px 7px 10px;">
         <option value="">Semua Klasifikasi</option>
         <% ['Urgent','Penting','Normal','Info'].forEach(k => { %>
@@ -66,11 +66,13 @@
         <option value="<%= s %>" <%= (filter.status === s) ? 'selected' : '' %>><%= s.charAt(0).toUpperCase() + s.slice(1) %></option>
         <% }) %>
       </select>
-      <input type="text" name="q" class="search-input" placeholder="Cari perihal, instansi, nomor..." value="<%= filter.q || '' %>" style="max-width:220px;padding:7px 12px;">
-      <button type="submit" class="btn btn-secondary" style="padding:7px 14px;font-size:13px;">Cari</button>
-      <% if (filter.status || filter.klasifikasi || filter.q) { %>
-      <a href="/surat-masuk" class="btn btn-ghost" style="padding:7px 12px;font-size:13px;">Reset</a>
-      <% } %>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input type="text" name="q" class="search-input" placeholder="Cari perihal, instansi, nomor..." value="<%= filter.q || '' %>" style="width:220px;padding:7px 12px;">
+        <button type="submit" class="btn btn-secondary" style="padding:7px 14px;font-size:13px;white-space:nowrap;">Cari</button>
+        <% if (filter.status || filter.klasifikasi || filter.q) { %>
+        <a href="/surat-masuk" class="btn btn-ghost" style="padding:7px 12px;font-size:13px;white-space:nowrap;">Reset</a>
+        <% } %>
+      </div>
     </form>
   </div>
 
