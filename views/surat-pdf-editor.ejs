@@ -61,59 +61,51 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
   overflow: hidden;
 }
 
-/* Document content inside A4 */
+/* ── KOP SURAT — hitam putih profesional ── */
 .doc-header {
-  background: #071840;
-  padding: 28px 48px 22px;
-  display: flex; align-items: center; gap: 18px;
+  padding: 28px 48px 20px;
+  display: flex; align-items: center; gap: 20px;
+  border-bottom: 3px solid #111;
 }
-.doc-header-logo {
-  width: 40px; height: 40px; object-fit: contain; filter: brightness(10);
-}
-.doc-header-text { color: #fff; }
-.doc-header-org { font-size: 15px; font-weight: 600; letter-spacing: .3px; }
-.doc-header-sub { font-size: 11px; color: rgba(255,255,255,.55); margin-top: 1px; }
-
-.doc-divider { height: 4px; background: linear-gradient(90deg,#1a56a8,#0f3270); }
+.doc-header-logo { width: 52px; height: 52px; object-fit: contain; flex-shrink: 0; }
+.doc-header-divider { width: 1.5px; height: 52px; background: #d1d5db; flex-shrink: 0; }
+.doc-header-text { flex: 1; }
+.doc-header-org { font-size: 15px; font-weight: 700; color: #111; letter-spacing: .2px; text-transform: uppercase; }
+.doc-header-sub { font-size: 11px; color: #555; margin-top: 3px; line-height: 1.6; }
+.doc-header-sub span { display: block; }
 
 .doc-type-banner {
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 14px 48px;
-  display: flex; align-items: center; gap: 12px;
+  background: #f9fafb; border-bottom: 1px solid #e5e7eb;
+  padding: 10px 48px; display: flex; align-items: center; justify-content: space-between;
 }
-.doc-type-label {
-  font-size: 11px; font-weight: 700; letter-spacing: 2px;
-  text-transform: uppercase; color: #64748b;
-}
+.doc-type-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #6b7280; }
 .doc-type-pill {
-  font-size: 10.5px; font-weight: 600; padding: 3px 10px;
-  border-radius: 20px; letter-spacing: .5px;
+  font-size: 10px; font-weight: 600; padding: 2px 9px;
+  border-radius: 3px; border: 1px solid #d1d5db; color: #374151; background: #fff;
 }
-.pill-urgent { background: #fee2e2; color: #991b1b; }
-.pill-penting { background: #fef9c3; color: #854d0e; }
-.pill-normal  { background: #e0f2fe; color: #075985; }
-.pill-info    { background: #f0fdf4; color: #166534; }
+.pill-urgent { border-color: #fca5a5; color: #991b1b; }
+.pill-penting { border-color: #fde68a; color: #92400e; }
+.pill-normal  { border-color: #bfdbfe; color: #1e40af; }
+.pill-info    { border-color: #bbf7d0; color: #15803d; }
 
-.doc-body { padding: 32px 48px 24px; }
-
+.doc-body { padding: 28px 48px 20px; }
 .doc-title {
-  font-size: 18px; font-weight: 700; color: #0f172a;
-  margin-bottom: 24px; line-height: 1.4;
+  font-size: 16px; font-weight: 700; color: #111;
+  margin-bottom: 20px; line-height: 1.4;
+  text-align: center; text-transform: uppercase; letter-spacing: .3px;
 }
 
 .doc-info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
 .doc-info-table td {
-  padding: 8px 0; vertical-align: top;
-  font-size: 13px; color: #334155;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 7px 0; vertical-align: top;
+  font-size: 13px; color: #222;
+  border-bottom: 1px solid #f3f4f6;
 }
 .doc-info-table td:first-child {
-  width: 150px; font-weight: 600; color: #64748b;
-  font-size: 12px; text-transform: uppercase; letter-spacing: .5px;
-  padding-right: 16px;
+  width: 150px; font-weight: 600; color: #6b7280;
+  font-size: 11.5px; text-transform: uppercase; letter-spacing: .4px; padding-right: 16px;
 }
-.doc-info-table td .colon { color: #94a3b8; padding-right: 8px; }
+.doc-info-table td .colon { color: #9ca3af; padding-right: 6px; }
 
 .doc-catatan {
   background: #f8fafc; border: 1px solid #e2e8f0;
@@ -149,13 +141,16 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 .qr-stamp:hover, .qr-stamp.active { border-color: #1a56a8; }
 .qr-stamp img {
   width: 100%;
+  max-height: 65%;
+  object-fit: contain;
   display: block;
   flex-shrink: 0;
 }
 .qr-stamp-sig {
-  width: 100%;
-  border-top: 1.5px solid #071840;
-  margin-top: 4px;
+  width: 92%;
+  border-top: 1.5px solid #111;
+  margin: 5px 0 4px;
+  flex-shrink: 0;
 }
 .qr-stamp-name {
   font-size: 8.5px; font-weight: 700; text-align: center;
@@ -305,19 +300,22 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
   <div class="pdf-canvas-area">
     <div class="a4-page" id="a4Page">
 
-      <!-- Header -->
+      <!-- KOP SURAT RESMI -->
       <div class="doc-header">
-        <img src="/img/Group 1597880519.png" class="doc-header-logo" alt="Logo" onerror="this.style.display='none'">
+        <img src="/img/Group 1597880519.png" class="doc-header-logo" alt="" onerror="this.style.display='none'">
+        <div class="doc-header-divider"></div>
         <div class="doc-header-text">
           <div class="doc-header-org">Inspira Mailer</div>
-          <div class="doc-header-sub">Sistem Manajemen Surat & Dokumen Digital</div>
+          <div class="doc-header-sub">
+            <span>Sistem Manajemen Surat &amp; Dokumen Digital</span>
+            <span style="color:#9ca3af;">Jl. Contoh No. 1, Jakarta &nbsp;|&nbsp; inspira@example.com &nbsp;|&nbsp; (021) 000-0000</span>
+          </div>
         </div>
       </div>
-      <div class="doc-divider"></div>
 
       <!-- Type banner -->
       <div class="doc-type-banner">
-        <div class="doc-type-label">Dokumen Resmi</div>
+        <div class="doc-type-label">Surat Masuk</div>
         <span class="doc-type-pill pill-<%= surat.klasifikasi.toLowerCase() %>"><%= surat.klasifikasi %></span>
       </div>
 

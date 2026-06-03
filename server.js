@@ -465,45 +465,110 @@ app.post('/compose', requireAuth, async (req, res) => {
 app.get('/email/:id/preview', requireAuth, async (req, res) => {
   try {
     const email = await Email.findById(req.params.id);
-    if (!email) return res.redirect('/sent');
-    if (email.from.userId.toString() !== req.user._id.toString()) return res.redirect('/sent');
-    const [docSig, users, counts] = await Promise.all([
-      DocumentSignature.findOne({ emailId: email._id }),
+    if (!email) return res.redirect('/inbox');
+    const uid = req.user._id.toString();
+    const isSender = email.from.userId?.toString() === uid;
+
+    // Izinkan juga co-signer yang diundang
+    const docSig = await DocumentSignature.findOne({ emailId: email._id });
+    const isPendingCosigner = docSig?.signers.some(
+      s => s.userId.toString() === uid && s.status === 'pending'
+    );
+
+    if (!isSender && !isPendingCosigner) return res.redirect('/inbox');
+
+    const [users, counts] = await Promise.all([
       User.find({ isActive: true }, 'name email role organization _id').sort({ name: 1 }),
       getMailCounts(req.user._id)
     ]);
     res.render('email-preview', {
       title: 'Preview & Tanda Tangan', email,
       docSig: docSig || { signers: [] },
+      isSender, isPendingCosigner,
       currentUser: req.user, users, formatDate, ...counts
     });
-  } catch (err) { console.error(err); res.redirect('/sent'); }
+  } catch (err) { console.error(err); res.redirect('/inbox'); }
 });
 
-app.post('/email/:id/sign/add-signer', requireAuth, async (req, res) => {
+// Tambah diri sendiri — langsung generate QR
+app.post('/email/:id/sign/add-self', requireAuth, async (req, res) => {
   try {
-    const { userId } = req.body;
     const email = await Email.findById(req.params.id);
     if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
-    const targetUser = await User.findById(userId);
-    if (!targetUser) return res.json({ ok: false, message: 'Pengguna tidak ditemukan.' });
+
+    // Hanya pengirim atau co-signer yang diundang boleh tanda tangan sendiri
+    const uid = req.user._id.toString();
+    const isSender = email.from.userId?.toString() === uid;
 
     let docSig = await DocumentSignature.findOne({ emailId: email._id });
-    if (!docSig) docSig = new DocumentSignature({ emailId: email._id, createdBy: req.user._id, signers: [] });
-    if (docSig.signers.some(s => s.userId.toString() === userId.toString()))
-      return res.json({ ok: false, message: 'Penandatangan sudah ditambahkan.' });
+    if (!docSig) {
+      if (!isSender) return res.json({ ok: false, message: 'Anda tidak memiliki akses.' });
+      docSig = new DocumentSignature({ emailId: email._id, createdBy: req.user._id, signers: [] });
+    }
+
+    const existing = docSig.signers.find(s => s.userId.toString() === uid);
+    if (existing && existing.status === 'signed') return res.json({ ok: false, message: 'Anda sudah menandatangani.' });
+    if (existing && existing.status === 'pending') {
+      // Co-signer menandatangani dirinya sendiri
+    } else if (isSender) {
+      // Pengirim menambah dirinya
+    } else {
+      return res.json({ ok: false, message: 'Anda tidak diundang sebagai penandatangan.' });
+    }
 
     const token = crypto.randomBytes(32).toString('hex');
     const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
     const qrDataUrl = await QRCode.toDataURL(`${appUrl}/verify/doc/${token}`, {
       errorCorrectionLevel: 'H', margin: 2, width: 200, color: { dark: '#071840', light: '#ffffff' }
     });
+
+    if (existing) {
+      // Update pending → signed
+      await DocumentSignature.updateOne(
+        { emailId: email._id, 'signers._id': existing._id },
+        { $set: { 'signers.$.token': token, 'signers.$.qrDataUrl': qrDataUrl, 'signers.$.status': 'signed', 'signers.$.signedAt': new Date() } }
+      );
+      await docSig.populate('signers');
+      const updated = (await DocumentSignature.findOne({ emailId: email._id })).signers.id(existing._id);
+      return res.json({ ok: true, signer: updated, action: 'updated' });
+    }
+
+    // Pengirim menambah dirinya pertama kali
+    const n = docSig.signers.length;
+    docSig.signers.push({
+      userId: req.user._id, userName: req.user.name,
+      userRole: req.user.role || '', userOrg: req.user.organization || '',
+      token, qrDataUrl, status: 'signed', signedAt: new Date(),
+      position: { x: 60 + n * 140, y: 660, width: 110, height: 155 }
+    });
+    await docSig.save();
+    res.json({ ok: true, signer: docSig.signers[docSig.signers.length - 1], action: 'added' });
+  } catch (err) { console.error(err); res.json({ ok: false, message: 'Gagal.' }); }
+});
+
+// Undang co-signer — hanya buat entri pending, TANPA QR
+app.post('/email/:id/sign/invite-cosigner', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const email = await Email.findById(req.params.id);
+    if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
+    if (email.from.userId?.toString() !== req.user._id.toString())
+      return res.json({ ok: false, message: 'Hanya pengirim yang bisa mengundang co-signer.' });
+
+    const targetUser = await User.findById(userId);
+    if (!targetUser) return res.json({ ok: false, message: 'Pengguna tidak ditemukan.' });
+
+    let docSig = await DocumentSignature.findOne({ emailId: email._id });
+    if (!docSig) docSig = new DocumentSignature({ emailId: email._id, createdBy: req.user._id, signers: [] });
+    if (docSig.signers.some(s => s.userId.toString() === userId.toString()))
+      return res.json({ ok: false, message: 'Penandatangan sudah diundang.' });
+
     const n = docSig.signers.length;
     docSig.signers.push({
       userId: targetUser._id, userName: targetUser.name,
       userRole: targetUser.role || '', userOrg: targetUser.organization || '',
-      token, qrDataUrl,
-      position: { x: 60 + n * 140, y: 680, width: 110, height: 110 }
+      token: '', qrDataUrl: '', status: 'pending',
+      position: { x: 60 + n * 140, y: 660, width: 110, height: 155 }
     });
     await docSig.save();
     res.json({ ok: true, signer: docSig.signers[docSig.signers.length - 1] });
@@ -547,6 +612,7 @@ app.post('/email/:id/send', requireAuth, async (req, res) => {
     ].filter(Boolean);
 
     if (transporter && allEmails.length > 0) {
+      const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
       const recipientNames = [
         ...email.to.map(r => r.name),
         ...(email.toExternal||[]).map(r => r.name || r.email)
@@ -575,7 +641,18 @@ app.post('/email/:id/send', requireAuth, async (req, res) => {
           <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px 24px;font-size:14px;line-height:1.8;color:#334155;">
             ${email.body || '<em>Tidak ada isi surat.</em>'}
           </div>
-          <p style="font-size:11px;color:#94a3b8;margin-top:24px;padding-top:16px;border-top:1px solid #f1f5f9;">
+          <!-- Tombol lihat PDF -->
+          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #f1f5f9;text-align:center;">
+            <a href="${appUrl}/email/${email._id}/preview"
+               style="display:inline-flex;align-items:center;gap:8px;background:#071840;color:#fff;text-decoration:none;padding:10px 22px;border-radius:7px;font-size:13px;font-weight:600;letter-spacing:.2px;">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2H5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7l-4-5z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 2v5h5" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              Lihat Dokumen Lengkap (PDF A4)
+            </a>
+            <p style="font-size:11px;color:#94a3b8;margin-top:12px;">
+              Dokumen A4 lengkap beserta tanda tangan digital tersedia di link di atas.
+            </p>
+          </div>
+          <p style="font-size:11px;color:#94a3b8;margin-top:16px;padding-top:12px;border-top:1px solid #f1f5f9;">
             Dikirim melalui <strong>Inspira Mailer</strong> &middot; Nomor: ${email.nomorSurat}
           </p>
         </div></div>`;

@@ -5,15 +5,18 @@ const docSignerSchema = new mongoose.Schema({
   userName:     { type: String, required: true },
   userRole:     { type: String, default: '' },
   userOrg:      { type: String, default: '' },
-  token:        { type: String, required: true },
-  qrDataUrl:    { type: String, required: true },
+  token:        { type: String, default: '' },
+  qrDataUrl:    { type: String, default: '' },
+  // 'pending' = diundang tapi belum tandatangan, 'signed' = sudah
+  status:       { type: String, enum: ['pending','signed'], default: 'pending' },
   position: {
     x:      { type: Number, default: 60 },
     y:      { type: Number, default: 680 },
     width:  { type: Number, default: 110 },
     height: { type: Number, default: 110 }
   },
-  addedAt: { type: Date, default: Date.now }
+  addedAt:   { type: Date, default: Date.now },
+  signedAt:  { type: Date }
 }, { _id: true });
 
 const documentSignatureSchema = new mongoose.Schema({
