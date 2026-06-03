@@ -43,7 +43,14 @@ app.use(session({
 }));
 
 mongoose.connect(MONGO_URI)
-  .then(() => console.log('MongoDB Atlas terhubung'))
+  .then(async () => {
+    console.log('MongoDB Atlas terhubung');
+    // Drop index lama suratId_1 yang unique non-sparse (diganti sparse)
+    try {
+      await mongoose.connection.db.collection('documentsignatures').dropIndex('suratId_1');
+      console.log('Index suratId_1 lama berhasil di-drop, akan dibuat ulang sebagai sparse.');
+    } catch { /* index sudah tidak ada atau belum pernah dibuat */ }
+  })
   .catch(err => console.error('MongoDB error:', err));
 
 // ── LOGGING HELPER ──
