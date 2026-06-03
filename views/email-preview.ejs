@@ -112,48 +112,39 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 }
 .doc-sig-hint { font-size: 12px; color: #9ca3af; font-style: italic; text-align: center; padding: 20px 0; }
 
-/* ── QR STAMP — format tanda tangan resmi ── */
+/* ── QR STAMP — QR + nama + jabatan ── */
 .qr-stamp {
   position: absolute; cursor: move; user-select: none;
   border: none; outline: 2px dashed transparent;
   outline-offset: 3px; border-radius: 4px; transition: outline-color .15s;
   display: flex; flex-direction: column; align-items: center;
-  padding: 0; text-align: center;
+  padding: 0; text-align: center; overflow: hidden;
 }
 .qr-stamp:hover, .qr-stamp.active { outline-color: #1a56a8; }
 
-/* Baris atas: Kota, Tanggal */
-.qr-stamp-location {
-  font-size: 8px; color: #111; text-align: center;
-  padding: 0 4px; line-height: 1.5; flex-shrink: 0;
-  white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
-}
-/* Jabatan di atas QR */
-.qr-stamp-toplabel {
-  font-size: 8.5px; font-weight: 600; color: #111; text-align: center;
-  padding: 1px 4px 3px; line-height: 1.4; flex-shrink: 0;
-  white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
-}
-/* Gambar QR — area tanda tangan */
+/* QR image mengisi semua sisa ruang */
 .qr-stamp img {
-  width: 80%; max-height: 55%;
-  object-fit: contain; display: block; flex-shrink: 0; margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  object-fit: contain;
+  display: block;
 }
-/* Garis bawah nama */
+/* Garis pemisah */
 .qr-stamp-sig {
   width: 95%; border-top: 1.5px solid #111;
-  margin: 6px 0 4px; flex-shrink: 0;
+  margin: 5px 0 3px; flex-shrink: 0;
 }
 /* Nama */
 .qr-stamp-name {
   font-size: 9.5px; font-weight: 700; color: #111; text-align: center;
-  padding: 0 4px; line-height: 1.4; flex-shrink: 0;
+  padding: 0 4px; line-height: 1.5; flex-shrink: 0;
   white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
 }
-/* Jabatan (pengganti NIP) */
+/* Jabatan */
 .qr-stamp-role {
-  font-size: 8px; color: #111; text-align: center;
-  padding: 1px 4px 0; flex-shrink: 0;
+  font-size: 8.5px; font-weight: 400; color: #111; text-align: center;
+  padding: 1px 4px 3px; flex-shrink: 0;
   white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
 }
 .qr-resize { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; cursor: se-resize; background: #1a56a8; border-radius: 2px 0 0 0; opacity: 0; transition: opacity .15s; }
@@ -200,6 +191,12 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 .signer-del { width: 24px; height: 24px; border-radius: 5px; background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.2); color: #ef4444; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
 .signer-del:hover { background: rgba(239,68,68,.3); }
 .empty-signers { text-align: center; padding: 16px 0; color: rgba(255,255,255,.25); font-size: 12px; line-height: 1.7; }
+.signer-av-pending { background: rgba(255,255,255,.12) !important; }
+.j-hidden { display: none; }
+.jabatan-input {
+  width: 100%; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  color: #fff; border-radius: 5px; padding: 5px 8px; font-size: 11.5px; outline: none;
+}
 
 @media print {
   @page { size: A4; margin: 0; }
@@ -309,23 +306,16 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         </div>
       </div>
 
-      <%
-        const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
-        const emailDate = new Date(email.createdAt);
-        const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-        const tglFmt = `Jakarta, ${emailDate.getDate()} ${BULAN[emailDate.getMonth()]} ${emailDate.getFullYear()}`;
-      %>
       <% docSig.signers.forEach(function(s) {
-        const jabatan = s.userRole ? rl[s.userRole]||s.userRole : (s.userOrg||'');
+        const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+        const jabatan = s.jabatanDisplay || (s.userRole ? rl[s.userRole]||s.userRole : (s.userOrg||''));
       %>
       <div class="qr-stamp" id="stamp-<%= s._id %>" data-id="<%= s._id %>"
         style="left:<%= s.position.x %>px;top:<%= s.position.y %>px;width:<%= s.position.width %>px;height:<%= s.position.height %>px;">
-        <div class="qr-stamp-location"><%= tglFmt %></div>
-        <div class="qr-stamp-toplabel"><%= jabatan %></div>
         <% if (s.qrDataUrl) { %>
         <img src="<%= s.qrDataUrl %>" alt="QR" draggable="false">
         <% } else { %>
-        <div style="width:80%;aspect-ratio:1;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;flex-shrink:0;">Belum ditandatangani</div>
+        <div style="flex:1;width:100%;min-height:0;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;">Menunggu tanda tangan</div>
         <% } %>
         <div class="qr-stamp-sig"></div>
         <div class="qr-stamp-name"><%= s.userName %></div>
@@ -406,27 +396,43 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
           const inits = s.userName.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
           const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
           const signed = s.status === 'signed';
+          const jabatanNow = s.jabatanDisplay || (s.userRole ? rl[s.userRole]||s.userRole : (s.userOrg||''));
+          const isCustom = !['Direktur','Staff','Administrator'].includes(jabatanNow);
         %>
-        <div class="signer-item" id="si-<%= s._id %>">
-          <div class="signer-av" style="<%= signed ? '' : 'background:rgba(255,255,255,.12);' %>"><%= inits %></div>
-          <div class="signer-info">
-            <div class="signer-name"><%= s.userName %></div>
-            <div class="signer-role">
-              <%= s.userRole ? rl[s.userRole]||s.userRole : (s.userOrg||'') %>
+        <div class="signer-item" id="si-<%= s._id %>" style="flex-direction:column;align-items:stretch;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="signer-av<%= signed ? '' : ' signer-av-pending' %>"><%= inits %></div>
+            <div class="signer-info">
+              <div class="signer-name"><%= s.userName %></div>
+              <div class="signer-role" id="jlbl-<%= s._id %>"><%= jabatanNow %></div>
+            </div>
+            <% if (signed) { %>
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="color:#22c55e;flex-shrink:0;"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <% } else { %>
+            <span style="font-size:9px;color:rgba(255,200,0,.7);font-weight:600;flex-shrink:0;">MENUNGGU</span>
+            <% } %>
+            <% if (isSender) { %>
+            <button class="signer-del" onclick="removeSigner('<%= s._id %>',event)" title="Hapus">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
+            <% } %>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <select id="jsel-<%= s._id %>" onchange="onJabatanSelect('<%= s._id %>',this)"
+              style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:5px;padding:5px 8px;font-size:11.5px;outline:none;width:100%;">
+              <option value="Direktur"      style="background:#1e293b;" <%= jabatanNow==='Direktur'?'selected':'' %>>Direktur</option>
+              <option value="Staff"         style="background:#1e293b;" <%= jabatanNow==='Staff'?'selected':'' %>>Staff</option>
+              <option value="Administrator" style="background:#1e293b;" <%= jabatanNow==='Administrator'?'selected':'' %>>Administrator</option>
+              <option value="__custom__"    style="background:#1e293b;" <%= isCustom?'selected':'' %>>Isi sendiri...</option>
+            </select>
+            <div id="jinput-<%= s._id %>" class="<%= isCustom ? '' : 'j-hidden' %>">
+              <input type="text" id="jtext-<%= s._id %>"
+                value="<%= isCustom ? jabatanNow : '' %>"
+                placeholder="Ketik jabatan..."
+                class="jabatan-input"
+                oninput="updateJabatanText('<%= s._id %>',this.value)">
             </div>
           </div>
-          <% if (signed) { %>
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="color:#22c55e;flex-shrink:0;" title="Sudah ditandatangani">
-            <path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <% } else { %>
-          <span style="font-size:9px;color:rgba(255,200,0,.7);font-weight:600;flex-shrink:0;">MENUNGGU</span>
-          <% } %>
-          <% if (isSender) { %>
-          <button class="signer-del" onclick="removeSigner('<%= s._id %>',event)" title="Hapus">
-            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          </button>
-          <% } %>
         </div>
         <% }) %>
       </div>
@@ -514,19 +520,14 @@ function addStampToPage(s) {
   const page = document.getElementById('a4Page');
   const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
   const jabatan = s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||'');
-  const now = new Date();
-  const BL = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  const tgl = `Jakarta, ${now.getDate()} ${BL[now.getMonth()]} ${now.getFullYear()}`;
   const qrHtml = s.qrDataUrl
     ? `<img src="${s.qrDataUrl}" draggable="false">`
-    : `<div style="width:80%;aspect-ratio:1;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;flex-shrink:0;">Menunggu</div>`;
+    : `<div style="flex:1;width:100%;min-height:0;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;">Menunggu tanda tangan</div>`;
 
   const div = document.createElement('div');
   div.className = 'qr-stamp'; div.id = `stamp-${s._id}`; div.dataset.id = s._id;
   div.style.cssText = `left:${s.position.x}px;top:${s.position.y}px;width:${s.position.width}px;height:${s.position.height}px;`;
   div.innerHTML = `
-    <div class="qr-stamp-location">${tgl}</div>
-    <div class="qr-stamp-toplabel">${jabatan}</div>
     ${qrHtml}
     <div class="qr-stamp-sig"></div>
     <div class="qr-stamp-name">${s.userName}</div>
@@ -541,13 +542,75 @@ function addStampToPage(s) {
 function addSignerToPanel(s) {
   document.getElementById('emptySig')?.remove();
   const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
-  const rt = s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||'');
+  const jabatan = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
   const ini = s.userName.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
   const item = document.createElement('div');
   item.className = 'signer-item'; item.id = `si-${s._id}`;
-  item.innerHTML = `<div class="signer-av">${ini}</div><div class="signer-info"><div class="signer-name">${s.userName}</div><div class="signer-role">${rt}</div></div><button class="signer-del" onclick="removeSigner('${s._id}',event)"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>`;
+  item.style.cssText = 'flex-direction:column;align-items:stretch;gap:8px;';
+  item.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="signer-av">${ini}</div>
+      <div class="signer-info">
+        <div class="signer-name">${s.userName}</div>
+        <div class="signer-role" id="jlbl-${s._id}">${jabatan}</div>
+      </div>
+      <span style="font-size:9px;color:rgba(255,200,0,.7);font-weight:600;flex-shrink:0;">MENUNGGU</span>
+      <button class="signer-del" onclick="removeSigner('${s._id}',event)">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;">
+      <select id="jsel-${s._id}" onchange="onJabatanSelect('${s._id}',this)"
+        style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:5px;padding:5px 8px;font-size:11.5px;outline:none;width:100%;">
+        <option value="Direktur" style="background:#1e293b;" ${jabatan==='Direktur'?'selected':''}>Direktur</option>
+        <option value="Staff" style="background:#1e293b;" ${jabatan==='Staff'?'selected':''}>Staff</option>
+        <option value="Administrator" style="background:#1e293b;" ${jabatan==='Administrator'?'selected':''}>Administrator</option>
+        <option value="__custom__" style="background:#1e293b;">Isi sendiri...</option>
+      </select>
+      <div id="jinput-${s._id}" class="j-hidden">
+        <input type="text" id="jtext-${s._id}" placeholder="Ketik jabatan..."
+          class="jabatan-input" oninput="updateJabatanText('${s._id}',this.value)">
+      </div>
+    </div>`;
   document.getElementById('signerList').appendChild(item);
   document.getElementById('signerCount').textContent = parseInt(document.getElementById('signerCount').textContent)+1;
+}
+
+// ── JABATAN EDIT ──
+function onJabatanSelect(id, sel) {
+  const inputDiv = document.getElementById('jinput-' + id);
+  if (sel.value === '__custom__') {
+    inputDiv.classList.remove('j-hidden');
+    document.getElementById('jtext-' + id).focus();
+  } else {
+    inputDiv.classList.add('j-hidden');
+    saveJabatan(id, sel.value);
+  }
+}
+
+let jabatanTimer = {};
+function updateJabatanText(id, val) {
+  clearTimeout(jabatanTimer[id]);
+  jabatanTimer[id] = setTimeout(() => saveJabatan(id, val), 600);
+}
+
+async function saveJabatan(id, jabatan) {
+  const res = await fetch(`/email/${EMAIL_ID}/sign/update-jabatan`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ signerId: id, jabatan })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    // Update label di panel
+    const lbl = document.getElementById('jlbl-' + id);
+    if (lbl) lbl.textContent = jabatan;
+    // Update stamp di A4
+    const stamp = document.getElementById('stamp-' + id);
+    if (stamp) {
+      const roleEl = stamp.querySelector('.qr-stamp-role');
+      if (roleEl) roleEl.textContent = jabatan;
+    }
+  }
 }
 
 async function removeSigner(id, e) {

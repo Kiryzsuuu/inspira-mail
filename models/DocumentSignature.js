@@ -5,10 +5,10 @@ const docSignerSchema = new mongoose.Schema({
   userName:     { type: String, required: true },
   userRole:     { type: String, default: '' },
   userOrg:      { type: String, default: '' },
-  token:        { type: String, default: '' },
-  qrDataUrl:    { type: String, default: '' },
-  // 'pending' = diundang tapi belum tandatangan, 'signed' = sudah
-  status:       { type: String, enum: ['pending','signed'], default: 'pending' },
+  token:          { type: String, default: '' },
+  qrDataUrl:      { type: String, default: '' },
+  jabatanDisplay: { type: String, default: '' },  // override jabatan di stamp
+  status:         { type: String, enum: ['pending','signed'], default: 'pending' },
   position: {
     x:      { type: Number, default: 60 },
     y:      { type: Number, default: 680 },

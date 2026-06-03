@@ -586,6 +586,28 @@ app.post('/email/:id/sign/update-position', requireAuth, async (req, res) => {
   } catch { res.json({ ok: false }); }
 });
 
+app.post('/email/:id/sign/update-jabatan', requireAuth, async (req, res) => {
+  try {
+    const { signerId, jabatan } = req.body;
+    await DocumentSignature.updateOne(
+      { emailId: req.params.id, 'signers._id': signerId },
+      { $set: { 'signers.$.jabatanDisplay': jabatan || '' } }
+    );
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
+});
+
+app.post('/surat-masuk/:id/pdf/update-jabatan', requireAuth, async (req, res) => {
+  try {
+    const { signerId, jabatan } = req.body;
+    await DocumentSignature.updateOne(
+      { suratId: req.params.id, 'signers._id': signerId },
+      { $set: { 'signers.$.jabatanDisplay': jabatan || '' } }
+    );
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
+});
+
 app.delete('/email/:id/sign/signers/:signerId', requireAuth, async (req, res) => {
   try {
     const docSig = await DocumentSignature.findOne({ emailId: req.params.id });
