@@ -23,6 +23,8 @@ const emailSchema = new mongoose.Schema({
   nomorSurat:  { type: String, default: '' },
   sifat:       { type: String, enum: ['Biasa/Terbuka','Rahasia','Terbatas','Segera'], default: 'Biasa/Terbuka' },
   jenis:       { type: String, enum: ['internal','eksternal'], default: 'internal' },
+  tipeSurat:   { type: String, default: 'Surat' },
+  suratData:   { type: mongoose.Schema.Types.Mixed, default: {} },
   status:      { type: String, enum: ['draft','sent'], default: 'draft' },
   readBy:      [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   deletedBy:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]

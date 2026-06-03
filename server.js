@@ -489,7 +489,7 @@ app.get('/compose', requireAuth, async (req, res) => {
 });
 
 app.post('/compose', requireAuth, async (req, res) => {
-  const { to, cc, subject, body, tag, berkas, action, sifat, jenis, externalRecipients } = req.body;
+  const { to, cc, subject, body, tag, berkas, action, sifat, jenis, externalRecipients, tipeSurat, suratData } = req.body;
   try {
     const toIds = [].concat(to || []).filter(Boolean);
     const ccIds = [].concat(cc || []).filter(Boolean);
@@ -500,6 +500,9 @@ app.post('/compose', requireAuth, async (req, res) => {
 
     let extRecipients = [];
     try { extRecipients = JSON.parse(externalRecipients || '[]'); } catch {}
+
+    let parsedSuratData = {};
+    try { parsedSuratData = JSON.parse(suratData || '{}'); } catch {}
 
     const now  = new Date();
     const year = now.getFullYear();
@@ -519,6 +522,8 @@ app.post('/compose', requireAuth, async (req, res) => {
       berkas:     berkas?.trim() || '',
       sifat:      sifat || 'Biasa/Terbuka',
       jenis:      jenis || 'internal',
+      tipeSurat:  tipeSurat || 'Surat',
+      suratData:  parsedSuratData,
       nomorSurat,
       status:     'draft'
     });
@@ -668,6 +673,19 @@ app.post('/email/:id/sign/update-jabatan', requireAuth, async (req, res) => {
     await DocumentSignature.updateOne(
       { emailId: req.params.id, 'signers._id': signerId },
       { $set: { 'signers.$.jabatanDisplay': jabatan || '' } }
+    );
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
+});
+
+app.post('/email/:id/sign/update-display-mode', requireAuth, async (req, res) => {
+  try {
+    const { signerId, displayMode } = req.body;
+    const valid = ['full','name_only','qr_only'];
+    if (!valid.includes(displayMode)) return res.json({ ok: false, message: 'Mode tidak valid.' });
+    await DocumentSignature.updateOne(
+      { emailId: req.params.id, 'signers._id': signerId },
+      { $set: { 'signers.$.displayMode': displayMode } }
     );
     res.json({ ok: true });
   } catch { res.json({ ok: false }); }

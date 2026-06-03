@@ -1,26 +1,16 @@
 <%- include('./partials/header') %>
 
-<!-- Quill CSS -->
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <style>
-/* Override Quill font sizes */
 .ql-snow .ql-picker.ql-size .ql-picker-label::before,
 .ql-snow .ql-picker.ql-size .ql-picker-item::before { content: attr(data-value) !important; }
-.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="10px"]::before,
-.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="10px"]::before { content: '10px' !important; }
-.ql-size-10px { font-size: 10px; }
-.ql-size-12px { font-size: 12px; }
-.ql-size-14px { font-size: 14px; }
-.ql-size-16px { font-size: 16px; }
-.ql-size-18px { font-size: 18px; }
-.ql-size-20px { font-size: 20px; }
-.ql-size-24px { font-size: 24px; }
-.ql-size-28px { font-size: 28px; }
+.ql-size-10px { font-size: 10px; } .ql-size-12px { font-size: 12px; }
+.ql-size-14px { font-size: 14px; } .ql-size-16px { font-size: 16px; }
+.ql-size-18px { font-size: 18px; } .ql-size-20px { font-size: 20px; }
+.ql-size-24px { font-size: 24px; } .ql-size-28px { font-size: 28px; }
 .ql-size-32px { font-size: 32px; }
-/* Quill image style */
 .ql-editor img { max-width: 100%; height: auto; border-radius: 4px; }
-</style>
-<style>
+
 .jenis-tabs { display:flex; gap:0; border:1px solid var(--gray-200); border-radius:8px; overflow:hidden; margin-top:2px; }
 .jenis-tab {
   flex:1; padding:9px 0; font-size:13px; font-weight:500; text-align:center; cursor:pointer;
@@ -43,19 +33,38 @@
 .ext-item-del { margin-left:auto; background:none; border:none; cursor:pointer; color:var(--gray-400); font-size:16px; line-height:1; }
 .ext-item-del:hover { color:var(--red-500); }
 
-/* Quill overrides */
 .ql-container { font-family:'DM Sans',sans-serif; font-size:14px; border:1px solid var(--gray-200) !important; border-top:0 !important; border-radius:0 0 var(--radius-md) var(--radius-md) !important; }
 .ql-toolbar { border:1px solid var(--gray-200) !important; border-radius:var(--radius-md) var(--radius-md) 0 0 !important; background:var(--gray-50); flex-wrap:wrap; }
-.ql-editor { min-height:280px; line-height:1.8; color:var(--gray-800); padding:16px; }
+.ql-editor { min-height:220px; line-height:1.8; color:var(--gray-800); padding:16px; }
 .ql-editor.ql-blank::before { color:var(--gray-400); font-style:normal; font-size:13.5px; }
 .ql-toolbar .ql-formats { margin-right:8px; margin-bottom:4px; }
 .ql-snow .ql-picker { color:var(--gray-600); }
 .ql-snow .ql-picker.ql-size { width:80px; }
 .ql-snow .ql-picker.ql-font { width:110px; }
-.ql-snow .ql-color-picker .ql-picker-label svg,
-.ql-snow .ql-background .ql-picker-label svg { width:16px; }
-/* Image in editor */
-.ql-editor img { max-width:100%; height:auto; border-radius:4px; cursor:pointer; }
+
+/* Tipe surat section badges */
+.sec-header {
+  display:flex; align-items:center; gap:8px; margin-bottom:12px;
+  padding:8px 12px; background:var(--gray-50); border:1px solid var(--gray-200);
+  border-radius:8px; font-size:13px; font-weight:600; color:var(--gray-600);
+}
+.sec-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:4px; background:#071840; color:#fff; }
+
+/* Dynamic row table */
+.dyn-table { width:100%; border-collapse:collapse; margin-top:8px; }
+.dyn-table th { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--gray-500); padding:6px 8px; border-bottom:2px solid var(--gray-200); text-align:left; }
+.dyn-table td { padding:5px 4px; vertical-align:middle; }
+.dyn-table td input, .dyn-table td select { font-size:12.5px; padding:5px 8px; }
+.dyn-row-del { background:none; border:none; cursor:pointer; color:var(--gray-400); font-size:16px; padding:2px 6px; }
+.dyn-row-del:hover { color:var(--red-500); }
+.btn-add-row { margin-top:6px; font-size:12px; padding:5px 12px; background:var(--gray-50); border:1px solid var(--gray-200); border-radius:6px; cursor:pointer; color:var(--gray-600); }
+.btn-add-row:hover { background:var(--gray-100); }
+
+/* Dynamic list */
+.dyn-list { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.dyn-list-item { display:flex; gap:8px; align-items:center; }
+.dyn-list-item input { flex:1; font-size:13px; }
+.dyn-list-item .item-num { font-size:12px; font-weight:700; color:var(--gray-500); min-width:24px; text-align:right; }
 </style>
 
 <div class="page-header">
@@ -71,6 +80,8 @@
   <input type="hidden" name="body" id="bodyHidden">
   <input type="hidden" name="jenis" id="jenisHidden" value="internal">
   <input type="hidden" name="externalRecipients" id="externalRecipientsHidden" value="[]">
+  <input type="hidden" name="tipeSurat" id="tipeSuratHidden" value="Surat">
+  <input type="hidden" name="suratData" id="suratDataHidden" value="{}">
 
 <div class="compose-layout">
   <div class="compose-card">
@@ -88,25 +99,48 @@
     </div>
     <div class="compose-form">
 
-      <!-- Jenis Surat -->
+      <!-- TIPE SURAT -->
       <div class="form-group">
-        <label class="form-label">Jenis Surat</label>
-        <div class="jenis-tabs">
-          <button type="button" class="jenis-tab active" id="tabInternal" onclick="setJenis('internal')">
-            <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 100 12A6 6 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            Internal (Pengguna Terdaftar)
-          </button>
-          <button type="button" class="jenis-tab" id="tabEksternal" onclick="setJenis('eksternal')">
-            <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M2 10h16M10 2c-2 2.5-3 5-3 8s1 5.5 3 8M10 2c2 2.5 3 5 3 8s-1 5.5-3 8" stroke="currentColor" stroke-width="1.5"/></svg>
-            Eksternal (Email Bebas)
-          </button>
+        <label class="form-label">Tipe Surat <span class="req">*</span></label>
+        <div class="select-wrap">
+          <select id="tipeSuratSelect" class="form-control form-select" onchange="onTipeChange(this.value)">
+            <optgroup label="— Surat Umum —">
+              <option value="Surat">Surat (Biasa)</option>
+              <option value="Surat Resmi">Surat Resmi</option>
+              <option value="Surat Formal">Surat Formal</option>
+              <option value="Surat Instruksi">Surat Instruksi</option>
+              <option value="Surat Edaran">Surat Edaran</option>
+            </optgroup>
+            <optgroup label="— Surat Khusus —">
+              <option value="Surat Rahasia">Surat Rahasia</option>
+              <option value="Surat Konfidensial">Surat Konfidensial</option>
+              <option value="Memo">Memo</option>
+              <option value="Nota Dinas">Nota Dinas</option>
+            </optgroup>
+            <optgroup label="— Surat Tugas —">
+              <option value="Surat Tugas">Surat Tugas (Perorangan)</option>
+              <option value="Surat Tugas Pendelegasian">Surat Tugas Pendelegasian</option>
+              <option value="SPPD">SPPD (Perjalanan Dinas)</option>
+            </optgroup>
+            <optgroup label="— Surat Otoritas —">
+              <option value="Surat Keterangan">Surat Keterangan</option>
+              <option value="Surat Pernyataan">Surat Pernyataan</option>
+              <option value="Surat Kuasa">Surat Kuasa</option>
+              <option value="Surat Pengantar">Surat Pengantar</option>
+            </optgroup>
+            <optgroup label="— Dokumen Keputusan —">
+              <option value="Surat Keputusan">Surat Keputusan (SK)</option>
+              <option value="Surat Undangan Dinas">Surat Undangan Dinas</option>
+              <option value="Surat Statuta">Surat Statuta</option>
+            </optgroup>
+          </select>
         </div>
       </div>
 
-      <!-- Subjek -->
+      <!-- SUBJEK / PERIHAL -->
       <div class="form-group">
-        <label class="form-label">Subjek / Perihal <span class="req">*</span></label>
-        <input type="text" name="subject" class="form-control" placeholder="Perihal surat..." required>
+        <label class="form-label" id="subjectLabel">Subjek / Perihal <span class="req">*</span></label>
+        <input type="text" name="subject" id="subjectInput" class="form-control" placeholder="Perihal surat..." required>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
@@ -134,6 +168,386 @@
               <option value="Info">Info</option>
             </select>
           </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: MEMO / NOTA DINAS                             -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-memo" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">MEMO / NOTA DINAS</span>
+          Informasi Internal
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Kepada (Jabatan / Nama)</label>
+            <input type="text" id="memo_kepada" class="form-control" placeholder="cth: Kepala Bagian Keuangan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Klasifikasi</label>
+            <div class="select-wrap">
+              <select id="memo_klasifikasi" class="form-control form-select">
+                <option value="">— Pilih —</option>
+                <option value="RAHASIA">RAHASIA</option>
+                <option value="TERBATAS">TERBATAS</option>
+                <option value="BIASA">BIASA</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- Nota Dinas: tabel anggaran -->
+        <div id="sec-nota-budget" style="display:none;">
+          <label class="form-label" style="margin-top:4px;">Rincian Anggaran / Biaya Operasional</label>
+          <table class="dyn-table" id="budgetTable">
+            <thead>
+              <tr>
+                <th style="width:40px;">No.</th>
+                <th>Uraian Kebutuhan</th>
+                <th style="width:160px;">Jumlah (Rp)</th>
+                <th style="width:36px;"></th>
+              </tr>
+            </thead>
+            <tbody id="budgetBody"></tbody>
+          </table>
+          <button type="button" class="btn-add-row" onclick="addBudgetRow()">+ Tambah Baris</button>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: SPPD                                          -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-sppd" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">SPPD</span>
+          Data Perjalanan Dinas
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Nama Pegawai</label>
+            <input type="text" id="sppd_nama" class="form-control" placeholder="Nama lengkap pegawai">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jabatan</label>
+            <input type="text" id="sppd_jabatan" class="form-control" placeholder="Jabatan pegawai">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tingkat / Golongan</label>
+            <input type="text" id="sppd_golongan" class="form-control" placeholder="cth: Senior">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Maksud Perjalanan</label>
+            <input type="text" id="sppd_maksud" class="form-control" placeholder="cth: Audit & Investigasi Internal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Alat Angkutan</label>
+            <input type="text" id="sppd_angkutan" class="form-control" placeholder="cth: Kendaraan Dinas / Umum">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tempat Berangkat</label>
+            <input type="text" id="sppd_asal" class="form-control" placeholder="cth: Jakarta">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tempat Tujuan</label>
+            <input type="text" id="sppd_tujuan" class="form-control" placeholder="cth: PT Maju Bersama, Jakarta Selatan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Berangkat</label>
+            <input type="date" id="sppd_tgl_berangkat" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Kembali</label>
+            <input type="date" id="sppd_tgl_kembali" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mata Anggaran</label>
+            <input type="text" id="sppd_mata_anggaran" class="form-control" placeholder="cth: Biaya Operasional 2026">
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: SURAT TUGAS (PERORANGAN)                      -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-tugas" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">SURAT TUGAS</span>
+          Data Pelaksana & Tugas
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Nama Yang Ditugaskan</label>
+            <input type="text" id="tugas_nama" class="form-control" placeholder="Nama lengkap pelaksana">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jabatan</label>
+            <input type="text" id="tugas_jabatan" class="form-control" placeholder="Jabatan pelaksana">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jenis Tugas</label>
+            <input type="text" id="tugas_jenis" class="form-control" placeholder="cth: Audit & Investigasi Internal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tujuan</label>
+            <input type="text" id="tugas_tujuan" class="form-control" placeholder="cth: Investigasi Kepatuhan Operasional">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lokasi Penugasan</label>
+            <input type="text" id="tugas_lokasi" class="form-control" placeholder="cth: PT Maju Bersama, Jakarta Selatan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Pelaksanaan</label>
+            <input type="date" id="tugas_tanggal" class="form-control">
+          </div>
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label">Waktu Pelaksanaan</label>
+            <input type="text" id="tugas_waktu" class="form-control" placeholder="cth: 08.00 WIB s.d. selesai" value="08.00 WIB s.d. selesai">
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: SURAT TUGAS PENDELEGASIAN                     -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-delegasi" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">PENDELEGASIAN</span>
+          Data Pelaksana Delegasi
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Nama Pelaksana Delegasi</label>
+            <input type="text" id="del_nama" class="form-control" placeholder="Nama yang menerima delegasi">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jabatan Pelaksana</label>
+            <input type="text" id="del_jabatan" class="form-control" placeholder="Jabatan pelaksana delegasi">
+          </div>
+        </div>
+        <label class="form-label" style="margin-top:4px;">Lingkup Pendelegasian</label>
+        <div class="dyn-list" id="del_lingkup_list"></div>
+        <button type="button" class="btn-add-row" onclick="addDelLingkup()">+ Tambah Lingkup</button>
+        <label class="form-label" style="margin-top:12px;">Ketentuan Pendelegasian <span style="font-weight:400;color:var(--gray-400);">(opsional)</span></label>
+        <div class="dyn-list" id="del_ketentuan_list"></div>
+        <button type="button" class="btn-add-row" onclick="addDelKetentuan()">+ Tambah Ketentuan</button>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: SURAT KETERANGAN                              -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-keterangan" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">KETERANGAN</span>
+          Data Pihak Yang Diterangkan
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Nama</label>
+            <input type="text" id="ket_nama" class="form-control" placeholder="Nama yang diterangkan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jabatan / Posisi</label>
+            <input type="text" id="ket_jabatan" class="form-control" placeholder="Jabatan dalam tim/instansi">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tim / Kelompok <span style="font-weight:400;color:var(--gray-400);">(opsional)</span></label>
+            <input type="text" id="ket_tim" class="form-control" placeholder="cth: Tim Mawar">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Keperluan / Penugasan</label>
+            <input type="text" id="ket_keperluan" class="form-control" placeholder="cth: Audit Internal di PT Maju Bersama">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lokasi</label>
+            <input type="text" id="ket_lokasi" class="form-control" placeholder="cth: PT Maju Bersama, Jakarta Selatan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Pelaksanaan</label>
+            <input type="date" id="ket_tanggal" class="form-control">
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: SURAT PERNYATAAN                              -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-pernyataan" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">PERNYATAAN</span>
+          Data Pembuat Pernyataan
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Nama Yang Menyatakan</label>
+            <input type="text" id="pry_nama" class="form-control" placeholder="Nama pembuat pernyataan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jabatan</label>
+            <input type="text" id="pry_jabatan" class="form-control" placeholder="Jabatan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tim / Instansi <span style="font-weight:400;color:var(--gray-400);">(opsional)</span></label>
+            <input type="text" id="pry_tim" class="form-control" placeholder="cth: Tim Mawar">
+          </div>
+        </div>
+        <label class="form-label" style="margin-top:4px;">Poin Pernyataan</label>
+        <div class="dyn-list" id="pry_poin_list"></div>
+        <button type="button" class="btn-add-row" onclick="addPryPoin()">+ Tambah Poin</button>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: SURAT KUASA                                   -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-kuasa" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">SURAT KUASA</span>
+          Data Penerima Kuasa
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Nama Penerima Kuasa</label>
+            <input type="text" id="kuasa_nama" class="form-control" placeholder="Nama penerima kuasa">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jabatan</label>
+            <input type="text" id="kuasa_jabatan" class="form-control" placeholder="Jabatan penerima kuasa">
+          </div>
+        </div>
+        <label class="form-label" style="margin-top:4px;">Ruang Lingkup Kuasa</label>
+        <div class="dyn-list" id="kuasa_lingkup_list"></div>
+        <button type="button" class="btn-add-row" onclick="addKuasaLingkup()">+ Tambah Lingkup</button>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: SURAT PENGANTAR                               -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-pengantar" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">PENGANTAR</span>
+          Daftar Dokumen / Barang yang Dikirim
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ditujukan Kepada</label>
+          <input type="text" id="peng_kepada" class="form-control" placeholder="cth: Pimpinan PT Maju Bersama, Jakarta Selatan">
+        </div>
+        <table class="dyn-table" id="pengantarTable">
+          <thead>
+            <tr>
+              <th style="width:36px;">No.</th>
+              <th>Nama Dokumen / Barang</th>
+              <th style="width:110px;">Jumlah</th>
+              <th style="width:120px;">Keterangan</th>
+              <th style="width:36px;"></th>
+            </tr>
+          </thead>
+          <tbody id="pengantarBody"></tbody>
+        </table>
+        <button type="button" class="btn-add-row" onclick="addPengantarRow()">+ Tambah Dokumen</button>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: SURAT KEPUTUSAN                               -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-keputusan" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">SK</span>
+          Konsiderans &amp; Diktum
+        </div>
+        <label class="form-label">Menimbang</label>
+        <div class="dyn-list" id="sk_menimbang_list"></div>
+        <button type="button" class="btn-add-row" onclick="addSkItem('menimbang')">+ Tambah Poin Menimbang</button>
+
+        <label class="form-label" style="margin-top:12px;">Mengingat</label>
+        <div class="dyn-list" id="sk_mengingat_list"></div>
+        <button type="button" class="btn-add-row" onclick="addSkItem('mengingat')">+ Tambah Poin Mengingat</button>
+
+        <label class="form-label" style="margin-top:12px;">Memutuskan / Menetapkan</label>
+        <div class="dyn-list" id="sk_memutuskan_list"></div>
+        <button type="button" class="btn-add-row" onclick="addSkItem('memutuskan')">+ Tambah Poin Keputusan</button>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: SURAT UNDANGAN DINAS                          -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-undangan" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">UNDANGAN</span>
+          Detail Acara / Rapat
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Hari / Tanggal</label>
+            <input type="date" id="und_tanggal" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Waktu</label>
+            <input type="text" id="und_waktu" class="form-control" placeholder="cth: 09.00 WIB s.d. selesai" value="09.00 WIB s.d. selesai">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tempat</label>
+            <input type="text" id="und_tempat" class="form-control" placeholder="cth: Ruang Rapat Lantai 3">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pakaian</label>
+            <input type="text" id="und_pakaian" class="form-control" placeholder="cth: Formal / Batik" value="Formal / Batik">
+          </div>
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label">Agenda</label>
+            <input type="text" id="und_agenda" class="form-control" placeholder="cth: Briefing & Koordinasi Tim">
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: SURAT STATUTA                                 -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-statuta" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">STATUTA</span>
+          Data Organisasi / Tim
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label">Nama Organisasi / Tim</label>
+            <input type="text" id="sta_nama_org" class="form-control" placeholder="cth: TIM MAWAR">
+          </div>
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label">Visi <span style="font-weight:400;color:var(--gray-400);">(opsional)</span></label>
+            <input type="text" id="sta_visi" class="form-control" placeholder="Pernyataan visi...">
+          </div>
+        </div>
+        <label class="form-label" style="margin-top:4px;">Misi <span style="font-weight:400;color:var(--gray-400);">(opsional)</span></label>
+        <div class="dyn-list" id="sta_misi_list"></div>
+        <button type="button" class="btn-add-row" onclick="addStaMisi()">+ Tambah Misi</button>
+        <label class="form-label" style="margin-top:12px;">Susunan Keanggotaan</label>
+        <table class="dyn-table" id="staAnggotaTable">
+          <thead>
+            <tr>
+              <th style="width:36px;">No.</th>
+              <th>Nama</th>
+              <th style="width:220px;">Jabatan dalam Tim</th>
+              <th style="width:36px;"></th>
+            </tr>
+          </thead>
+          <tbody id="staAnggotaBody"></tbody>
+        </table>
+        <button type="button" class="btn-add-row" onclick="addStaAnggota()">+ Tambah Anggota</button>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- JENIS SURAT (Internal / Eksternal)                     -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="form-group">
+        <label class="form-label">Jenis Surat</label>
+        <div class="jenis-tabs">
+          <button type="button" class="jenis-tab active" id="tabInternal" onclick="setJenis('internal')">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 100 12A6 6 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Internal (Pengguna Terdaftar)
+          </button>
+          <button type="button" class="jenis-tab" id="tabEksternal" onclick="setJenis('eksternal')">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M2 10h16M10 2c-2 2.5-3 5-3 8s1 5.5 3 8M10 2c2 2.5 3 5 3 8s-1 5.5-3 8" stroke="currentColor" stroke-width="1.5"/></svg>
+            Eksternal (Email Bebas)
+          </button>
         </div>
       </div>
 
@@ -213,10 +627,10 @@
         </div>
       </div>
 
-      <!-- Rich Text Editor (Quill) -->
-      <div class="form-group">
-        <label class="form-label">Isi Surat</label>
-        <div id="quillEditor" style="min-height:240px;"></div>
+      <!-- ISI SURAT (Quill) -->
+      <div class="form-group" id="bodySection">
+        <label class="form-label" id="bodyLabel">Isi Surat / Catatan Tambahan</label>
+        <div id="quillEditor" style="min-height:200px;"></div>
       </div>
 
       <div class="compose-actions">
@@ -237,25 +651,30 @@
     <div class="info-card">
       <div class="info-card-title">Info Naskah</div>
       <div class="info-item"><span class="info-key">Pengirim</span><span class="info-val"><%= user.name.split(' ')[0] %></span></div>
+      <div class="info-item"><span class="info-key">Tipe</span><span class="info-val" id="infoTipe">Surat</span></div>
       <div class="info-item"><span class="info-key">Status</span><span class="info-val" style="color:var(--amber-600);">Konsep</span></div>
       <div class="info-item"><span class="info-key">Tanggal</span><span class="info-val" id="infoDate"></span></div>
       <div class="info-item"><span class="info-key">Sifat</span><span class="info-val" id="infoSifat">Biasa/Terbuka</span></div>
       <div class="info-item" style="border-bottom:none;"><span class="info-key">Penomoran</span><span class="info-val">Otomatis</span></div>
     </div>
     <div class="info-card">
-      <div class="info-card-title">Alur Pengiriman</div>
-      <ul style="font-size:12.5px;color:var(--gray-600);line-height:2;padding-left:16px;">
-        <li>Isi form surat ini</li>
-        <li style="color:var(--brand-600);font-weight:500;">Preview A4 + Tanda Tangan</li>
-        <li>Kirim via email otomatis</li>
+      <div class="info-card-title">Tipe Surat Tersedia</div>
+      <ul style="font-size:12px;color:var(--gray-500);line-height:2;padding-left:16px;">
+        <li>Surat Biasa, Resmi, Formal</li>
+        <li>Memo, Nota Dinas</li>
+        <li>Surat Tugas, SPPD</li>
+        <li>Surat Kuasa, Keterangan</li>
+        <li>Surat Keputusan (SK)</li>
+        <li>Undangan, Pengantar</li>
+        <li>Rahasia, Konfidensial</li>
       </ul>
     </div>
     <div class="info-card">
       <div class="info-card-title">Petunjuk</div>
       <ul style="font-size:12.5px;color:var(--gray-600);line-height:1.9;padding-left:16px;">
+        <li>Pilih tipe surat di bagian atas</li>
+        <li>Field tambahan muncul otomatis</li>
         <li>Kolom wajib bertanda <span style="color:var(--red-500);">*</span></li>
-        <li><strong>Internal</strong>: pilih dari daftar pengguna</li>
-        <li><strong>Eksternal</strong>: ketik email manual</li>
         <li>Nomor surat dibuat otomatis</li>
       </ul>
     </div>
@@ -263,7 +682,6 @@
 </div>
 </form>
 
-<!-- Quill JS -->
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script>
 // ── DATE ──
@@ -271,59 +689,96 @@ const today = new Date();
 const mns = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 document.getElementById('infoDate').textContent = `${today.getDate()} ${mns[today.getMonth()]} ${today.getFullYear()}`;
 
-// ── QUILL EDITOR (lengkap) ──
-
-// Daftarkan custom font sizes
+// ── QUILL ──
 const SizeStyle = Quill.import('attributors/style/size');
 SizeStyle.whitelist = ['10px','12px','14px','16px','18px','20px','24px','28px','32px'];
 Quill.register(SizeStyle, true);
-
 const quill = new Quill('#quillEditor', {
   theme: 'snow',
-  placeholder: 'Tulis isi surat di sini...',
+  placeholder: 'Tulis isi surat / instruksi tambahan di sini...',
   modules: {
     toolbar: {
       container: [
         [{ font: [] }, { size: ['10px','12px','14px','16px','18px','20px','24px','28px','32px'] }],
-        [{ header: [1, 2, 3, 4, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
+        [{ header: [1,2,3,4,false] }],
+        ['bold','italic','underline','strike'],
         [{ color: [] }, { background: [] }],
-        ['blockquote', 'code-block'],
-        [{ list: 'ordered' }, { list: 'bullet' }, { list: 'check' }],
+        ['blockquote','code-block'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
         [{ indent: '-1' }, { indent: '+1' }],
         [{ align: [] }],
-        ['link', 'image', 'video'],
+        ['link','image'],
         ['clean']
       ],
-      handlers: {
-        image: imageHandler
-      }
+      handlers: { image: imageHandler }
     }
   }
 });
-
-// Custom image handler — pilih file lokal atau URL
 function imageHandler() {
   const input = document.createElement('input');
-  input.setAttribute('type', 'file');
-  input.setAttribute('accept', 'image/*');
-  input.click();
+  input.setAttribute('type','file'); input.setAttribute('accept','image/*'); input.click();
   input.onchange = () => {
-    const file = input.files[0];
-    if (!file) return;
+    const file = input.files[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = e => {
-      const range = quill.getSelection(true);
-      quill.insertEmbed(range.index, 'image', e.target.result);
-      quill.setSelection(range.index + 1);
-    };
+    reader.onload = e => { const r = quill.getSelection(true); quill.insertEmbed(r.index,'image',e.target.result); quill.setSelection(r.index+1); };
     reader.readAsDataURL(file);
   };
 }
 
 // ── SIFAT ──
-function updateSifat(sel) {
-  document.getElementById('infoSifat').textContent = sel.value;
+function updateSifat(sel) { document.getElementById('infoSifat').textContent = sel.value; }
+
+// ── TIPE SURAT ──
+let currentTipe = 'Surat';
+const ALL_SECS = ['sec-memo','sec-sppd','sec-tugas','sec-delegasi','sec-keterangan','sec-pernyataan','sec-kuasa','sec-pengantar','sec-keputusan','sec-undangan','sec-statuta'];
+const TIPE_SECS = {
+  'Surat':[],  'Surat Resmi':[],  'Surat Formal':[],  'Surat Instruksi':[],  'Surat Edaran':[],
+  'Surat Rahasia':[], 'Surat Konfidensial':[],
+  'Memo':['sec-memo'], 'Nota Dinas':['sec-memo'],
+  'SPPD':['sec-sppd'],
+  'Surat Tugas':['sec-tugas'],
+  'Surat Tugas Pendelegasian':['sec-delegasi'],
+  'Surat Keterangan':['sec-keterangan'],
+  'Surat Pernyataan':['sec-pernyataan'],
+  'Surat Kuasa':['sec-kuasa'],
+  'Surat Pengantar':['sec-pengantar'],
+  'Surat Keputusan':['sec-keputusan'],
+  'Surat Undangan Dinas':['sec-undangan'],
+  'Surat Statuta':['sec-statuta'],
+};
+const BODY_PLACEHOLDER = {
+  'Surat': 'Tulis isi surat di sini...',
+  'Surat Resmi': 'Tulis isi surat resmi di sini...',
+  'Surat Formal': 'Tulis isi surat formal di sini...',
+  'Surat Instruksi': 'Tulis instruksi-instruksi di sini...',
+  'Surat Edaran': 'Tulis poin-poin edaran di sini...',
+  'Surat Rahasia': 'Tulis isi surat rahasia di sini...',
+  'Surat Konfidensial': 'Tulis isi surat konfidensial di sini...',
+  'Memo': 'Tulis isi memo / pesan di sini...',
+  'Nota Dinas': 'Tulis isi nota dinas / keterangan tambahan di sini...',
+  'SPPD': 'Keterangan tambahan perjalanan dinas (opsional)...',
+  'Surat Tugas': 'Instruksi atau keterangan tambahan (opsional)...',
+  'Surat Tugas Pendelegasian': 'Keterangan tambahan pendelegasian (opsional)...',
+  'Surat Keterangan': 'Keterangan tambahan (opsional)...',
+  'Surat Pernyataan': 'Kalimat penutup pernyataan (opsional)...',
+  'Surat Kuasa': 'Keterangan tambahan surat kuasa (opsional)...',
+  'Surat Pengantar': 'Keterangan / pesan pengantar di sini...',
+  'Surat Keputusan': 'Keterangan atau catatan tambahan keputusan (opsional)...',
+  'Surat Undangan Dinas': 'Keterangan tambahan undangan (opsional)...',
+  'Surat Statuta': 'Ketentuan atau pasal-pasal tambahan (opsional)...',
+};
+function onTipeChange(val) {
+  currentTipe = val;
+  document.getElementById('tipeSuratHidden').value = val;
+  document.getElementById('infoTipe').textContent = val;
+  ALL_SECS.forEach(id => document.getElementById(id).style.display = 'none');
+  (TIPE_SECS[val] || []).forEach(id => document.getElementById(id).style.display = '');
+  // Show nota budget only for Nota Dinas
+  const notaBudget = document.getElementById('sec-nota-budget');
+  if (notaBudget) notaBudget.style.display = val === 'Nota Dinas' ? '' : 'none';
+  // Update quill placeholder
+  const ph = BODY_PLACEHOLDER[val] || 'Tulis isi surat di sini...';
+  quill.root.dataset.placeholder = ph;
 }
 
 // ── JENIS ──
@@ -345,25 +800,18 @@ function addExt() {
   if (!e) { document.getElementById('extEmail').focus(); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { alert('Format email tidak valid.'); return; }
   if (extList.find(r => r.email === e)) { alert('Email sudah ditambahkan.'); return; }
-  extList.push({ name: n||e, email: e });
-  renderExtList();
-  document.getElementById('extName').value = '';
-  document.getElementById('extEmail').value = '';
+  extList.push({ name: n||e, email: e }); renderExtList();
+  document.getElementById('extName').value = ''; document.getElementById('extEmail').value = '';
   document.getElementById('extName').focus();
 }
-function removeExt(email) {
-  extList = extList.filter(r => r.email !== email);
-  renderExtList();
-}
+function removeExt(email) { extList = extList.filter(r => r.email !== email); renderExtList(); }
 function renderExtList() {
   const list = document.getElementById('extList');
   const empty = document.getElementById('extEmpty');
-  list.innerHTML = '';
-  empty.style.display = extList.length ? 'none' : '';
+  list.innerHTML = ''; empty.style.display = extList.length ? 'none' : '';
   extList.forEach(r => {
-    const d = document.createElement('div');
-    d.className = 'ext-item';
-    d.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="color:var(--gray-400);flex-shrink:0;"><path d="M3 5l7 5 7-5M3 5v10h14V5H3z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ext-item-name">${esc(r.name)}</span><span class="ext-item-email">&lt;${esc(r.email)}&gt;</span><button type="button" class="ext-item-del" onclick="removeExt('${esc(r.email)}')">&times;</button>`;
+    const d = document.createElement('div'); d.className = 'ext-item';
+    d.innerHTML = `<span class="ext-item-name">${esc(r.name)}</span><span class="ext-item-email">&lt;${esc(r.email)}&gt;</span><button type="button" class="ext-item-del" onclick="removeExt('${esc(r.email)}')">&times;</button>`;
     list.appendChild(d);
   });
   document.getElementById('externalRecipientsHidden').value = JSON.stringify(extList);
@@ -371,15 +819,177 @@ function renderExtList() {
 function esc(s) { return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 document.getElementById('extEmail').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();addExt();} });
 
+// ── DYNAMIC ROWS / LISTS ──
+
+// Budget rows (Nota Dinas)
+let budgetRows = [];
+function addBudgetRow() {
+  const idx = budgetRows.length + 1;
+  const id = 'br_' + Date.now();
+  budgetRows.push(id);
+  const tr = document.createElement('tr'); tr.id = 'row_' + id;
+  tr.innerHTML = `<td style="text-align:center;font-size:12px;color:var(--gray-500);">${idx}</td>
+    <td><input type="text" id="br_uraian_${id}" class="form-control" placeholder="Uraian kebutuhan..." style="min-width:200px;"></td>
+    <td><input type="text" id="br_jumlah_${id}" class="form-control" placeholder="Rp ..."></td>
+    <td><button type="button" class="dyn-row-del" onclick="delRow('row_${id}','budget','${id}')">×</button></td>`;
+  document.getElementById('budgetBody').appendChild(tr);
+}
+function delRow(rowId, type, id) {
+  document.getElementById(rowId)?.remove();
+  if (type === 'budget') budgetRows = budgetRows.filter(r => r !== id);
+  else if (type === 'pengantar') pengantarRows = pengantarRows.filter(r => r !== id);
+  else if (type === 'staAnggota') staAnggotaRows = staAnggotaRows.filter(r => r !== id);
+  renumberRows(type);
+}
+function renumberRows(type) {
+  const bodyId = type === 'budget' ? 'budgetBody' : type === 'pengantar' ? 'pengantarBody' : 'staAnggotaBody';
+  const body = document.getElementById(bodyId);
+  if (!body) return;
+  Array.from(body.querySelectorAll('tr')).forEach((r, i) => { const numCell = r.querySelector('td:first-child'); if(numCell) numCell.textContent = i+1; });
+}
+
+// Pengantar rows
+let pengantarRows = [];
+function addPengantarRow() {
+  const id = 'pr_' + Date.now(); pengantarRows.push(id);
+  const idx = pengantarRows.length;
+  const tr = document.createElement('tr'); tr.id = 'row_' + id;
+  tr.innerHTML = `<td style="text-align:center;font-size:12px;color:var(--gray-500);">${idx}</td>
+    <td><input type="text" id="pr_nama_${id}" class="form-control" placeholder="Nama dokumen..." style="min-width:180px;"></td>
+    <td><input type="text" id="pr_jumlah_${id}" class="form-control" placeholder="cth: 1 berkas"></td>
+    <td><input type="text" id="pr_ket_${id}" class="form-control" placeholder="Asli / Fotokopi"></td>
+    <td><button type="button" class="dyn-row-del" onclick="delRow('row_${id}','pengantar','${id}')">×</button></td>`;
+  document.getElementById('pengantarBody').appendChild(tr);
+}
+
+// Statuta anggota rows
+let staAnggotaRows = [];
+function addStaAnggota() {
+  const id = 'sa_' + Date.now(); staAnggotaRows.push(id);
+  const idx = staAnggotaRows.length;
+  const tr = document.createElement('tr'); tr.id = 'row_' + id;
+  tr.innerHTML = `<td style="text-align:center;font-size:12px;color:var(--gray-500);">${idx}</td>
+    <td><input type="text" id="sa_nama_${id}" class="form-control" placeholder="Nama anggota" style="min-width:160px;"></td>
+    <td><input type="text" id="sa_jabatan_${id}" class="form-control" placeholder="Jabatan dalam tim"></td>
+    <td><button type="button" class="dyn-row-del" onclick="delRow('row_${id}','staAnggota','${id}')">×</button></td>`;
+  document.getElementById('staAnggotaBody').appendChild(tr);
+}
+
+// Dynamic list helpers
+function addListItem(listId, placeholder) {
+  const list = document.getElementById(listId);
+  const idx = list.children.length + 1;
+  const div = document.createElement('div'); div.className = 'dyn-list-item';
+  div.innerHTML = `<span class="item-num">${idx}.</span>
+    <input type="text" class="form-control" placeholder="${placeholder}">
+    <button type="button" class="dyn-row-del" onclick="this.parentElement.remove();renumberList('${listId}')">×</button>`;
+  list.appendChild(div);
+}
+function renumberList(listId) {
+  Array.from(document.getElementById(listId).children).forEach((item, i) => {
+    const num = item.querySelector('.item-num'); if(num) num.textContent = (i+1)+'.';
+  });
+}
+// Delegation lingkup
+function addDelLingkup() { addListItem('del_lingkup_list','Lingkup pendelegasian...'); }
+function addDelKetentuan() { addListItem('del_ketentuan_list','Ketentuan pendelegasian...'); }
+// Pernyataan poin
+function addPryPoin() { addListItem('pry_poin_list','Pernyataan nomor '+(document.getElementById('pry_poin_list').children.length+1)+'...'); }
+// Kuasa lingkup
+function addKuasaLingkup() { addListItem('kuasa_lingkup_list','Ruang lingkup kuasa...'); }
+// SK items
+function addSkItem(type) { addListItem('sk_'+type+'_list','Poin '+type+'...'); }
+// Statuta misi
+function addStaMisi() { addListItem('sta_misi_list','Pernyataan misi...'); }
+
+// ── COLLECT SURAT DATA ──
+function collectSuratData() {
+  const sd = {};
+  const t = currentTipe;
+
+  if (t === 'Memo' || t === 'Nota Dinas') {
+    sd.kepada = v('memo_kepada');
+    sd.klasifikasi = v('memo_klasifikasi');
+    if (t === 'Nota Dinas') {
+      sd.budgetRows = budgetRows.map(id => ({
+        uraian: v('br_uraian_'+id),
+        jumlah: v('br_jumlah_'+id)
+      })).filter(r => r.uraian);
+    }
+  }
+  else if (t === 'SPPD') {
+    sd.namaPegawai = v('sppd_nama'); sd.jabatanPegawai = v('sppd_jabatan');
+    sd.golongan = v('sppd_golongan'); sd.maksudPerjalanan = v('sppd_maksud');
+    sd.alatAngkutan = v('sppd_angkutan'); sd.tempatBerangkat = v('sppd_asal');
+    sd.tempatTujuan = v('sppd_tujuan'); sd.tanggalBerangkat = v('sppd_tgl_berangkat');
+    sd.tanggalKembali = v('sppd_tgl_kembali'); sd.mataPenggunaan = v('sppd_mata_anggaran');
+  }
+  else if (t === 'Surat Tugas') {
+    sd.namaPelaksana = v('tugas_nama'); sd.jabatanPelaksana = v('tugas_jabatan');
+    sd.jenisTugas = v('tugas_jenis'); sd.tujuanTugas = v('tugas_tujuan');
+    sd.lokasiTugas = v('tugas_lokasi'); sd.tanggalTugas = v('tugas_tanggal');
+    sd.waktuTugas = v('tugas_waktu');
+  }
+  else if (t === 'Surat Tugas Pendelegasian') {
+    sd.namaPenerima = v('del_nama'); sd.jabatanPenerima = v('del_jabatan');
+    sd.lingkupDelegasi = getListValues('del_lingkup_list');
+    sd.ketentuanDelegasi = getListValues('del_ketentuan_list');
+  }
+  else if (t === 'Surat Keterangan') {
+    sd.namaDiterangkan = v('ket_nama'); sd.jabatanDiterangkan = v('ket_jabatan');
+    sd.timDiterangkan = v('ket_tim'); sd.keperluan = v('ket_keperluan');
+    sd.lokasiTugas = v('ket_lokasi'); sd.tanggalTugas = v('ket_tanggal');
+  }
+  else if (t === 'Surat Pernyataan') {
+    sd.namaPenyataan = v('pry_nama'); sd.jabatanPernyataan = v('pry_jabatan');
+    sd.timPernyataan = v('pry_tim');
+    sd.poinPernyataan = getListValues('pry_poin_list');
+  }
+  else if (t === 'Surat Kuasa') {
+    sd.namaPenerima = v('kuasa_nama'); sd.jabatanPenerima = v('kuasa_jabatan');
+    sd.ruangLingkup = getListValues('kuasa_lingkup_list');
+  }
+  else if (t === 'Surat Pengantar') {
+    sd.kepada = v('peng_kepada');
+    sd.dokumenList = pengantarRows.map(id => ({
+      nama: v('pr_nama_'+id), jumlah: v('pr_jumlah_'+id), keterangan: v('pr_ket_'+id)
+    })).filter(r => r.nama);
+  }
+  else if (t === 'Surat Keputusan') {
+    sd.menimbang = getListValues('sk_menimbang_list');
+    sd.mengingat  = getListValues('sk_mengingat_list');
+    sd.memutuskan = getListValues('sk_memutuskan_list');
+  }
+  else if (t === 'Surat Undangan Dinas') {
+    sd.tanggalUndangan = v('und_tanggal'); sd.waktuUndangan = v('und_waktu');
+    sd.tempatUndangan = v('und_tempat'); sd.agendaUndangan = v('und_agenda');
+    sd.pakaianUndangan = v('und_pakaian');
+  }
+  else if (t === 'Surat Statuta') {
+    sd.namaOrganisasi = v('sta_nama_org'); sd.visi = v('sta_visi');
+    sd.misi = getListValues('sta_misi_list');
+    sd.anggota = staAnggotaRows.map(id => ({
+      nama: v('sa_nama_'+id), jabatan: v('sa_jabatan_'+id)
+    })).filter(r => r.nama);
+  }
+  return sd;
+}
+function v(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function getListValues(listId) {
+  return Array.from(document.getElementById(listId)?.querySelectorAll('input') || [])
+    .map(i => i.value.trim()).filter(Boolean);
+}
+
 // ── SUBMIT ──
 function submitForm(action) {
   if (action === 'send' && currentJenis === 'eksternal' && extList.length === 0) {
-    alert('Tambahkan minimal satu penerima eksternal.');
-    return;
+    alert('Tambahkan minimal satu penerima eksternal.'); return;
   }
   document.getElementById('formAction').value = action;
   document.getElementById('bodyHidden').value = quill.root.innerHTML;
   document.getElementById('externalRecipientsHidden').value = JSON.stringify(extList);
+  document.getElementById('tipeSuratHidden').value = currentTipe;
+  document.getElementById('suratDataHidden').value = JSON.stringify(collectSuratData());
   document.getElementById('composeForm').submit();
 }
 
@@ -394,8 +1004,7 @@ function toggleTag(id, cb, name) {
   const tags = document.getElementById(id+'Tags');
   const ph   = document.getElementById(id+'Placeholder');
   if (cb.checked) {
-    const t = document.createElement('span');
-    t.className = 'selected-tag'; t.dataset.value = cb.value;
+    const t = document.createElement('span'); t.className = 'selected-tag'; t.dataset.value = cb.value;
     t.textContent = name.length>20 ? name.substring(0,18)+'…' : name;
     const b = document.createElement('button'); b.type='button'; b.innerHTML='×';
     b.onclick = e => { e.stopPropagation(); t.remove(); cb.checked=false; updatePh(id); };

@@ -54,47 +54,38 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
   font-family: 'DM Sans', sans-serif;
 }
 
-/* ── KOP SURAT INSPIRA ── */
+/* KOP SURAT */
 .doc-header {
   padding: 18px 40px 14px;
   display: flex; align-items: center; gap: 0;
 }
-.doc-header-logo-area {
-  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
-}
+.doc-header-logo-area { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .doc-header-logo { width: 60px; height: auto; object-fit: contain; }
-.doc-header-brand {
-  font-size: 22px; font-weight: 900; color: #e67e22;
-  letter-spacing: 2px; line-height: 1;
-}
+.doc-header-brand { font-size: 22px; font-weight: 900; color: #e67e22; letter-spacing: 2px; line-height: 1; }
 .doc-header-spacer { flex: 1; }
-.doc-header-contacts {
-  display: grid; grid-template-columns: auto auto; gap: 4px 24px;
-  font-size: 10px; color: #374151;
-}
-.doc-contact-row {
-  display: flex; align-items: center; gap: 5px; white-space: nowrap;
-}
+.doc-header-contacts { display: grid; grid-template-columns: auto auto; gap: 4px 24px; font-size: 10px; color: #374151; }
+.doc-contact-row { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
 .doc-contact-icon { color: #1a56a8; flex-shrink: 0; }
+.doc-header-line { height: 1.5px; background: #9ca3af; margin: 0 40px 0; }
 
-.doc-header-line {
-  height: 1.5px; background: #9ca3af; margin: 0 40px 0;
-}
-
-/* Watermark tengah halaman */
+/* Watermark */
 .doc-watermark {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   opacity: 0.045; pointer-events: none; z-index: 0;
-  display: flex; flex-direction: column; align-items: center; gap: 0;
-  user-select: none;
+  display: flex; flex-direction: column; align-items: center; gap: 0; user-select: none;
 }
 .doc-watermark img { width: 260px; height: auto; }
-.doc-watermark-text {
-  font-size: 64px; font-weight: 900; color: #1a56a8;
-  letter-spacing: 10px; margin-top: -10px;
-}
+.doc-watermark-text { font-size: 64px; font-weight: 900; color: #1a56a8; letter-spacing: 10px; margin-top: -10px; }
 
+/* Classification banner */
+.doc-class-banner {
+  text-align: center; font-size: 11px; font-weight: 800; letter-spacing: 3px;
+  padding: 5px 0; margin: 8px 40px 0;
+  border: 2px solid #ef4444; color: #ef4444; border-radius: 3px;
+}
+.doc-class-banner.konfidensial { border-color: #d97706; color: #d97706; }
+
+/* Doc meta bar */
 .doc-meta {
   padding: 10px 40px;
   background: #f9fafb; border-bottom: 1px solid #e5e7eb;
@@ -102,16 +93,22 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 }
 .doc-nomor { font-size: 11.5px; font-weight: 600; color: #374151; }
 .doc-meta-right { display: flex; gap: 6px; align-items: center; }
-.doc-pill {
-  font-size: 10px; font-weight: 600; padding: 2px 9px;
-  border-radius: 3px; border: 1px solid #d1d5db; color: #374151; background: #fff;
-}
+.doc-pill { font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 3px; border: 1px solid #d1d5db; color: #374151; background: #fff; }
+.doc-pill.tipe { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
 
+/* Body container */
 .doc-body { padding: 24px 40px 20px; position: relative; z-index: 1; }
-.doc-title { font-size: 15px; font-weight: 700; color: #111; margin-bottom: 20px; line-height: 1.4; text-align: center; text-transform: uppercase; letter-spacing: .5px; }
-.doc-info-table { width: 100%; border-collapse: collapse; margin-bottom: 22px; }
+.doc-title {
+  font-size: 14px; font-weight: 700; color: #111; margin-bottom: 16px;
+  line-height: 1.5; text-align: center; text-transform: uppercase; letter-spacing: .5px;
+}
+.doc-subtitle { font-size: 12px; font-weight: 600; color: #374151; text-align: center; margin-bottom: 4px; }
+.doc-nomor-center { font-size: 12px; text-align: center; color: #374151; margin-bottom: 16px; }
+
+/* Standard info table */
+.doc-info-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
 .doc-info-table td {
-  padding: 6px 0; vertical-align: top; font-size: 12.5px; color: #222;
+  padding: 5px 0; vertical-align: top; font-size: 12.5px; color: #222;
   border-bottom: 1px solid #f3f4f6;
 }
 .doc-info-table td:first-child {
@@ -119,78 +116,91 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
   font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding-right: 12px;
 }
 .doc-colon { color: #9ca3af; padding-right: 6px; }
+
+/* Body content */
 .doc-body-content {
-  border: 1px solid #e5e7eb; border-radius: 4px; padding: 18px 20px;
-  font-size: 13px; line-height: 1.9; color: #1f2937; min-height: 200px;
+  border: 1px solid #e5e7eb; border-radius: 4px; padding: 16px 18px;
+  font-size: 12.5px; line-height: 1.9; color: #1f2937; min-height: 120px;
   position: relative; z-index: 1;
 }
 
+/* SPPD Table */
+.sppd-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12px; }
+.sppd-table th, .sppd-table td { border: 1px solid #d1d5db; padding: 7px 10px; }
+.sppd-table th { background: #f3f4f6; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: #4b5563; }
+.sppd-table td:first-child { width: 40px; text-align: center; font-weight: 600; color: #6b7280; }
+.sppd-table td:nth-child(2) { width: 220px; font-weight: 600; color: #374151; }
+
+/* Memo header table */
+.memo-header-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+.memo-header-table td { padding: 5px 0; font-size: 12.5px; color: #222; border-bottom: 1px solid #f3f4f6; }
+.memo-header-table td:first-child { width: 110px; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+.memo-header-line { border-top: 2px solid #374151; margin: 14px 0 14px; }
+
+/* Structured sections (SK, Surat Tugas, etc.) */
+.doc-section { margin-bottom: 14px; }
+.doc-section-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #374151; margin-bottom: 6px; }
+.doc-section-list { padding-left: 0; list-style: none; }
+.doc-section-list li { font-size: 12.5px; color: #1f2937; padding: 3px 0 3px 20px; position: relative; line-height: 1.7; }
+.doc-section-list li::before { content: attr(data-prefix); position: absolute; left: 0; font-weight: 600; color: #6b7280; }
+
+/* Task info block */
+.task-info-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.task-info-table td { padding: 6px 0; font-size: 12.5px; color: #222; border-bottom: 1px solid #f3f4f6; }
+.task-info-table td:first-child { width: 160px; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; padding-right: 10px; }
+
+/* Undangan event table */
+.und-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12.5px; }
+.und-table td { padding: 7px 12px; border: 1px solid #e5e7eb; }
+.und-table td:first-child { width: 140px; font-weight: 600; background: #f9fafb; color: #374151; }
+
+/* Pengantar doc list */
+.peng-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12px; }
+.peng-table th, .peng-table td { border: 1px solid #d1d5db; padding: 6px 10px; }
+.peng-table th { background: #f3f4f6; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #4b5563; text-align: left; }
+
+/* Statuta */
+.statuta-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12px; }
+.statuta-table th, .statuta-table td { border: 1px solid #d1d5db; padding: 7px 10px; }
+.statuta-table th { background: #f3f4f6; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #4b5563; text-align: left; }
+.statuta-table td:first-child { width: 40px; text-align: center; }
+
+/* Signature area */
 .doc-sig-area { padding: 20px 40px 48px; border-top: 1px solid #e5e7eb; position: relative; z-index: 1; }
 .doc-sig-hint { font-size: 12px; color: #9ca3af; font-style: italic; text-align: center; padding: 20px 0; }
 
-/* ── QR STAMP — QR + nama + jabatan ── */
+/* QR Stamp */
 .qr-stamp {
   position: absolute; cursor: move; user-select: none;
-  border: none; outline: 2px dashed transparent;
-  outline-offset: 3px; border-radius: 4px; transition: outline-color .15s;
+  border: none; outline: 2px dashed transparent; outline-offset: 3px; border-radius: 4px; transition: outline-color .15s;
   display: flex; flex-direction: column; align-items: center;
   padding: 0; text-align: center; overflow: hidden;
 }
 .qr-stamp:hover, .qr-stamp.active { outline-color: #1a56a8; }
-
-/* QR image mengisi semua sisa ruang */
-.qr-stamp img {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  object-fit: contain;
-  display: block;
-}
-/* Garis pemisah */
-.qr-stamp-sig {
-  width: 95%; border-top: 1.5px solid #111;
-  margin: 5px 0 3px; flex-shrink: 0;
-}
-/* Nama */
-.qr-stamp-name {
-  font-size: 9.5px; font-weight: 700; color: #111; text-align: center;
-  padding: 0 4px; line-height: 1.5; flex-shrink: 0;
-  white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
-}
-/* Jabatan */
-.qr-stamp-role {
-  font-size: 8.5px; font-weight: 400; color: #111; text-align: center;
-  padding: 1px 4px 3px; flex-shrink: 0;
-  white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
-}
+.qr-stamp img { width: 100%; flex: 1; min-height: 0; object-fit: contain; display: block; }
+.qr-stamp-sig { width: 95%; border-top: 1.5px solid #111; margin: 5px 0 3px; flex-shrink: 0; }
+.qr-stamp-name { font-size: 9.5px; font-weight: 700; color: #111; text-align: center; padding: 0 4px; line-height: 1.5; flex-shrink: 0; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.qr-stamp-role { font-size: 8.5px; font-weight: 400; color: #111; text-align: center; padding: 1px 4px 3px; flex-shrink: 0; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .qr-resize { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; cursor: se-resize; background: #1a56a8; border-radius: 2px 0 0 0; opacity: 0; transition: opacity .15s; }
 .qr-stamp:hover .qr-resize, .qr-stamp.active .qr-resize { opacity: 1; }
-.qr-delete {
-  position: absolute; top: -10px; right: -10px; width: 20px; height: 20px; border-radius: 50%;
-  background: #ef4444; color: #fff; border: none; cursor: pointer; font-size: 12px;
-  opacity: 0; transition: opacity .15s; display: flex; align-items: center; justify-content: center;
-}
+.qr-delete { position: absolute; top: -10px; right: -10px; width: 20px; height: 20px; border-radius: 50%; background: #ef4444; color: #fff; border: none; cursor: pointer; font-size: 12px; opacity: 0; transition: opacity .15s; display: flex; align-items: center; justify-content: center; }
 .qr-stamp:hover .qr-delete, .qr-stamp.active .qr-delete { opacity: 1; }
 
 /* Right panel */
 .pdf-panel {
-  width: 280px; flex-shrink: 0; background: #0f172a;
+  width: 290px; flex-shrink: 0; background: #0f172a;
   border-left: 1px solid rgba(255,255,255,.06); overflow-y: auto; display: flex; flex-direction: column;
 }
-.panel-section { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,.06); }
-.panel-title { font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 12px; }
-.panel-hint { font-size: 12px; color: rgba(255,255,255,.4); line-height: 1.6; margin-bottom: 12px; }
+.panel-section { padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.panel-title { font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 10px; }
+.panel-hint { font-size: 12px; color: rgba(255,255,255,.4); line-height: 1.6; margin-bottom: 10px; }
 .btn-add-self {
   width: 100%; padding: 9px; border-radius: 8px; background: #1a56a8; color: #fff; border: none;
   cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background .15s;
 }
 .btn-add-self:hover { background: #1d63c0; }
 .btn-add-self:disabled { background: #334155; color: rgba(255,255,255,.35); cursor: not-allowed; }
-.cosign-toggle {
-  display: flex; align-items: center; gap: 10px; cursor: pointer;
-  padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1);
-  background: rgba(255,255,255,.04); color: rgba(255,255,255,.75); font-size: 13px; transition: background .15s;
-}
+.cosign-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04); color: rgba(255,255,255,.75); font-size: 13px; transition: background .15s; }
 .cosign-toggle input { accent-color: #1a56a8; width: 15px; height: 15px; }
 .cosign-panel { margin-top: 12px; display: none; }
 .cosign-panel.open { display: block; }
@@ -209,10 +219,17 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 .empty-signers { text-align: center; padding: 16px 0; color: rgba(255,255,255,.25); font-size: 12px; line-height: 1.7; }
 .signer-av-pending { background: rgba(255,255,255,.12) !important; }
 .j-hidden { display: none; }
-.jabatan-input {
-  width: 100%; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
-  color: #fff; border-radius: 5px; padding: 5px 8px; font-size: 11.5px; outline: none;
+.jabatan-input { width: 100%; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); color: #fff; border-radius: 5px; padding: 5px 8px; font-size: 11.5px; outline: none; }
+
+/* Display mode toggles */
+.display-mode-row { display: flex; gap: 6px; margin-top: 8px; }
+.dm-btn {
+  flex: 1; padding: 5px 4px; border-radius: 5px; border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04); color: rgba(255,255,255,.5); font-size: 10.5px; font-weight: 600;
+  cursor: pointer; text-align: center; transition: all .15s; line-height: 1.3;
 }
+.dm-btn:hover { background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); }
+.dm-btn.active { background: #1a56a8; color: #fff; border-color: #1a56a8; }
 
 @media print {
   @page { size: A4; margin: 0; }
@@ -228,14 +245,33 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 </head>
 <body>
 
+<%
+  const sd = email.suratData || {};
+  const tipe = email.tipeSurat || 'Surat';
+  function fmtDate(d) {
+    if (!d) return '—';
+    const dt = new Date(d);
+    const bln = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    return `${dt.getDate()} ${bln[dt.getMonth()]} ${dt.getFullYear()}`;
+  }
+  function fmtDateSimple(str) {
+    if (!str) return '—';
+    const dt = new Date(str);
+    if (isNaN(dt)) return str;
+    const bln = ['Januari','Februari','Maret','Oktober','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    const bl2 = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    return `${dt.getDate()} ${bl2[dt.getMonth()]} ${dt.getFullYear()}`;
+  }
+%>
+
 <div class="pdf-toolbar">
   <a href="/compose" class="toolbar-back">
     <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M12 4l-8 8 8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Kembali
   </a>
   <div class="toolbar-sep"></div>
-  <div class="toolbar-title">Preview — <%= email.subject %></div>
-  <span class="toolbar-hint">Tambah tanda tangan, lalu kirim</span>
+  <div class="toolbar-title">Preview — <%= tipe %>: <%= email.subject %></div>
+  <span class="toolbar-hint">Tanda tangan, lalu kirim</span>
   <button class="btn-dl" onclick="window.print()">
     <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 9l4 4 4-4M3 17h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Download PDF
@@ -284,29 +320,397 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         <div class="doc-watermark-text">INSPIRA</div>
       </div>
 
+      <!-- Classification Banner -->
+      <% if (tipe === 'Surat Rahasia') { %>
+      <div class="doc-class-banner">[ RAHASIA ]</div>
+      <% } else if (tipe === 'Surat Konfidensial') { %>
+      <div class="doc-class-banner konfidensial">[ KONFIDENSIAL ]</div>
+      <% } %>
+
+      <!-- Meta bar -->
       <div class="doc-meta">
         <div class="doc-nomor">Nomor: <strong><%= email.nomorSurat %></strong></div>
         <div class="doc-meta-right">
+          <span class="doc-pill tipe"><%= tipe %></span>
           <span class="doc-pill"><%= email.sifat %></span>
           <span class="doc-pill"><%= email.jenis === 'internal' ? 'Internal' : 'Eksternal' %></span>
         </div>
       </div>
 
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- DOCUMENT BODY — rendered per type                      -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+
+      <% if (tipe === 'Memo' || tipe === 'Nota Dinas') { %>
+      <!-- ── MEMO / NOTA DINAS ── -->
       <div class="doc-body">
-        <div class="doc-title"><%= email.subject %></div>
+        <div class="doc-title"><%= tipe.toUpperCase() %></div>
+        <% if (tipe === 'Nota Dinas') { %><div style="text-align:center;font-size:11px;color:#6b7280;margin-top:-10px;margin-bottom:14px;">INTERNAL — PT NUSA INSPIRA TEKNOLOGI</div><% } %>
+        <table class="memo-header-table">
+          <tr><td>Kepada</td><td><span class="doc-colon">:</span> <strong><%= sd.kepada || email.to.map(r=>r.name).join(', ') || '—' %></strong></td></tr>
+          <tr><td>Dari</td><td><span class="doc-colon">:</span> <%= email.from.name %></td></tr>
+          <tr><td>Nomor</td><td><span class="doc-colon">:</span> <%= email.nomorSurat %></td></tr>
+          <tr><td>Tanggal</td><td><span class="doc-colon">:</span> <%= fmtDate(email.createdAt) %></td></tr>
+          <tr><td>Perihal</td><td><span class="doc-colon">:</span> <strong><%= email.subject %></strong></td></tr>
+          <% if (sd.klasifikasi) { %><tr><td>Klasifikasi</td><td><span class="doc-colon">:</span> <strong style="color:#ef4444;"><%= sd.klasifikasi %></strong></td></tr><% } %>
+        </table>
+        <div class="memo-header-line"></div>
+        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <div style="font-size:12.5px;line-height:1.9;color:#1f2937;margin-bottom:14px;"><%- email.body %></div>
+        <% } %>
+        <% if (tipe === 'Nota Dinas' && sd.budgetRows && sd.budgetRows.length > 0) { %>
+        <p style="font-size:12.5px;margin-bottom:8px;">Sehubungan dengan hal tersebut, bersama nota dinas ini kami mohon agar dapat memproses pencairan biaya operasional sebagai berikut:</p>
+        <table class="sppd-table">
+          <thead><tr><th>No.</th><th>Uraian Kebutuhan</th><th>Jumlah (Rp)</th></tr></thead>
+          <tbody>
+          <% let totalBudget = 0; sd.budgetRows.forEach((r,i) => { %>
+          <tr><td><%= i+1 %></td><td><%= r.uraian %></td><td><%= r.jumlah %></td></tr>
+          <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+      </div>
+
+      <% } else if (tipe === 'SPPD') { %>
+      <!-- ── SPPD ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT PERINTAH PERJALANAN DINAS (SPPD)</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <table class="sppd-table">
+          <thead><tr><th>No.</th><th>Keterangan</th><th>Isian</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Pejabat yang memberikan perintah</td><td><%= email.from.name %> — Direktur Utama</td></tr>
+            <tr><td>2</td><td>Nama pegawai yang diperintahkan</td><td><strong><%= sd.namaPegawai || '—' %></strong></td></tr>
+            <tr><td>3</td><td>Jabatan</td><td><%= sd.jabatanPegawai || '—' %></td></tr>
+            <tr><td>4</td><td>Tingkat / Golongan</td><td><%= sd.golongan || '—' %></td></tr>
+            <tr><td>5</td><td>Maksud perjalanan dinas</td><td><%= sd.maksudPerjalanan || email.subject || '—' %></td></tr>
+            <tr><td>6</td><td>Alat angkutan yang digunakan</td><td><%= sd.alatAngkutan || '—' %></td></tr>
+            <tr><td>7</td><td>Tempat berangkat</td><td><%= sd.tempatBerangkat || '—' %></td></tr>
+            <tr><td>8</td><td>Tempat tujuan</td><td><%= sd.tempatTujuan || '—' %></td></tr>
+            <tr><td>9</td><td>Tanggal berangkat</td><td><%= fmtDateSimple(sd.tanggalBerangkat) %></td></tr>
+            <tr><td>10</td><td>Tanggal kembali</td><td><%= fmtDateSimple(sd.tanggalKembali) %></td></tr>
+            <tr><td>11</td><td>Lama perjalanan dinas</td><td><% if(sd.tanggalBerangkat && sd.tanggalKembali){ const d1=new Date(sd.tanggalBerangkat),d2=new Date(sd.tanggalKembali); const diff=Math.round((d2-d1)/(1000*60*60*24))+1; %><%=diff%> (<%=diff===1?'satu':diff%>) hari<% } else { %>—<% } %></td></tr>
+            <tr><td>12</td><td>Pembebanan anggaran — Instansi</td><td>PT Nusa Inspira Teknologi</td></tr>
+            <tr><td>13</td><td>Pembebanan anggaran — Mata anggaran</td><td><%= sd.mataPenggunaan || '—' %></td></tr>
+            <tr><td>14</td><td>Keterangan lain-lain</td><td><%= email.sifat !== 'Biasa/Terbuka' ? email.sifat + ' — Hanya untuk keperluan internal' : 'Perjalanan dinas resmi' %></td></tr>
+          </tbody>
+        </table>
+        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <div class="doc-body-content" style="margin-top:10px;"><%- email.body %></div>
+        <% } %>
+      </div>
+
+      <% } else if (tipe === 'Surat Tugas') { %>
+      <!-- ── SURAT TUGAS ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT TUGAS</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p style="font-size:12.5px;margin-bottom:12px;">Yang bertanda tangan di bawah ini:</p>
+        <table class="task-info-table" style="margin-bottom:12px;">
+          <tr><td>Nama</td><td><span class="doc-colon">:</span> <strong><%= email.from.name %></strong></td></tr>
+          <tr><td>Jabatan</td><td><span class="doc-colon">:</span> Direktur Utama</td></tr>
+          <tr><td>Instansi</td><td><span class="doc-colon">:</span> PT Nusa Inspira Teknologi</td></tr>
+        </table>
+        <p style="font-size:12.5px;margin-bottom:12px;">Dengan ini menugaskan kepada:</p>
+        <table class="task-info-table" style="margin-bottom:12px;">
+          <tr><td>Nama</td><td><span class="doc-colon">:</span> <strong><%= sd.namaPelaksana || '—' %></strong></td></tr>
+          <tr><td>Jabatan</td><td><span class="doc-colon">:</span> <%= sd.jabatanPelaksana || '—' %></td></tr>
+          <tr><td>Instansi</td><td><span class="doc-colon">:</span> PT Nusa Inspira Teknologi</td></tr>
+        </table>
+        <p style="font-size:12.5px;margin-bottom:10px;">Untuk melaksanakan tugas dengan rincian sebagai berikut:</p>
+        <table class="task-info-table">
+          <tr><td>Jenis Tugas</td><td><span class="doc-colon">:</span> <strong><%= sd.jenisTugas || email.subject || '—' %></strong></td></tr>
+          <% if(sd.tujuanTugas){%><tr><td>Tujuan</td><td><span class="doc-colon">:</span> <%= sd.tujuanTugas %></td></tr><%}%>
+          <% if(sd.lokasiTugas){%><tr><td>Lokasi</td><td><span class="doc-colon">:</span> <%= sd.lokasiTugas %></td></tr><%}%>
+          <% if(sd.tanggalTugas){%><tr><td>Tanggal</td><td><span class="doc-colon">:</span> <%= fmtDateSimple(sd.tanggalTugas) %></td></tr><%}%>
+          <% if(sd.waktuTugas){%><tr><td>Waktu</td><td><span class="doc-colon">:</span> <%= sd.waktuTugas %></td></tr><%}%>
+        </table>
+        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <div style="margin-top:14px;font-size:12.5px;line-height:1.9;color:#1f2937;"><%- email.body %></div>
+        <% } %>
+        <p style="font-size:12.5px;margin-top:14px;">Demikian surat tugas ini diberikan untuk dilaksanakan dengan penuh tanggung jawab dan profesionalisme.</p>
+      </div>
+
+      <% } else if (tipe === 'Surat Tugas Pendelegasian') { %>
+      <!-- ── SURAT TUGAS PENDELEGASIAN ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT TUGAS PENDELEGASIAN</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p style="font-size:12.5px;margin-bottom:12px;">Yang bertanda tangan di bawah ini:</p>
+        <table class="task-info-table" style="margin-bottom:8px;">
+          <tr><td>Nama</td><td><span class="doc-colon">:</span> <strong><%= email.from.name %></strong></td></tr>
+          <tr><td>Jabatan</td><td><span class="doc-colon">:</span> Direktur Utama</td></tr>
+          <tr><td>Instansi</td><td><span class="doc-colon">:</span> PT Nusa Inspira Teknologi</td></tr>
+        </table>
+        <p style="font-size:12.5px;margin:10px 0;">Selanjutnya disebut <strong>PENDELEGASI</strong>, dengan ini mendelegasikan tugas dan wewenang kepada:</p>
+        <table class="task-info-table" style="margin-bottom:8px;">
+          <tr><td>Nama</td><td><span class="doc-colon">:</span> <strong><%= sd.namaPenerima || '—' %></strong></td></tr>
+          <tr><td>Jabatan</td><td><span class="doc-colon">:</span> <%= sd.jabatanPenerima || '—' %></td></tr>
+          <tr><td>Instansi</td><td><span class="doc-colon">:</span> PT Nusa Inspira Teknologi</td></tr>
+        </table>
+        <p style="font-size:12.5px;margin:10px 0 6px;">Selanjutnya disebut <strong>PELAKSANA DELEGASI</strong>.</p>
+        <% if (sd.lingkupDelegasi && sd.lingkupDelegasi.length > 0) { %>
+        <div class="doc-section">
+          <div class="doc-section-label">Lingkup Pendelegasian:</div>
+          <ol style="padding-left:20px;font-size:12.5px;line-height:1.9;color:#1f2937;">
+          <% sd.lingkupDelegasi.forEach(item => { %><li><%= item %></li><% }) %>
+          </ol>
+        </div>
+        <% } %>
+        <% if (sd.ketentuanDelegasi && sd.ketentuanDelegasi.length > 0) { %>
+        <div class="doc-section">
+          <div class="doc-section-label">Ketentuan Pendelegasian:</div>
+          <ol style="list-style-type:lower-alpha;padding-left:20px;font-size:12.5px;line-height:1.9;color:#1f2937;">
+          <% sd.ketentuanDelegasi.forEach(item => { %><li><%= item %></li><% }) %>
+          </ol>
+        </div>
+        <% } %>
+        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <div style="margin-top:12px;font-size:12.5px;line-height:1.9;color:#1f2937;"><%- email.body %></div>
+        <% } %>
+        <p style="font-size:12.5px;margin-top:10px;">Pendelegasian ini berlaku selama pelaksanaan tugas yang dimaksud dan berakhir otomatis setelah laporan final diterima.</p>
+      </div>
+
+      <% } else if (tipe === 'Surat Keterangan') { %>
+      <!-- ── SURAT KETERANGAN ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT KETERANGAN</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p style="font-size:12.5px;margin-bottom:12px;">Yang bertanda tangan di bawah ini:</p>
+        <table class="task-info-table" style="margin-bottom:12px;">
+          <tr><td>Nama</td><td><span class="doc-colon">:</span> <strong><%= email.from.name %></strong></td></tr>
+          <tr><td>Jabatan</td><td><span class="doc-colon">:</span> Direktur Utama</td></tr>
+          <tr><td>Instansi</td><td><span class="doc-colon">:</span> PT Nusa Inspira Teknologi</td></tr>
+          <tr><td>Alamat</td><td><span class="doc-colon">:</span> Jakarta</td></tr>
+        </table>
+        <p style="font-size:12.5px;margin-bottom:12px;">Dengan ini menerangkan bahwa:</p>
+        <table class="task-info-table" style="margin-bottom:12px;">
+          <tr><td>Nama</td><td><span class="doc-colon">:</span> <strong><%= sd.namaDiterangkan || '—' %></strong></td></tr>
+          <tr><td>Jabatan</td><td><span class="doc-colon">:</span> <%= sd.jabatanDiterangkan || '—' %></td></tr>
+          <% if(sd.timDiterangkan){%><tr><td>Tim</td><td><span class="doc-colon">:</span> <%= sd.timDiterangkan %></td></tr><%}%>
+          <tr><td>Instansi</td><td><span class="doc-colon">:</span> PT Nusa Inspira Teknologi</td></tr>
+        </table>
+        <p style="font-size:12.5px;line-height:1.9;margin-bottom:10px;">
+          Adalah benar merupakan anggota aktif PT Nusa Inspira Teknologi<% if(sd.keperluan){ %> dan ditugaskan untuk <%= sd.keperluan %><% } %><% if(sd.lokasiTugas){ %> di <%= sd.lokasiTugas %><% } %><% if(sd.tanggalTugas){ %> pada tanggal <%= fmtDateSimple(sd.tanggalTugas) %><% } %>.
+        </p>
+        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <div style="font-size:12.5px;line-height:1.9;margin-bottom:10px;"><%- email.body %></div>
+        <% } %>
+        <p style="font-size:12.5px;line-height:1.9;">Surat keterangan ini dibuat untuk digunakan sebagaimana mestinya dan agar pihak-pihak yang berkepentingan dapat memberikan bantuan yang diperlukan.</p>
+      </div>
+
+      <% } else if (tipe === 'Surat Pernyataan') { %>
+      <!-- ── SURAT PERNYATAAN ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT PERNYATAAN</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p style="font-size:12.5px;margin-bottom:12px;">Yang bertanda tangan di bawah ini:</p>
+        <table class="task-info-table" style="margin-bottom:12px;">
+          <tr><td>Nama</td><td><span class="doc-colon">:</span> <strong><%= sd.namaPenyataan || '—' %></strong></td></tr>
+          <tr><td>Jabatan</td><td><span class="doc-colon">:</span> <%= sd.jabatanPernyataan || '—' %></td></tr>
+          <% if(sd.timPernyataan){%><tr><td>Tim</td><td><span class="doc-colon">:</span> <%= sd.timPernyataan %></td></tr><%}%>
+          <tr><td>Instansi</td><td><span class="doc-colon">:</span> PT Nusa Inspira Teknologi</td></tr>
+        </table>
+        <p style="font-size:12.5px;margin-bottom:10px;">Dengan ini menyatakan dengan sesungguhnya bahwa:</p>
+        <% if (sd.poinPernyataan && sd.poinPernyataan.length > 0) { %>
+        <ol style="padding-left:20px;font-size:12.5px;line-height:1.9;color:#1f2937;margin-bottom:12px;">
+          <% sd.poinPernyataan.forEach(item => { %><li><%= item %></li><% }) %>
+        </ol>
+        <% } %>
+        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <div style="font-size:12.5px;line-height:1.9;margin-bottom:10px;"><%- email.body %></div>
+        <% } %>
+        <p style="font-size:12.5px;line-height:1.9;">Demikian surat pernyataan ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.</p>
+      </div>
+
+      <% } else if (tipe === 'Surat Kuasa') { %>
+      <!-- ── SURAT KUASA ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT KUASA</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p style="font-size:12.5px;margin-bottom:10px;">Yang bertanda tangan di bawah ini:</p>
+        <p style="font-size:12px;font-weight:700;text-decoration:underline;margin-bottom:6px;">PEMBERI KUASA</p>
+        <table class="task-info-table" style="margin-bottom:10px;">
+          <tr><td>Nama</td><td><span class="doc-colon">:</span> <strong><%= email.from.name %></strong></td></tr>
+          <tr><td>Jabatan</td><td><span class="doc-colon">:</span> Direktur Utama</td></tr>
+          <tr><td>Instansi</td><td><span class="doc-colon">:</span> PT Nusa Inspira Teknologi</td></tr>
+        </table>
+        <p style="font-size:12.5px;margin-bottom:6px;">Selanjutnya disebut <strong>PEMBERI KUASA</strong>, dengan ini memberikan kuasa kepada:</p>
+        <p style="font-size:12px;font-weight:700;text-decoration:underline;margin-bottom:6px;">PENERIMA KUASA</p>
+        <table class="task-info-table" style="margin-bottom:10px;">
+          <tr><td>Nama</td><td><span class="doc-colon">:</span> <strong><%= sd.namaPenerima || '—' %></strong></td></tr>
+          <tr><td>Jabatan</td><td><span class="doc-colon">:</span> <%= sd.jabatanPenerima || '—' %></td></tr>
+          <tr><td>Instansi</td><td><span class="doc-colon">:</span> PT Nusa Inspira Teknologi</td></tr>
+        </table>
+        <p style="font-size:12.5px;margin-bottom:8px;">Selanjutnya disebut <strong>PENERIMA KUASA</strong>.</p>
+        <% if (sd.ruangLingkup && sd.ruangLingkup.length > 0) { %>
+        <p style="font-size:12.5px;margin-bottom:6px;">Untuk dan atas nama Pemberi Kuasa bertindak dalam hal-hal berikut:</p>
+        <ol style="padding-left:20px;font-size:12.5px;line-height:1.9;color:#1f2937;margin-bottom:12px;">
+          <% sd.ruangLingkup.forEach(item => { %><li><%= item %></li><% }) %>
+        </ol>
+        <% } %>
+        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <div style="font-size:12.5px;line-height:1.9;margin-bottom:10px;"><%- email.body %></div>
+        <% } %>
+        <p style="font-size:12.5px;line-height:1.9;">Surat Kuasa ini berlaku sampai selesainya pelaksanaan tugas yang dimaksud.</p>
+      </div>
+
+      <% } else if (tipe === 'Surat Pengantar') { %>
+      <!-- ── SURAT PENGANTAR ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT PENGANTAR</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p style="font-size:12.5px;margin-bottom:10px;">Kepada Yth.</p>
+        <p style="font-size:12.5px;font-weight:600;margin-bottom:14px;"><%= sd.kepada || (email.jenis === 'internal' ? email.to.map(r=>r.name).join(', ') : '') || '—' %></p>
+        <p style="font-size:12.5px;margin-bottom:10px;">Dengan hormat,</p>
+        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <div style="font-size:12.5px;line-height:1.9;margin-bottom:12px;"><%- email.body %></div>
+        <% } else { %>
+        <p style="font-size:12.5px;margin-bottom:12px;">Bersama surat pengantar ini, kami sampaikan kepada Bapak/Ibu:</p>
+        <% } %>
+        <% if (sd.dokumenList && sd.dokumenList.length > 0) { %>
+        <table class="peng-table">
+          <thead><tr><th style="width:36px;">No.</th><th>Dokumen / Barang yang Dikirim</th><th style="width:100px;">Jumlah</th><th style="width:100px;">Keterangan</th></tr></thead>
+          <tbody>
+          <% sd.dokumenList.forEach((doc,i) => { %>
+          <tr><td style="text-align:center;"><%= i+1 %></td><td><%= doc.nama %></td><td><%= doc.jumlah || '—' %></td><td><%= doc.keterangan || '—' %></td></tr>
+          <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+        <p style="font-size:12.5px;margin-top:10px;line-height:1.9;">Mohon Bapak/Ibu dapat menerima dan menandatangani tanda terima yang terlampir sebagai bukti penerimaan yang sah.</p>
+        <p style="font-size:12.5px;margin-top:8px;">Atas perhatian dan kerja sama Bapak/Ibu, kami ucapkan terima kasih.</p>
+      </div>
+
+      <% } else if (tipe === 'Surat Keputusan') { %>
+      <!-- ── SURAT KEPUTUSAN ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT KEPUTUSAN</div>
+        <div class="doc-subtitle">DIREKTUR UTAMA PT NUSA INSPIRA TEKNOLOGI</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <div style="text-align:center;font-size:12px;margin-bottom:16px;">Tentang<br><strong><%= email.subject.toUpperCase() %></strong></div>
+        <p style="font-size:12.5px;font-weight:700;text-align:center;margin-bottom:10px;text-decoration:underline;">DIREKTUR UTAMA PT NUSA INSPIRA TEKNOLOGI</p>
+        <% if (sd.menimbang && sd.menimbang.length > 0) { %>
+        <div class="doc-section">
+          <div class="doc-section-label">Menimbang :</div>
+          <ul class="doc-section-list">
+          <% sd.menimbang.forEach((item,i) => { const pref = String.fromCharCode(97+i)+'.'; %>
+          <li data-prefix="<%= pref %>"><%= item %></li>
+          <% }) %>
+          </ul>
+        </div>
+        <% } %>
+        <% if (sd.mengingat && sd.mengingat.length > 0) { %>
+        <div class="doc-section">
+          <div class="doc-section-label">Mengingat :</div>
+          <ul class="doc-section-list">
+          <% sd.mengingat.forEach((item,i) => { %>
+          <li data-prefix="<%= i+1 %>."><%= item %></li>
+          <% }) %>
+          </ul>
+        </div>
+        <% } %>
+        <div class="doc-section" style="border-top:2px solid #374151;padding-top:10px;">
+          <div class="doc-section-label" style="font-size:12px;text-align:center;text-decoration:underline;">MEMUTUSKAN:</div>
+          <div style="text-align:center;font-size:12px;font-weight:600;margin-bottom:8px;">Menetapkan :</div>
+          <% if (sd.memutuskan && sd.memutuskan.length > 0) { %>
+          <div style="font-size:12.5px;font-weight:700;text-align:center;margin-bottom:8px;">KEPUTUSAN DIREKTUR UTAMA TENTANG <%= email.subject.toUpperCase() %>.</div>
+          <% const prefixes=['PERTAMA','KEDUA','KETIGA','KEEMPAT','KELIMA','KEENAM','KETUJUH','KEDELAPAN']; %>
+          <% sd.memutuskan.forEach((item,i) => { %>
+          <p style="font-size:12.5px;font-weight:700;margin-bottom:3px;"><%= prefixes[i]||('POIN '+(i+1)) %> :</p>
+          <p style="font-size:12.5px;line-height:1.9;margin-bottom:10px;padding-left:12px;"><%= item %></p>
+          <% }) %>
+          <% } %>
+        </div>
+        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <div style="font-size:12.5px;line-height:1.9;margin-top:10px;"><%- email.body %></div>
+        <% } %>
+      </div>
+
+      <% } else if (tipe === 'Surat Undangan Dinas') { %>
+      <!-- ── SURAT UNDANGAN DINAS ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT UNDANGAN DINAS</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p style="font-size:12.5px;margin-bottom:8px;">Kepada Yth.</p>
+        <p style="font-size:12.5px;font-weight:600;margin-bottom:14px;"><%= email.jenis === 'internal' ? email.to.map(r=>r.name).join(', <br>') : (email.toExternal||[]).map(r=>r.name).join(', ') || '—' %></p>
+        <p style="font-size:12.5px;margin-bottom:10px;">Dengan hormat,</p>
+        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <div style="font-size:12.5px;line-height:1.9;margin-bottom:12px;"><%- email.body %></div>
+        <% } else { %>
+        <p style="font-size:12.5px;margin-bottom:12px;">Dalam rangka <%- email.subject %>, dengan ini kami mengundang Saudara/i untuk hadir dalam kegiatan dengan rincian sebagai berikut:</p>
+        <% } %>
+        <table class="und-table">
+          <% if(sd.tanggalUndangan){%><tr><td>Hari / Tanggal</td><td><%= fmtDateSimple(sd.tanggalUndangan) %></td></tr><%}%>
+          <% if(sd.waktuUndangan){%><tr><td>Waktu</td><td><%= sd.waktuUndangan %></td></tr><%}%>
+          <% if(sd.tempatUndangan){%><tr><td>Tempat</td><td><%= sd.tempatUndangan %></td></tr><%}%>
+          <% if(sd.agendaUndangan){%><tr><td>Agenda</td><td><strong><%= sd.agendaUndangan %></strong></td></tr><%}%>
+          <% if(sd.pakaianUndangan){%><tr><td>Pakaian</td><td><%= sd.pakaianUndangan %></td></tr><%}%>
+        </table>
+        <p style="font-size:12.5px;line-height:1.9;">Kehadiran Saudara/i sangat kami harapkan. Apabila berhalangan hadir, mohon menginformasikan kepada panitia penyelenggara paling lambat 1 (satu) hari sebelum pelaksanaan.</p>
+        <p style="font-size:12.5px;margin-top:8px;">Atas perhatian dan kehadiran Saudara/i, kami ucapkan terima kasih.</p>
+      </div>
+
+      <% } else if (tipe === 'Surat Statuta') { %>
+      <!-- ── SURAT STATUTA ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT STATUTA</div>
+        <div class="doc-subtitle">PT NUSA INSPIRA TEKNOLOGI</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <div style="text-align:center;font-size:12px;font-weight:700;text-decoration:underline;margin-bottom:16px;">STATUTA <%= (sd.namaOrganisasi || email.subject).toUpperCase() %></div>
+        <% if (sd.namaOrganisasi || sd.visi) { %>
+        <p style="font-size:12px;font-weight:700;margin-bottom:4px;">BAB I — IDENTITAS TIM</p>
+        <p style="font-size:12.5px;margin-bottom:12px;">Tim ini bernama <strong><%= sd.namaOrganisasi || '—' %></strong>, dibentuk berdasarkan Surat Keputusan Direktur Utama PT Nusa Inspira Teknologi Nomor <%= email.nomorSurat %>.</p>
+        <% if (sd.visi) { %>
+        <p style="font-size:12px;font-weight:700;margin-bottom:4px;">BAB II — VISI DAN MISI</p>
+        <p style="font-size:12.5px;margin-bottom:6px;"><strong>Visi:</strong> <%= sd.visi %></p>
+        <% if (sd.misi && sd.misi.length > 0) { %>
+        <p style="font-size:12.5px;font-weight:600;margin-bottom:4px;">Misi:</p>
+        <ol style="list-style-type:lower-alpha;padding-left:20px;font-size:12.5px;line-height:1.9;color:#1f2937;margin-bottom:12px;">
+          <% sd.misi.forEach(m => { %><li><%= m %></li><% }) %>
+        </ol>
+        <% } %>
+        <% } %>
+        <% } %>
+        <% if (sd.anggota && sd.anggota.length > 0) { %>
+        <p style="font-size:12px;font-weight:700;margin-bottom:6px;">BAB III — KEANGGOTAAN</p>
+        <table class="statuta-table">
+          <thead><tr><th>No.</th><th>Nama</th><th>Jabatan dalam Tim</th></tr></thead>
+          <tbody>
+          <% sd.anggota.forEach((a,i) => { %>
+          <tr><td><%= i+1 %></td><td><%= a.nama %></td><td><%= a.jabatan %></td></tr>
+          <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <div style="font-size:12.5px;line-height:1.9;margin-top:10px;"><%- email.body %></div>
+        <% } %>
+      </div>
+
+      <% } else { %>
+      <!-- ── STANDARD LETTERS (Surat, Surat Resmi, Formal, Instruksi, Edaran, Rahasia, Konfidensial) ── -->
+      <div class="doc-body">
+
+        <% if (tipe === 'Surat Rahasia') { %>
+        <div style="text-align:center;font-size:11px;color:#ef4444;font-weight:700;margin-bottom:10px;">Kepada Yth. (Sangat Terbatas)</div>
+        <% } else if (tipe === 'Surat Konfidensial') { %>
+        <div style="text-align:center;font-size:11px;color:#d97706;font-weight:700;margin-bottom:10px;">Kepada Yth. (Terbatas)</div>
+        <% } %>
+
+        <div class="doc-title"><%= tipe.toUpperCase() %></div>
+
         <table class="doc-info-table">
           <tr>
             <td>Nomor<span class="doc-colon">:</span></td>
             <td><strong><%= email.nomorSurat %></strong></td>
           </tr>
           <tr>
-            <td>Dari<span class="doc-colon">:</span></td>
-            <td><strong><%= email.from.name %></strong> &lt;<%= email.from.email %>&gt;</td>
-          </tr>
-          <tr>
             <td>Kepada<span class="doc-colon">:</span></td>
             <td>
-              <% if (email.jenis === 'internal') { %>
+              <% if (tipe === 'Surat Rahasia' || tipe === 'Surat Konfidensial') { %>
+                <%= email.jenis === 'internal' ? email.to.map(r=>r.name+' — '+r.email).join('; ') || '—' : (email.toExternal||[]).map(r=>r.name+' <'+r.email+'>').join(', ') || '—' %>
+              <% } else if (email.jenis === 'internal') { %>
                 <%= email.to.map(r => r.name).join(', ') || '—' %>
               <% } else { %>
                 <%= (email.toExternal||[]).map(r => `${r.name} <${r.email}>`).join(', ') || '—' %>
@@ -320,8 +724,16 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
           </tr>
           <% } %>
           <tr>
+            <td>Dari<span class="doc-colon">:</span></td>
+            <td><strong><%= email.from.name %></strong></td>
+          </tr>
+          <tr>
             <td>Tanggal<span class="doc-colon">:</span></td>
-            <td><%= new Date(email.createdAt).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) %></td>
+            <td><%= fmtDate(email.createdAt) %></td>
+          </tr>
+          <tr>
+            <td>Perihal<span class="doc-colon">:</span></td>
+            <td><strong><%= email.subject %></strong></td>
           </tr>
           <% if (email.berkas) { %>
           <tr>
@@ -331,18 +743,33 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
           <% } %>
         </table>
 
-        <div class="doc-body-content"><%- email.body || '<em style="color:#94a3b8;">Tidak ada isi surat.</em>' %></div>
-      </div>
+        <% if (tipe !== 'Surat Rahasia' && tipe !== 'Surat Konfidensial') { %>
+        <p style="font-size:12.5px;margin-bottom:12px;">Dengan hormat,</p>
+        <% } else { %>
+        <p style="font-size:12.5px;margin-bottom:12px;">Yang Terhormat <%- email.to.map(r=>r.name).join(', ') || 'Bapak/Ibu' %>,</p>
+        <% } %>
 
+        <div class="doc-body-content"><%- email.body || '<em style="color:#94a3b8;">Tidak ada isi surat.</em>' %></div>
+
+        <% if (tipe === 'Surat Rahasia' || tipe === 'Surat Konfidensial') { %>
+        <p style="font-size:11px;font-style:italic;color:var(--gray-500);margin-top:12px;">[ Dokumen ini bersifat <%= tipe === 'Surat Rahasia' ? 'RAHASIA' : 'KONFIDENSIAL' %> — Tidak untuk disebarluaskan ]</p>
+        <% } %>
+      </div>
+      <% } %>
+
+      <!-- SIGNATURE AREA -->
       <div class="doc-sig-area">
+        <div style="font-size:12px;color:#374151;margin-bottom:6px;"><strong><%= new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) %></strong></div>
         <div id="sigHint" class="doc-sig-hint" style="<%= docSig.signers.length > 0 ? 'display:none' : '' %>">
           Tambahkan tanda tangan dari panel kanan. Seret untuk memindahkan posisi.
         </div>
       </div>
 
+      <!-- QR Stamps -->
       <% docSig.signers.forEach(function(s) {
         const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
         const jabatan = s.jabatanDisplay || (s.userRole ? rl[s.userRole]||s.userRole : (s.userOrg||''));
+        const dm = s.displayMode || 'full';
       %>
       <div class="qr-stamp" id="stamp-<%= s._id %>" data-id="<%= s._id %>"
         style="left:<%= s.position.x %>px;top:<%= s.position.y %>px;width:<%= s.position.width %>px;height:<%= s.position.height %>px;">
@@ -351,9 +778,11 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         <% } else { %>
         <div style="flex:1;width:100%;min-height:0;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;">Menunggu tanda tangan</div>
         <% } %>
+        <% if (dm !== 'qr_only') { %>
         <div class="qr-stamp-sig"></div>
         <div class="qr-stamp-name"><%= s.userName %></div>
-        <div class="qr-stamp-role"><%= jabatan %></div>
+        <% if (dm === 'full') { %><div class="qr-stamp-role"><%= jabatan %></div><% } %>
+        <% } %>
         <div class="qr-resize"></div>
         <button class="qr-delete" onclick="removeSigner('<%= s._id %>',event)">
           <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -375,10 +804,8 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
     <div class="panel-section">
       <div class="panel-title">Tanda Tangan Saya</div>
       <div class="panel-hint">
-        <% if (isSender) { %>
-          QR unik per surat per penandatangan. Hanya Anda yang bisa menandatangani atas nama Anda.
-        <% } else if (isPendingCosigner) { %>
-          Anda diundang sebagai co-signer. Klik tombol di bawah untuk menandatangani.
+        <% if (isSender) { %>QR unik per surat per penandatangan.
+        <% } else if (isPendingCosigner) { %>Anda diundang sebagai co-signer.
         <% } %>
       </div>
       <% if (isSigned) { %>
@@ -397,9 +824,6 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
     <% if (isSender) { %>
     <div class="panel-section">
       <div class="panel-title">Undang Co-Signer</div>
-      <div class="panel-hint" style="font-size:11.5px;color:rgba(255,255,255,.35);margin-bottom:10px;">
-        Co-signer akan menandatangani sendiri saat mereka membuka dokumen ini.
-      </div>
       <label class="cosign-toggle">
         <input type="checkbox" id="coSignCheck" onchange="toggleCoSign(this)">
         Aktifkan Co-Sign
@@ -432,6 +856,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
           const signed = s.status === 'signed';
           const jabatanNow = s.jabatanDisplay || (s.userRole ? rl[s.userRole]||s.userRole : (s.userOrg||''));
           const isCustom = !['Direktur','Staff','Administrator'].includes(jabatanNow);
+          const dm = s.displayMode || 'full';
         %>
         <div class="signer-item" id="si-<%= s._id %>" style="flex-direction:column;align-items:stretch;gap:8px;">
           <div style="display:flex;align-items:center;gap:10px;">
@@ -451,6 +876,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
             </button>
             <% } %>
           </div>
+          <!-- Jabatan selector -->
           <div style="display:flex;flex-direction:column;gap:5px;">
             <select id="jsel-<%= s._id %>" onchange="onJabatanSelect('<%= s._id %>',this)"
               style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:5px;padding:5px 8px;font-size:11.5px;outline:none;width:100%;">
@@ -467,6 +893,15 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
                 oninput="updateJabatanText('<%= s._id %>',this.value)">
             </div>
           </div>
+          <!-- Display mode toggle -->
+          <div>
+            <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px;">Tampilan Tanda Tangan:</div>
+            <div class="display-mode-row" id="dm-<%= s._id %>">
+              <button type="button" class="dm-btn <%= dm==='full'?'active':'' %>" onclick="setDisplayMode('<%= s._id %>','full',this.closest('.display-mode-row'))">QR + Nama<br>+ Jabatan</button>
+              <button type="button" class="dm-btn <%= dm==='name_only'?'active':'' %>" onclick="setDisplayMode('<%= s._id %>','name_only',this.closest('.display-mode-row'))">QR +<br>Nama</button>
+              <button type="button" class="dm-btn <%= dm==='qr_only'?'active':'' %>" onclick="setDisplayMode('<%= s._id %>','qr_only',this.closest('.display-mode-row'))">QR<br>Saja</button>
+            </div>
+          </div>
         </div>
         <% }) %>
       </div>
@@ -476,6 +911,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       <div style="font-size:11px;color:rgba(255,255,255,.25);line-height:1.9;">
         • Seret QR untuk pindahkan posisi<br>
         • Tarik sudut kanan bawah untuk resize<br>
+        • Pilih tampilan: QR saja / + Nama / + Jabatan<br>
         • Setiap QR unik per surat &amp; penandatangan<br>
         • Scan QR = verifikasi dokumen + info surat
       </div>
@@ -540,23 +976,17 @@ async function addSelf() {
     const data = await res.json();
     if (data.ok) {
       if (data.action === 'updated') {
-        // Co-signer yang baru tandatangan — update stamp yang sudah ada
         const stamp = document.getElementById('stamp-' + data.signer._id);
         if (stamp) {
           const img = stamp.querySelector('img');
           if (img) img.src = data.signer.qrDataUrl;
           const wait = stamp.querySelector('div[style*="border:1px dashed"]');
-          if (wait) {
-            const newImg = document.createElement('img');
-            newImg.src = data.signer.qrDataUrl; newImg.draggable = false;
-            wait.replaceWith(newImg);
-          }
+          if (wait) { const newImg = document.createElement('img'); newImg.src = data.signer.qrDataUrl; newImg.draggable = false; wait.replaceWith(newImg); }
         }
       } else {
         addStampToPage(data.signer);
         addSignerToPanel(data.signer);
       }
-      btn.textContent = 'Sudah Ditandatangani';
       btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Sudah Ditandatangani`;
     } else {
       await showAlert(data.message || 'Gagal menambahkan tanda tangan.', { title: 'Gagal', type: 'warn' });
@@ -571,6 +1001,105 @@ async function addSelf() {
   }
 }
 
+function addStampToPage(s, dm) {
+  document.getElementById('sigHint').style.display = 'none';
+  const page = document.getElementById('a4Page');
+  const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+  const jabatan = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
+  const mode = dm || s.displayMode || 'full';
+  const qrHtml = s.qrDataUrl
+    ? `<img src="${s.qrDataUrl}" draggable="false">`
+    : `<div style="flex:1;width:100%;min-height:0;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;">Menunggu tanda tangan</div>`;
+  const nameHtml = mode !== 'qr_only' ? `<div class="qr-stamp-sig"></div><div class="qr-stamp-name">${s.userName}</div>` : '';
+  const roleHtml = mode === 'full' ? `<div class="qr-stamp-role">${jabatan}</div>` : '';
+
+  const div = document.createElement('div');
+  div.className = 'qr-stamp'; div.id = `stamp-${s._id}`; div.dataset.id = s._id;
+  div.style.cssText = `left:${s.position.x}px;top:${s.position.y}px;width:${s.position.width}px;height:${s.position.height}px;`;
+  div.innerHTML = `${qrHtml}${nameHtml}${roleHtml}
+    <div class="qr-resize"></div>
+    <button class="qr-delete" onclick="removeSigner('${s._id}',event)">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>`;
+  page.appendChild(div); initStamp(div);
+}
+
+function addSignerToPanel(s) {
+  document.getElementById('emptySig')?.remove();
+  const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+  const jabatan = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
+  const ini = s.userName.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  const dm = s.displayMode || 'full';
+  const item = document.createElement('div');
+  item.className = 'signer-item'; item.id = `si-${s._id}`;
+  item.style.cssText = 'flex-direction:column;align-items:stretch;gap:8px;';
+  item.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="signer-av">${ini}</div>
+      <div class="signer-info"><div class="signer-name">${s.userName}</div><div class="signer-role" id="jlbl-${s._id}">${jabatan}</div></div>
+      <span style="font-size:9px;color:rgba(255,200,0,.7);font-weight:600;flex-shrink:0;">MENUNGGU</span>
+      <button class="signer-del" onclick="removeSigner('${s._id}',event)">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;">
+      <select id="jsel-${s._id}" onchange="onJabatanSelect('${s._id}',this)"
+        style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:5px;padding:5px 8px;font-size:11.5px;outline:none;width:100%;">
+        <option value="Direktur" style="background:#1e293b;" ${jabatan==='Direktur'?'selected':''}>Direktur</option>
+        <option value="Staff" style="background:#1e293b;" ${jabatan==='Staff'?'selected':''}>Staff</option>
+        <option value="Administrator" style="background:#1e293b;" ${jabatan==='Administrator'?'selected':''}>Administrator</option>
+        <option value="__custom__" style="background:#1e293b;">Isi sendiri...</option>
+      </select>
+      <div id="jinput-${s._id}" class="j-hidden">
+        <input type="text" id="jtext-${s._id}" placeholder="Ketik jabatan..." class="jabatan-input" oninput="updateJabatanText('${s._id}',this.value)">
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px;">Tampilan Tanda Tangan:</div>
+      <div class="display-mode-row" id="dm-${s._id}">
+        <button type="button" class="dm-btn ${dm==='full'?'active':''}" onclick="setDisplayMode('${s._id}','full',this.closest('.display-mode-row'))">QR + Nama<br>+ Jabatan</button>
+        <button type="button" class="dm-btn ${dm==='name_only'?'active':''}" onclick="setDisplayMode('${s._id}','name_only',this.closest('.display-mode-row'))">QR +<br>Nama</button>
+        <button type="button" class="dm-btn ${dm==='qr_only'?'active':''}" onclick="setDisplayMode('${s._id}','qr_only',this.closest('.display-mode-row'))">QR<br>Saja</button>
+      </div>
+    </div>`;
+  document.getElementById('signerList').appendChild(item);
+  document.getElementById('signerCount').textContent = parseInt(document.getElementById('signerCount').textContent)+1;
+}
+
+// ── DISPLAY MODE ──
+async function setDisplayMode(id, mode, row) {
+  row.querySelectorAll('.dm-btn').forEach(b => b.classList.remove('active'));
+  row.querySelector(`.dm-btn:nth-child(${mode==='full'?1:mode==='name_only'?2:3})`).classList.add('active');
+
+  // Update stamp on A4
+  const stamp = document.getElementById('stamp-' + id);
+  if (stamp) {
+    const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+    // Preserve QR img
+    const img = stamp.querySelector('img');
+    const noQr = stamp.querySelector('div[style*="border:1px dashed"]');
+    const qrEl = img ? img.outerHTML : (noQr ? noQr.outerHTML : '');
+    const jabEl = document.getElementById('jlbl-' + id);
+    const jabatan = jabEl ? jabEl.textContent : '';
+    const nameEl = document.getElementById('jlbl-' + id)?.closest('.signer-item')?.querySelector('.signer-name');
+    const signerName = nameEl ? nameEl.textContent : '';
+    const nameHtml = mode !== 'qr_only' ? `<div class="qr-stamp-sig"></div><div class="qr-stamp-name">${signerName}</div>` : '';
+    const roleHtml = mode === 'full' ? `<div class="qr-stamp-role">${jabatan}</div>` : '';
+    const rsz = stamp.querySelector('.qr-resize');
+    const del = stamp.querySelector('.qr-delete');
+    const rszHtml = rsz ? rsz.outerHTML : '<div class="qr-resize"></div>';
+    const delHtml = del ? del.outerHTML : '';
+    stamp.innerHTML = `${qrEl}${nameHtml}${roleHtml}${rszHtml}${delHtml}`;
+    initStamp(stamp);
+  }
+
+  await fetch(`/email/${EMAIL_ID}/sign/update-display-mode`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ signerId: id, displayMode: mode })
+  });
+}
+
+// ── JABATAN EDIT ──
 function toggleCoSign(cb) { document.getElementById('coSignPanel').classList.toggle('open', cb.checked); }
 
 async function inviteCosigner() {
@@ -595,68 +1124,6 @@ async function inviteCosigner() {
   }
 }
 
-function addStampToPage(s) {
-  document.getElementById('sigHint').style.display = 'none';
-  const page = document.getElementById('a4Page');
-  const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
-  const jabatan = s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||'');
-  const qrHtml = s.qrDataUrl
-    ? `<img src="${s.qrDataUrl}" draggable="false">`
-    : `<div style="flex:1;width:100%;min-height:0;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;">Menunggu tanda tangan</div>`;
-
-  const div = document.createElement('div');
-  div.className = 'qr-stamp'; div.id = `stamp-${s._id}`; div.dataset.id = s._id;
-  div.style.cssText = `left:${s.position.x}px;top:${s.position.y}px;width:${s.position.width}px;height:${s.position.height}px;`;
-  div.innerHTML = `
-    ${qrHtml}
-    <div class="qr-stamp-sig"></div>
-    <div class="qr-stamp-name">${s.userName}</div>
-    <div class="qr-stamp-role">${jabatan}</div>
-    <div class="qr-resize"></div>
-    <button class="qr-delete" onclick="removeSigner('${s._id}',event)">
-      <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-    </button>`;
-  page.appendChild(div); initStamp(div);
-}
-
-function addSignerToPanel(s) {
-  document.getElementById('emptySig')?.remove();
-  const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
-  const jabatan = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
-  const ini = s.userName.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-  const item = document.createElement('div');
-  item.className = 'signer-item'; item.id = `si-${s._id}`;
-  item.style.cssText = 'flex-direction:column;align-items:stretch;gap:8px;';
-  item.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div class="signer-av">${ini}</div>
-      <div class="signer-info">
-        <div class="signer-name">${s.userName}</div>
-        <div class="signer-role" id="jlbl-${s._id}">${jabatan}</div>
-      </div>
-      <span style="font-size:9px;color:rgba(255,200,0,.7);font-weight:600;flex-shrink:0;">MENUNGGU</span>
-      <button class="signer-del" onclick="removeSigner('${s._id}',event)">
-        <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      </button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:5px;">
-      <select id="jsel-${s._id}" onchange="onJabatanSelect('${s._id}',this)"
-        style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:5px;padding:5px 8px;font-size:11.5px;outline:none;width:100%;">
-        <option value="Direktur" style="background:#1e293b;" ${jabatan==='Direktur'?'selected':''}>Direktur</option>
-        <option value="Staff" style="background:#1e293b;" ${jabatan==='Staff'?'selected':''}>Staff</option>
-        <option value="Administrator" style="background:#1e293b;" ${jabatan==='Administrator'?'selected':''}>Administrator</option>
-        <option value="__custom__" style="background:#1e293b;">Isi sendiri...</option>
-      </select>
-      <div id="jinput-${s._id}" class="j-hidden">
-        <input type="text" id="jtext-${s._id}" placeholder="Ketik jabatan..."
-          class="jabatan-input" oninput="updateJabatanText('${s._id}',this.value)">
-      </div>
-    </div>`;
-  document.getElementById('signerList').appendChild(item);
-  document.getElementById('signerCount').textContent = parseInt(document.getElementById('signerCount').textContent)+1;
-}
-
-// ── JABATAN EDIT ──
 function onJabatanSelect(id, sel) {
   const inputDiv = document.getElementById('jinput-' + id);
   if (sel.value === '__custom__') {
@@ -681,15 +1148,10 @@ async function saveJabatan(id, jabatan) {
   });
   const data = await res.json();
   if (data.ok) {
-    // Update label di panel
     const lbl = document.getElementById('jlbl-' + id);
     if (lbl) lbl.textContent = jabatan;
-    // Update stamp di A4
     const stamp = document.getElementById('stamp-' + id);
-    if (stamp) {
-      const roleEl = stamp.querySelector('.qr-stamp-role');
-      if (roleEl) roleEl.textContent = jabatan;
-    }
+    if (stamp) { const roleEl = stamp.querySelector('.qr-stamp-role'); if (roleEl) roleEl.textContent = jabatan; }
   }
 }
 
@@ -709,7 +1171,8 @@ async function removeSigner(id, e) {
       document.getElementById('sigHint').style.display='';
     }
     if (data.wasCurrentUser) {
-      const b = document.getElementById('btnAddSelf'); b.disabled=false; b.textContent='Tambah Tanda Tangan Saya';
+      const b = document.getElementById('btnAddSelf');
+      if(b){ b.disabled=false; b.innerHTML=`<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Tambah Tanda Tangan Saya`; }
     }
   }
 }
