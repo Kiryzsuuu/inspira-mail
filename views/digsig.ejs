@@ -249,7 +249,7 @@ async function generateQR() {
 }
 
 async function deleteSig() {
-  if (!confirm('Hapus tanda tangan ini? QR Code akan langsung tidak valid.')) return;
+  if (!await showConfirm('Hapus tanda tangan ini? QR Code akan langsung tidak valid.', { title:'Hapus Tanda Tangan', type:'danger', confirmLabel:'Hapus' })) return;
   const res  = await fetch('/digsig', { method: 'DELETE' });
   const data = await res.json();
   if (data.ok) location.reload();

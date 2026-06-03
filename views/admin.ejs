@@ -398,7 +398,7 @@ async function toggleUser(id, btn) {
 
 // Delete user
 async function deleteUser(id, name, btn) {
-  if (!confirm(`Hapus pengguna "${name}"? Tindakan ini tidak dapat dibatalkan.`)) return;
+  if (!await showConfirm(`Hapus pengguna "<b>${name}</b>"? Tindakan ini tidak dapat dibatalkan.`, { title:'Hapus Pengguna', type:'danger', confirmLabel:'Hapus' })) return;
   try {
     const res = await fetch(`/admin/users/${id}`, { method: 'DELETE' });
     const data = await res.json();

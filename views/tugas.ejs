@@ -303,7 +303,7 @@ async function cycleStatus(id, currentStatus, btn) {
 }
 
 async function deleteTask(id, btn) {
-  if (!confirm('Hapus tugas ini?')) return;
+  if (!await showConfirm('Yakin ingin menghapus tugas ini?', { title:'Hapus Tugas', type:'danger', confirmLabel:'Hapus' })) return;
   const res = await fetch(`/tugas/${id}`, { method: 'DELETE' });
   const data = await res.json();
   if (data.ok) {

@@ -226,7 +226,7 @@ async function changeStatus() {
 }
 
 async function deleteDoc() {
-  if (!confirm('Hapus dokumen ini permanen? Nomor tidak dapat digunakan ulang.')) return;
+  if (!await showConfirm('Hapus dokumen ini permanen? Nomor tidak dapat digunakan ulang.', { title:'Hapus Dokumen', type:'danger', confirmLabel:'Hapus' })) return;
   const res  = await fetch('/agreements/<%= doc._id %>', { method: 'DELETE' });
   const data = await res.json();
   if (data.ok) window.location.href = '/agreements';

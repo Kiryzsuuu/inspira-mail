@@ -141,7 +141,7 @@ async function toggleUrl(id, btn) {
 }
 
 async function deleteUrl(id) {
-  if (!confirm('Hapus short URL ini?')) return;
+  if (!await showConfirm('Hapus short URL ini?', { title:'Hapus URL', type:'danger', confirmLabel:'Hapus' })) return;
   const res = await fetch(`/shorturl/${id}`, { method: 'DELETE' });
   const data = await res.json();
   if (data.ok) {

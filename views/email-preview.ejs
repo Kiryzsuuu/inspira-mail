@@ -615,7 +615,7 @@ async function saveJabatan(id, jabatan) {
 
 async function removeSigner(id, e) {
   if (e) { e.preventDefault(); e.stopPropagation(); }
-  if (!confirm('Hapus penandatangan ini?')) return;
+  if (!await showConfirm('Hapus penandatangan ini dari dokumen?', { title:'Hapus Penandatangan', type:'danger', confirmLabel:'Hapus' })) return;
   const res  = await fetch(`/email/${EMAIL_ID}/sign/signers/${id}`, { method:'DELETE' });
   const data = await res.json();
   if (data.ok) {

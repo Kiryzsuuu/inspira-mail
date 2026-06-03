@@ -179,7 +179,7 @@ async function updateStatus() {
   else showToast('Gagal mengubah status.', false);
 }
 async function deleteSurat() {
-  if (!confirm('Hapus catatan surat masuk ini?')) return;
+  if (!await showConfirm('Yakin ingin menghapus catatan surat masuk ini? Tindakan tidak bisa dibatalkan.', { title:'Hapus Surat Masuk', type:'danger', confirmLabel:'Hapus' })) return;
   const res  = await fetch('/surat-masuk/<%= surat._id %>', { method: 'DELETE' });
   const data = await res.json();
   if (data.ok) window.location.href = '/surat-masuk';

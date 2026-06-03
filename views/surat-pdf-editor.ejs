@@ -676,7 +676,7 @@ function addSignerToPanel(signer) {
 // ── REMOVE SIGNER ──
 async function removeSigner(signerId, e) {
   if (e) { e.preventDefault(); e.stopPropagation(); }
-  if (!confirm('Hapus penandatangan ini dari dokumen?')) return;
+  if (!await showConfirm('Hapus penandatangan ini dari dokumen?', { title:'Hapus Penandatangan', type:'danger', confirmLabel:'Hapus' })) return;
 
   const res = await fetch(`/surat-masuk/${SURAT_ID}/pdf/signers/${signerId}`, { method: 'DELETE' });
   const data = await res.json();
