@@ -759,13 +759,13 @@ app.post('/email/:id/send', requireAuth, async (req, res) => {
           </div>
           <!-- Tombol lihat PDF -->
           <div style="margin-top:24px;padding-top:20px;border-top:1px solid #f1f5f9;text-align:center;">
-            <a href="${appUrl}/email/${email._id}/preview"
+            <a href="${appUrl}/email/${email._id}/preview?print=1" target="_blank"
                style="display:inline-flex;align-items:center;gap:8px;background:#071840;color:#fff;text-decoration:none;padding:10px 22px;border-radius:7px;font-size:13px;font-weight:600;letter-spacing:.2px;">
-              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2H5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7l-4-5z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 2v5h5" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3v10M6 9l4 4 4-4M3 17h14" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Download Dokumen (PDF A4)
             </a>
             <p style="font-size:11px;color:#94a3b8;margin-top:12px;">
-              Dokumen A4 lengkap beserta tanda tangan digital tersedia di link di atas.
+              Klik untuk membuka dokumen A4 dan simpan sebagai PDF.
             </p>
           </div>
           <p style="font-size:11px;color:#94a3b8;margin-top:16px;padding-top:12px;border-top:1px solid #f1f5f9;">

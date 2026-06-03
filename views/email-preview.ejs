@@ -53,6 +53,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
   background: #fff; box-shadow: 0 8px 40px rgba(0,0,0,.5); flex-shrink: 0; overflow: hidden;
   font-family: 'Times New Roman', serif; font-size: 12pt; color: #000;
 }
+.a4-page * { color: #000 !important; }
 
 /* KOP SURAT */
 .doc-header {
@@ -65,7 +66,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 .doc-header-contacts { display: grid; grid-template-columns: auto auto; gap: 5px 28px; font-size: 10.5px; color: #374151; }
 .doc-contact-row { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .doc-contact-icon { color: #1a56a8; flex-shrink: 0; }
-.doc-header-line { height: 2px; background: #374151; margin: 0 40px; }
+.doc-header-line { height: 2px; background: linear-gradient(to right, transparent 0%, #2E6DA4 15%, #1F4E79 50%, #2E6DA4 85%, transparent 100%); margin: 0; border: none; }
 
 /* Watermark */
 .doc-watermark {
@@ -111,33 +112,32 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 /* Standard info table */
 .doc-info-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
 .doc-info-table td {
-  padding: 5px 0; vertical-align: top; font-size: 12.5px; color: #222;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 5px 0; vertical-align: top; font-size: 12pt;
+  border-bottom: 1px solid #000;
 }
 .doc-info-table td:first-child {
-  width: 120px; font-weight: 600; color: #374151;
-  font-size: 12.5px; padding-right: 12px;
+  width: 120px; font-weight: 600; font-size: 12pt; padding-right: 12px;
 }
-.doc-colon { color: #9ca3af; padding-right: 6px; }
+.doc-colon { padding-right: 6px; }
 
 /* Body content */
 .doc-body-content {
-  border: 1px solid #e5e7eb; border-radius: 4px; padding: 16px 18px;
-  font-size: 12.5px; line-height: 1.9; color: #1f2937; min-height: 120px;
+  border: 1px solid #000; padding: 16px 18px;
+  font-size: 12pt; line-height: 1.9; min-height: 120px;
   position: relative; z-index: 1;
 }
 
 /* SPPD Table */
-.sppd-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12px; }
-.sppd-table th, .sppd-table td { border: 1px solid #d1d5db; padding: 7px 10px; }
-.sppd-table th { background: #f3f4f6; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: #4b5563; }
-.sppd-table td:first-child { width: 40px; text-align: center; font-weight: 600; color: #6b7280; }
+.sppd-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12pt; }
+.sppd-table th, .sppd-table td { border: 1px solid #000; padding: 7px 10px; }
+.sppd-table th { background: #fff; font-weight: 700; font-size: 12pt; }
+.sppd-table td:first-child { width: 40px; text-align: center; font-weight: 600; }
 .sppd-table td:nth-child(2) { width: 220px; font-weight: 600; color: #374151; }
 
 /* Memo header table */
 .memo-header-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
-.memo-header-table td { padding: 5px 0; font-size: 12.5px; color: #222; border-bottom: 1px solid #f3f4f6; }
-.memo-header-table td:first-child { width: 110px; font-weight: 600; color: #374151; font-size: 12.5px; }
+.memo-header-table td { padding: 5px 0; font-size: 12pt; border-bottom: 1px solid #000; }
+.memo-header-table td:first-child { width: 110px; font-weight: 600; font-size: 12pt; }
 .memo-header-line { border-top: 2px solid #374151; margin: 14px 0 14px; }
 
 /* Structured sections (SK, Surat Tugas, etc.) */
@@ -161,19 +161,19 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 .surat-field-table td:nth-child(3) { flex: 1; }
 
 /* Undangan event table */
-.und-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12.5px; }
-.und-table td { padding: 7px 12px; border: 1px solid #e5e7eb; }
-.und-table td:first-child { width: 140px; font-weight: 600; background: #f9fafb; color: #374151; }
+.und-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12pt; }
+.und-table td { padding: 7px 12px; border: 1px solid #000; }
+.und-table td:first-child { width: 140px; font-weight: 600; background: #fff; }
 
 /* Pengantar doc list */
-.peng-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12px; }
-.peng-table th, .peng-table td { border: 1px solid #d1d5db; padding: 6px 10px; }
-.peng-table th { background: #f3f4f6; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #4b5563; text-align: left; }
+.peng-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12pt; }
+.peng-table th, .peng-table td { border: 1px solid #000; padding: 6px 10px; }
+.peng-table th { background: #fff; font-weight: 700; font-size: 12pt; text-align: left; }
 
 /* Statuta */
-.statuta-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12px; }
-.statuta-table th, .statuta-table td { border: 1px solid #d1d5db; padding: 7px 10px; }
-.statuta-table th { background: #f3f4f6; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #4b5563; text-align: left; }
+.statuta-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12pt; }
+.statuta-table th, .statuta-table td { border: 1px solid #000; padding: 7px 10px; }
+.statuta-table th { background: #fff; font-weight: 700; font-size: 12pt; text-align: left; }
 .statuta-table td:first-child { width: 40px; text-align: center; }
 
 /* Signature area */
@@ -1054,6 +1054,11 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 <script>
 const EMAIL_ID = '<%= email._id %>';
 const CURRENT_USER_ID = '<%= currentUser._id %>';
+
+// Auto-print jika parameter ?print=1 ada di URL
+if (new URLSearchParams(window.location.search).get('print') === '1') {
+  window.addEventListener('load', () => setTimeout(() => window.print(), 800));
+}
 let dragState = null;
 
 function initStamp(el) {
