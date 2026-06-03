@@ -56,17 +56,16 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 
 /* KOP SURAT */
 .doc-header {
-  padding: 18px 40px 14px;
-  display: flex; align-items: center; gap: 0;
+  padding: 20px 40px 16px;
+  display: flex; align-items: center;
 }
-.doc-header-logo-area { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.doc-header-logo { width: 60px; height: auto; object-fit: contain; }
-.doc-header-brand { font-size: 22px; font-weight: 900; color: #e67e22; letter-spacing: 2px; line-height: 1; }
+.doc-header-logo-area { display: flex; align-items: center; flex-shrink: 0; }
+.doc-header-logo { width: 100px; height: auto; object-fit: contain; }
 .doc-header-spacer { flex: 1; }
-.doc-header-contacts { display: grid; grid-template-columns: auto auto; gap: 4px 24px; font-size: 10px; color: #374151; }
-.doc-contact-row { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.doc-header-contacts { display: grid; grid-template-columns: auto auto; gap: 5px 28px; font-size: 10.5px; color: #374151; }
+.doc-contact-row { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .doc-contact-icon { color: #1a56a8; flex-shrink: 0; }
-.doc-header-line { height: 1.5px; background: #9ca3af; margin: 0 40px 0; }
+.doc-header-line { height: 2px; background: #374151; margin: 0 40px; }
 
 /* Watermark */
 .doc-watermark {
@@ -84,6 +83,8 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
   border: 2px solid #ef4444; color: #ef4444; border-radius: 3px;
 }
 .doc-class-banner.konfidensial { border-color: #d97706; color: #d97706; }
+/* KLS — classification box inside body (sesuai template) */
+.kls { text-align:center; font-weight:bold; border:2px solid #000; padding:4px; margin:8px 0 14px; letter-spacing:2px; font-size:12pt; }
 
 /* Doc meta bar */
 .doc-meta {
@@ -182,6 +183,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 /* QR Stamp */
 .qr-stamp {
   position: absolute; cursor: move; user-select: none;
+  z-index: 50;
   border: none; outline: 2px dashed transparent; outline-offset: 3px; border-radius: 4px; transition: outline-color .15s;
   display: flex; flex-direction: column; align-items: center;
   padding: 0; text-align: center; overflow: hidden;
@@ -301,24 +303,23 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       <div class="doc-header">
         <div class="doc-header-logo-area">
           <img src="/img/Group 1597880519.png" class="doc-header-logo" alt="INSPIRA" onerror="this.style.display='none'">
-          <div class="doc-header-brand">INSPIRA</div>
         </div>
         <div class="doc-header-spacer"></div>
         <div class="doc-header-contacts">
           <div class="doc-contact-row">
-            <svg class="doc-contact-icon" width="11" height="11" viewBox="0 0 20 20" fill="none"><path d="M6.5 3C5.1 3 4 4.1 4 5.5c0 6.9 5.6 12.5 12.5 12.5 1.4 0 2.5-1.1 2.5-2.5v-1.3c0-.4-.2-.7-.5-.9l-3-1.5c-.3-.2-.7-.1-1 .1l-1.3 1.3a9.6 9.6 0 01-4.4-4.4l1.3-1.3c.3-.3.3-.7.1-1l-1.5-3C8.5 3.2 8.2 3 7.8 3H6.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            <svg class="doc-contact-icon" width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M6.5 3C5.1 3 4 4.1 4 5.5c0 6.9 5.6 12.5 12.5 12.5 1.4 0 2.5-1.1 2.5-2.5v-1.3c0-.4-.2-.7-.5-.9l-3-1.5c-.3-.2-.7-.1-1 .1l-1.3 1.3a9.6 9.6 0 01-4.4-4.4l1.3-1.3c.3-.3.3-.7.1-1l-1.5-3C8.5 3.2 8.2 3 7.8 3H6.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
             +62 851 1163 6633
           </div>
           <div class="doc-contact-row">
-            <svg class="doc-contact-icon" width="11" height="11" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 10h15M10 2.5c-2 2-3 4.5-3 7.5s1 5.5 3 7.5M10 2.5c2 2 3 4.5 3 7.5s-1 5.5-3 7.5" stroke="currentColor" stroke-width="1.4"/></svg>
+            <svg class="doc-contact-icon" width="12" height="12" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 10h15M10 2.5c-2 2-3 4.5-3 7.5s1 5.5 3 7.5M10 2.5c2 2 3 4.5 3 7.5s-1 5.5-3 7.5" stroke="currentColor" stroke-width="1.4"/></svg>
             inspiratekno.com
           </div>
           <div class="doc-contact-row">
-            <svg class="doc-contact-icon" width="11" height="11" viewBox="0 0 20 20" fill="none"><path d="M3 5l7 5 7-5M3 5v10h14V5H3z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="doc-contact-icon" width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M3 5l7 5 7-5M3 5v10h14V5H3z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             nusainspirateknologi@gmail.com
           </div>
           <div class="doc-contact-row">
-            <svg class="doc-contact-icon" width="11" height="11" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="4" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.4"/><circle cx="14.5" cy="5.5" r=".8" fill="currentColor"/></svg>
+            <svg class="doc-contact-icon" width="12" height="12" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="4" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.4"/><circle cx="14.5" cy="5.5" r=".8" fill="currentColor"/></svg>
             inspira.teknologi
           </div>
         </div>
@@ -352,34 +353,54 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       <!-- DOCUMENT BODY — rendered per type                      -->
       <!-- ═══════════════════════════════════════════════════════ -->
 
-      <% if (tipe === 'Memo' || tipe === 'Nota Dinas') { %>
-      <!-- ── MEMO / NOTA DINAS ── -->
+      <%
+        const recipients = email.jenis === 'internal'
+          ? email.to.map(r=>r.name)
+          : (email.toExternal||[]).map(r=>r.name);
+        const hasBody = email.body && email.body.trim() && email.body.trim() !== '<p><br></p>';
+      %>
+
+      <% if (tipe === 'Memo') { %>
+      <!-- ── MEMO ── -->
       <div class="doc-body">
-        <div class="doc-title"><%= tipe.toUpperCase() %></div>
-        <p class="doc-nomor-center" style="font-weight:normal;margin-bottom:14px;">INTERNAL PT NUSA INSPIRA TEKNOLOGI</p>
-        <table class="surat-field-table" style="margin-bottom:10px;">
-          <tr><td>Kepada</td><td>:</td><td><strong><%= sd.kepada || email.to.map(r=>r.name).join(', ') || '—' %></strong></td></tr>
+        <div class="doc-title">MEMO</div>
+        <p style="text-align:center;margin-bottom:14px;">INTERNAL PT NUSA INSPIRA TEKNOLOGI</p>
+        <table class="surat-field-table">
+          <tr><td>Kepada</td><td>:</td><td><strong><%= sd.kepada || recipients.join(', ') || '—' %></strong></td></tr>
           <tr><td>Dari</td><td>:</td><td><%= email.from.name %></td></tr>
-          <% if (tipe === 'Nota Dinas') { %><tr><td>Nomor</td><td>:</td><td><%= email.nomorSurat %></td></tr><% } %>
           <tr><td>Perihal</td><td>:</td><td><strong><%= email.subject %></strong></td></tr>
           <tr><td>Tanggal</td><td>:</td><td><%= fmtDate(email.createdAt) %></td></tr>
-          <% if (sd.klasifikasi) { %><tr><td>Klasifikasi</td><td>:</td><td><strong style="color:#c00;"><%= sd.klasifikasi %></strong></td></tr><% } %>
+          <% if (sd.klasifikasi) { %><tr><td>Klasifikasi</td><td>:</td><td><strong><%= sd.klasifikasi %></strong></td></tr><% } %>
         </table>
         <hr style="border:none;border-top:1px solid #000;margin:12px 0;">
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
-        <div style="font-size:12.5px;line-height:1.9;color:#1f2937;margin-bottom:14px;"><%- email.body %></div>
-        <% } %>
-        <% if (tipe === 'Nota Dinas' && sd.budgetRows && sd.budgetRows.length > 0) { %>
-        <p style="font-size:12.5px;margin-bottom:8px;">Sehubungan dengan hal tersebut, bersama nota dinas ini kami mohon agar dapat memproses pencairan biaya operasional sebagai berikut:</p>
-        <table class="sppd-table">
+        <% if (hasBody) { %><div class="doc-para"><%- email.body %></div><% } %>
+      </div>
+
+      <% } else if (tipe === 'Nota Dinas') { %>
+      <!-- ── NOTA DINAS ── -->
+      <div class="doc-body">
+        <div class="doc-title">NOTA DINAS</div>
+        <p style="text-align:center;margin-bottom:14px;">INTERNAL — PT NUSA INSPIRA TEKNOLOGI</p>
+        <table class="surat-field-table">
+          <tr><td>Kepada</td><td>:</td><td><strong><%= sd.kepada || recipients.join(', ') || '—' %></strong></td></tr>
+          <tr><td>Dari</td><td>:</td><td><%= email.from.name %></td></tr>
+          <tr><td>Nomor</td><td>:</td><td><%= email.nomorSurat %></td></tr>
+          <tr><td>Tanggal</td><td>:</td><td><%= fmtDate(email.createdAt) %></td></tr>
+          <tr><td>Perihal</td><td>:</td><td><strong><%= email.subject %></strong></td></tr>
+        </table>
+        <hr style="border:none;border-top:1px solid #000;margin:12px 0;">
+        <% if (hasBody) { %><div class="doc-para"><%- email.body %></div><% } %>
+        <% if (sd.budgetRows && sd.budgetRows.length > 0) { %>
+        <table class="sppd-table" style="margin-top:10px;">
           <thead><tr><th>No.</th><th>Uraian Kebutuhan</th><th>Jumlah (Rp)</th></tr></thead>
           <tbody>
-          <% let totalBudget = 0; sd.budgetRows.forEach((r,i) => { %>
+          <% sd.budgetRows.forEach((r,i) => { %>
           <tr><td><%= i+1 %></td><td><%= r.uraian %></td><td><%= r.jumlah %></td></tr>
           <% }) %>
           </tbody>
         </table>
         <% } %>
+        <p class="doc-para" style="margin-top:10px;">Atas perhatian dan tindak lanjutnya, kami ucapkan terima kasih.</p>
       </div>
 
       <% } else if (tipe === 'SPPD') { %>
@@ -390,7 +411,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         <table class="sppd-table">
           <thead><tr><th>No.</th><th>Keterangan</th><th>Isian</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td>Pejabat yang memberikan perintah</td><td><%= email.from.name %> — Direktur Utama</td></tr>
+            <tr><td>1</td><td>Pejabat yang memberikan perintah</td><td><strong><%= email.from.name %></strong> — Direktur Utama</td></tr>
             <tr><td>2</td><td>Nama pegawai yang diperintahkan</td><td><strong><%= sd.namaPegawai || '—' %></strong></td></tr>
             <tr><td>3</td><td>Jabatan</td><td><%= sd.jabatanPegawai || '—' %></td></tr>
             <tr><td>4</td><td>Tingkat / Golongan</td><td><%= sd.golongan || '—' %></td></tr>
@@ -400,13 +421,11 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
             <tr><td>8</td><td>Tempat tujuan</td><td><%= sd.tempatTujuan || '—' %></td></tr>
             <tr><td>9</td><td>Tanggal berangkat</td><td><%= fmtDateSimple(sd.tanggalBerangkat) %></td></tr>
             <tr><td>10</td><td>Tanggal kembali</td><td><%= fmtDateSimple(sd.tanggalKembali) %></td></tr>
-            <tr><td>11</td><td>Lama perjalanan dinas</td><td><% if(sd.tanggalBerangkat && sd.tanggalKembali){ const d1=new Date(sd.tanggalBerangkat),d2=new Date(sd.tanggalKembali); const diff=Math.round((d2-d1)/(1000*60*60*24))+1; %><%=diff%> (<%=diff===1?'satu':diff%>) hari<% } else { %>—<% } %></td></tr>
-            <tr><td>12</td><td>Pembebanan anggaran — Instansi / Mata anggaran</td><td>PT Nusa Inspira Teknologi / <%= sd.mataPenggunaan || 'Biaya Operasional' %></td></tr>
+            <tr><td>11</td><td>Lama perjalanan dinas</td><td><% if(sd.tanggalBerangkat&&sd.tanggalKembali){const d1=new Date(sd.tanggalBerangkat),d2=new Date(sd.tanggalKembali);const diff=Math.round((d2-d1)/(1000*60*60*24))+1;%><%=diff%> (<%=diff===1?'satu':diff%>) hari<%}else{%>—<%}%></td></tr>
+            <tr><td>12</td><td>Pembebanan anggaran</td><td>PT Nusa Inspira Teknologi / <%= sd.mataPenggunaan || 'Biaya Operasional' %></td></tr>
           </tbody>
         </table>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
-        <div class="doc-body-content" style="margin-top:10px;"><%- email.body %></div>
-        <% } %>
+        <% if (hasBody) { %><div class="doc-para" style="margin-top:10px;"><%- email.body %></div><% } %>
         <table class="sppd-table" style="margin-top:16px;">
           <thead><tr><th>Keterangan</th><th>Tanggal</th><th>Tanda Tangan &amp; Cap</th></tr></thead>
           <tbody>
@@ -422,30 +441,28 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       <div class="doc-body">
         <div class="doc-title">SURAT TUGAS</div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-        <p style="font-size:12.5px;margin-top:16px;margin-bottom:10px;">Yang bertanda tangan di bawah ini:</p>
-        <table class="surat-field-table" style="margin-bottom:14px;margin-left:16px;">
+        <p class="doc-para">Yang bertanda tangan di bawah ini:</p>
+        <table class="surat-field-table">
           <tr><td>Nama</td><td>:</td><td><strong><%= email.from.name %></strong></td></tr>
           <tr><td>Jabatan</td><td>:</td><td>Direktur Utama</td></tr>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
-        <p style="font-size:12.5px;margin-bottom:10px;">Dengan ini menugaskan kepada:</p>
-        <table class="surat-field-table" style="margin-bottom:14px;margin-left:16px;">
+        <p class="doc-para" style="margin-top:10px;">Dengan ini menugaskan kepada:</p>
+        <table class="surat-field-table">
           <tr><td>Nama</td><td>:</td><td><strong><%= sd.namaPelaksana || '—' %></strong></td></tr>
           <tr><td>Jabatan</td><td>:</td><td><%= sd.jabatanPelaksana || '—' %></td></tr>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
-        <p style="font-size:12.5px;margin-bottom:10px;">Untuk melaksanakan tugas dengan rincian sebagai berikut:</p>
-        <table class="surat-field-table" style="margin-bottom:14px;margin-left:16px;">
+        <p class="doc-para" style="margin-top:10px;">Untuk melaksanakan tugas dengan rincian sebagai berikut:</p>
+        <table class="surat-field-table">
           <tr><td>Jenis Tugas</td><td>:</td><td><strong><%= sd.jenisTugas || email.subject || '—' %></strong></td></tr>
           <% if(sd.tujuanTugas){%><tr><td>Tujuan</td><td>:</td><td><%= sd.tujuanTugas %></td></tr><%}%>
           <% if(sd.lokasiTugas){%><tr><td>Lokasi</td><td>:</td><td><%= sd.lokasiTugas %></td></tr><%}%>
           <% if(sd.tanggalTugas){%><tr><td>Tanggal</td><td>:</td><td><%= fmtDateSimple(sd.tanggalTugas) %></td></tr><%}%>
           <% if(sd.waktuTugas){%><tr><td>Waktu</td><td>:</td><td><%= sd.waktuTugas %></td></tr><%}%>
         </table>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
-        <div style="margin-top:14px;font-size:12.5px;line-height:1.9;color:#1f2937;"><%- email.body %></div>
-        <% } %>
-        <p style="font-size:12.5px;margin-top:14px;">Demikian surat tugas ini diberikan untuk dilaksanakan dengan penuh tanggung jawab dan profesionalisme.</p>
+        <% if (hasBody) { %><p class="doc-para" style="margin-top:12px;"><%- email.body %></p><% } %>
+        <p class="doc-para">Demikian surat tugas ini diberikan untuk dilaksanakan dengan penuh tanggung jawab dan profesionalisme.</p>
       </div>
 
       <% } else if (tipe === 'Surat Tugas Pendelegasian') { %>
@@ -453,39 +470,33 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       <div class="doc-body">
         <div class="doc-title">SURAT TUGAS PENDELEGASIAN</div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-        <p style="font-size:12.5px;margin-top:16px;margin-bottom:10px;">Yang bertanda tangan di bawah ini:</p>
-        <table class="surat-field-table" style="margin-bottom:14px;margin-left:16px;">
+        <p class="doc-para">Yang bertanda tangan di bawah ini:</p>
+        <table class="surat-field-table">
           <tr><td>Nama</td><td>:</td><td><strong><%= email.from.name %></strong></td></tr>
           <tr><td>Jabatan</td><td>:</td><td>Direktur Utama</td></tr>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
-        <p style="font-size:12.5px;margin:10px 0;">Selanjutnya disebut <strong>PENDELEGASI</strong>, dengan ini mendelegasikan tugas dan wewenang kepada:</p>
-        <table class="surat-field-table" style="margin-bottom:14px;margin-left:16px;">
+        <p class="doc-para" style="margin-top:10px;">Selanjutnya disebut PENDELEGASI, dengan ini mendelegasikan tugas dan wewenang kepada:</p>
+        <table class="surat-field-table">
           <tr><td>Nama</td><td>:</td><td><strong><%= sd.namaPenerima || '—' %></strong></td></tr>
           <tr><td>Jabatan</td><td>:</td><td><%= sd.jabatanPenerima || '—' %></td></tr>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
-        <p style="font-size:12.5px;margin:10px 0 6px;">Selanjutnya disebut <strong>PELAKSANA DELEGASI</strong>.</p>
+        <p class="doc-para" style="margin-top:10px;">Selanjutnya disebut PELAKSANA DELEGASI.</p>
         <% if (sd.lingkupDelegasi && sd.lingkupDelegasi.length > 0) { %>
-        <div class="doc-section">
-          <div class="doc-section-label">Lingkup Pendelegasian:</div>
-          <ol style="padding-left:20px;font-size:12.5px;line-height:1.9;color:#1f2937;">
-          <% sd.lingkupDelegasi.forEach(item => { %><li><%= item %></li><% }) %>
-          </ol>
-        </div>
+        <p><strong>Lingkup Pendelegasian:</strong></p>
+        <% sd.lingkupDelegasi.forEach((item,i) => { %>
+        <p style="margin-left:30px;margin-bottom:6px;text-align:justify;"><%= i+1 %>. <%= item %></p>
+        <% }) %>
         <% } %>
         <% if (sd.ketentuanDelegasi && sd.ketentuanDelegasi.length > 0) { %>
-        <div class="doc-section">
-          <div class="doc-section-label">Ketentuan Pendelegasian:</div>
-          <ol style="list-style-type:lower-alpha;padding-left:20px;font-size:12.5px;line-height:1.9;color:#1f2937;">
-          <% sd.ketentuanDelegasi.forEach(item => { %><li><%= item %></li><% }) %>
-          </ol>
-        </div>
+        <p style="margin-top:10px;"><strong>Ketentuan Pendelegasian:</strong></p>
+        <% sd.ketentuanDelegasi.forEach((item,i) => { %>
+        <p style="margin-left:30px;margin-bottom:6px;text-align:justify;"><%= String.fromCharCode(97+i) %>. <%= item %>;</p>
+        <% }) %>
         <% } %>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
-        <div style="margin-top:12px;font-size:12.5px;line-height:1.9;color:#1f2937;"><%- email.body %></div>
-        <% } %>
-        <p style="font-size:12.5px;margin-top:10px;">Pendelegasian ini berlaku selama pelaksanaan tugas yang dimaksud dan berakhir otomatis setelah laporan final diterima.</p>
+        <% if (hasBody) { %><div class="doc-para" style="margin-top:10px;"><%- email.body %></div><% } %>
+        <p class="doc-para">Pendelegasian ini berlaku selama pelaksanaan tugas yang dimaksud dan berakhir otomatis setelah laporan final diterima.</p>
       </div>
 
       <% } else if (tipe === 'Surat Keterangan') { %>
@@ -493,27 +504,21 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       <div class="doc-body">
         <div class="doc-title">SURAT KETERANGAN</div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-        <p style="font-size:12.5px;margin-top:16px;margin-bottom:10px;">Yang bertanda tangan di bawah ini:</p>
-        <table class="surat-field-table" style="margin-bottom:14px;margin-left:16px;">
+        <p class="doc-para">Yang bertanda tangan di bawah ini:</p>
+        <table class="surat-field-table">
           <tr><td>Nama</td><td>:</td><td><strong><%= email.from.name %></strong></td></tr>
           <tr><td>Jabatan</td><td>:</td><td>Direktur Utama</td></tr>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
-          <tr><td>Alamat</td><td>:</td><td>Jakarta</td></tr>
         </table>
-        <p style="font-size:12.5px;margin-bottom:10px;">Dengan ini menerangkan bahwa:</p>
-        <table class="surat-field-table" style="margin-bottom:14px;margin-left:16px;">
+        <p class="doc-para" style="margin-top:12px;">Dengan ini menerangkan bahwa:</p>
+        <table class="surat-field-table">
           <tr><td>Nama</td><td>:</td><td><strong><%= sd.namaDiterangkan || '—' %></strong></td></tr>
           <tr><td>Jabatan</td><td>:</td><td><%= sd.jabatanDiterangkan || '—' %></td></tr>
-          <% if(sd.timDiterangkan){%><tr><td>Tim</td><td>:</td><td><%= sd.timDiterangkan %></td></tr><%}%>
+          <% if(sd.timDiterangkan){%><tr><td>Tim / Unit</td><td>:</td><td><%= sd.timDiterangkan %></td></tr><%}%>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
-        <p style="font-size:12.5px;line-height:1.9;margin-bottom:10px;">
-          Adalah benar merupakan anggota aktif PT Nusa Inspira Teknologi<% if(sd.keperluan){ %> dan ditugaskan untuk <%= sd.keperluan %><% } %><% if(sd.lokasiTugas){ %> di <%= sd.lokasiTugas %><% } %><% if(sd.tanggalTugas){ %> pada tanggal <%= fmtDateSimple(sd.tanggalTugas) %><% } %>.
-        </p>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
-        <div style="font-size:12.5px;line-height:1.9;margin-bottom:10px;"><%- email.body %></div>
-        <% } %>
-        <p style="font-size:12.5px;line-height:1.9;">Surat keterangan ini dibuat untuk digunakan sebagaimana mestinya dan agar pihak-pihak yang berkepentingan dapat memberikan bantuan yang diperlukan.</p>
+        <p class="doc-para" style="margin-top:12px;"><% if(hasBody){%><%- email.body %><%}else{%>Adalah benar merupakan anggota aktif PT Nusa Inspira Teknologi<% if(sd.keperluan){ %> dan ditugaskan untuk <%= sd.keperluan %><% }%><% if(sd.lokasiTugas){ %> di <%= sd.lokasiTugas %><% }%><% if(sd.tanggalTugas){ %> pada tanggal <%= fmtDateSimple(sd.tanggalTugas) %><% }%>.<%}%></p>
+        <p class="doc-para">Surat keterangan ini dibuat untuk digunakan sebagaimana mestinya.</p>
       </div>
 
       <% } else if (tipe === 'Surat Pernyataan') { %>
@@ -521,23 +526,21 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       <div class="doc-body">
         <div class="doc-title">SURAT PERNYATAAN</div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-        <p style="font-size:12.5px;margin-top:16px;margin-bottom:10px;">Yang bertanda tangan di bawah ini:</p>
-        <table class="surat-field-table" style="margin-bottom:14px;margin-left:16px;">
+        <p class="doc-para">Yang bertanda tangan di bawah ini:</p>
+        <table class="surat-field-table">
           <tr><td>Nama</td><td>:</td><td><strong><%= sd.namaPenyataan || '—' %></strong></td></tr>
           <tr><td>Jabatan</td><td>:</td><td><%= sd.jabatanPernyataan || '—' %></td></tr>
           <% if(sd.timPernyataan){%><tr><td>Tim</td><td>:</td><td><%= sd.timPernyataan %></td></tr><%}%>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
-        <p style="font-size:12.5px;margin-bottom:10px;">Dengan ini menyatakan dengan sesungguhnya bahwa:</p>
+        <p class="doc-para" style="margin-top:12px;">Dengan ini menyatakan dengan sesungguhnya bahwa:</p>
         <% if (sd.poinPernyataan && sd.poinPernyataan.length > 0) { %>
-        <ol style="padding-left:20px;font-size:12.5px;line-height:1.9;color:#1f2937;margin-bottom:12px;">
-          <% sd.poinPernyataan.forEach(item => { %><li><%= item %></li><% }) %>
-        </ol>
+        <% sd.poinPernyataan.forEach((item,i) => { %>
+        <p style="margin-left:30px;margin-bottom:8px;text-align:justify;"><%= i+1 %>. <%= item %></p>
+        <% }) %>
         <% } %>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
-        <div style="font-size:12.5px;line-height:1.9;margin-bottom:10px;"><%- email.body %></div>
-        <% } %>
-        <p style="font-size:12.5px;line-height:1.9;">Demikian surat pernyataan ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.</p>
+        <% if (hasBody) { %><div class="doc-para"><%- email.body %></div><% } %>
+        <p class="doc-para">Demikian surat pernyataan ini dibuat dengan sesungguhnya dan dapat digunakan sebagai alat bukti yang sah.</p>
       </div>
 
       <% } else if (tipe === 'Surat Kuasa') { %>
@@ -545,31 +548,28 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       <div class="doc-body">
         <div class="doc-title">SURAT KUASA</div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-        <p style="font-size:12.5px;margin-bottom:10px;">Yang bertanda tangan di bawah ini:</p>
-        <p style="font-size:12px;font-weight:700;text-decoration:underline;margin-bottom:6px;">PEMBERI KUASA</p>
-        <table class="surat-field-table" style="margin-bottom:10px;margin-left:16px;">
+        <p class="doc-para">Yang bertanda tangan di bawah ini:</p>
+        <p><strong><u>PEMBERI KUASA</u></strong></p>
+        <table class="surat-field-table">
           <tr><td>Nama</td><td>:</td><td><strong><%= email.from.name %></strong></td></tr>
           <tr><td>Jabatan</td><td>:</td><td>Direktur Utama</td></tr>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
-        <p style="font-size:12.5px;margin-bottom:6px;">Selanjutnya disebut <strong>PEMBERI KUASA</strong>, dengan ini memberikan kuasa kepada:</p>
-        <p style="font-size:12px;font-weight:700;text-decoration:underline;margin-bottom:6px;">PENERIMA KUASA</p>
-        <table class="surat-field-table" style="margin-bottom:10px;margin-left:16px;">
+        <p class="doc-para" style="margin-top:10px;">Selanjutnya disebut PEMBERI KUASA, memberikan kuasa penuh kepada:</p>
+        <p><strong><u>PENERIMA KUASA</u></strong></p>
+        <table class="surat-field-table">
           <tr><td>Nama</td><td>:</td><td><strong><%= sd.namaPenerima || '—' %></strong></td></tr>
           <tr><td>Jabatan</td><td>:</td><td><%= sd.jabatanPenerima || '—' %></td></tr>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
-        <p style="font-size:12.5px;margin-bottom:8px;">Selanjutnya disebut <strong>PENERIMA KUASA</strong>.</p>
+        <p class="doc-para" style="margin-top:10px;">Untuk bertindak dalam hal-hal berikut:</p>
         <% if (sd.ruangLingkup && sd.ruangLingkup.length > 0) { %>
-        <p style="font-size:12.5px;margin-bottom:6px;">Untuk dan atas nama Pemberi Kuasa bertindak dalam hal-hal berikut:</p>
-        <ol style="padding-left:20px;font-size:12.5px;line-height:1.9;color:#1f2937;margin-bottom:12px;">
-          <% sd.ruangLingkup.forEach(item => { %><li><%= item %></li><% }) %>
-        </ol>
+        <% sd.ruangLingkup.forEach((item,i) => { %>
+        <p style="margin-left:30px;margin-bottom:6px;text-align:justify;"><%= i+1 %>. <%= item %></p>
+        <% }) %>
         <% } %>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
-        <div style="font-size:12.5px;line-height:1.9;margin-bottom:10px;"><%- email.body %></div>
-        <% } %>
-        <p style="font-size:12.5px;line-height:1.9;">Surat Kuasa ini berlaku sampai selesainya pelaksanaan tugas yang dimaksud.</p>
+        <% if (hasBody) { %><div class="doc-para"><%- email.body %></div><% } %>
+        <p class="doc-para">Surat Kuasa ini berlaku sampai selesainya pelaksanaan tugas yang dimaksud.</p>
       </div>
 
       <% } else if (tipe === 'Surat Pengantar') { %>
@@ -577,36 +577,35 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       <div class="doc-body">
         <div class="doc-title">SURAT PENGANTAR</div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-        <p style="font-size:12.5px;margin-bottom:10px;">Kepada Yth.</p>
-        <p style="font-size:12.5px;font-weight:600;margin-bottom:14px;"><%= sd.kepada || (email.jenis === 'internal' ? email.to.map(r=>r.name).join(', ') : '') || '—' %></p>
-        <p style="font-size:12.5px;margin-bottom:10px;">Dengan hormat,</p>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
-        <div style="font-size:12.5px;line-height:1.9;margin-bottom:12px;"><%- email.body %></div>
-        <% } else { %>
-        <p style="font-size:12.5px;margin-bottom:12px;">Bersama surat pengantar ini, kami sampaikan kepada Bapak/Ibu:</p>
-        <% } %>
+        <p>Kepada Yth.</p>
+        <p><strong><%= sd.kepada || recipients.join(', ') || '—' %></strong></p>
+        <% if (sd.alamatPenerima) { %><p><%= sd.alamatPenerima %></p><% } %>
+        <br>
+        <p class="doc-para">Dengan hormat, bersama surat pengantar ini kami sampaikan kepada Bapak/Ibu:</p>
         <% if (sd.dokumenList && sd.dokumenList.length > 0) { %>
         <table class="peng-table">
-          <thead><tr><th style="width:36px;">No.</th><th>Dokumen / Barang yang Dikirim</th><th style="width:100px;">Jumlah</th><th style="width:100px;">Keterangan</th></tr></thead>
+          <thead><tr><th>No.</th><th>Dokumen / Barang</th><th>Jumlah</th><th>Keterangan</th></tr></thead>
           <tbody>
           <% sd.dokumenList.forEach((doc,i) => { %>
-          <tr><td style="text-align:center;"><%= i+1 %></td><td><%= doc.nama %></td><td><%= doc.jumlah || '—' %></td><td><%= doc.keterangan || '—' %></td></tr>
+          <tr><td style="text-align:center;"><%= i+1 %></td><td><%= doc.nama %></td><td><%= doc.jumlah||'—' %></td><td><%= doc.keterangan||'—' %></td></tr>
           <% }) %>
           </tbody>
         </table>
         <% } %>
-        <p style="font-size:12.5px;margin-top:10px;line-height:1.9;">Mohon Bapak/Ibu dapat menerima dan menandatangani tanda terima yang terlampir sebagai bukti penerimaan yang sah.</p>
-        <p style="font-size:12.5px;margin-top:8px;">Atas perhatian dan kerja sama Bapak/Ibu, kami ucapkan terima kasih.</p>
+        <br>
+        <% if (hasBody) { %><p class="doc-para"><%- email.body %></p><% } %>
+        <p class="doc-para">Atas perhatian dan kerja sama Bapak/Ibu, kami ucapkan terima kasih.</p>
       </div>
 
       <% } else if (tipe === 'Surat Keputusan') { %>
       <!-- ── SURAT KEPUTUSAN ── -->
       <div class="doc-body">
         <div class="doc-title">SURAT KEPUTUSAN</div>
-        <div class="doc-subtitle">DIREKTUR UTAMA PT NUSA INSPIRA TEKNOLOGI</div>
+        <p class="doc-title" style="font-size:12pt;">DIREKTUR UTAMA PT NUSA INSPIRA TEKNOLOGI</p>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-        <div style="text-align:center;font-size:12px;margin-bottom:16px;">Tentang<br><strong><%= email.subject.toUpperCase() %></strong></div>
-        <p style="font-size:12.5px;font-weight:700;text-align:center;margin-bottom:10px;text-decoration:underline;">DIREKTUR UTAMA PT NUSA INSPIRA TEKNOLOGI</p>
+        <p style="text-align:center;margin-bottom:4px;">Tentang</p>
+        <p class="doc-title" style="font-size:12pt;"><%= email.subject.toUpperCase() %></p><br>
+        <p><strong><u>DIREKTUR UTAMA PT NUSA INSPIRA TEKNOLOGI</u></strong></p><br>
         <% if (sd.menimbang && sd.menimbang.length > 0) { %>
         <p style="margin-bottom:6px;"><strong>Menimbang :</strong></p>
         <% sd.menimbang.forEach((item,i) => { %>
@@ -614,25 +613,21 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         <% }) %>
         <% } %>
         <% if (sd.mengingat && sd.mengingat.length > 0) { %>
-        <p style="margin-bottom:6px;margin-top:10px;"><strong>Mengingat :</strong></p>
+        <p style="margin-top:10px;margin-bottom:6px;"><strong>Mengingat :</strong></p>
         <% sd.mengingat.forEach((item,i) => { %>
         <p style="margin-left:30px;margin-bottom:6px;text-align:justify;"><%= i+1 %>. <%= item %></p>
         <% }) %>
         <% } %>
-        <br>
-        <p style="margin-bottom:6px;"><strong><u>MEMUTUSKAN:</u></strong></p><br>
-        <p style="margin-bottom:8px;font-weight:bold;text-align:center;">Menetapkan :</p>
+        <br><p><strong><u>MEMUTUSKAN:</u></strong></p><br>
+        <p style="font-weight:bold;text-align:center;margin-bottom:8px;">Menetapkan :</p>
         <% if (sd.memutuskan && sd.memutuskan.length > 0) { %>
-        <p style="font-weight:bold;text-align:center;margin-bottom:10px;">KEPUTUSAN DIREKTUR UTAMA TENTANG <%= email.subject.toUpperCase() %>.</p>
         <% const prefixes=['PERTAMA','KEDUA','KETIGA','KEEMPAT','KELIMA','KEENAM','KETUJUH','KEDELAPAN']; %>
         <% sd.memutuskan.forEach((item,i) => { %>
         <p style="font-weight:bold;margin-bottom:3px;"><%= prefixes[i]||('POIN '+(i+1)) %> :</p>
         <p class="doc-para"><%= item %></p>
         <% }) %>
         <% } %>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
-        <div class="doc-para" style="margin-top:10px;"><%- email.body %></div>
-        <% } %>
+        <% if (hasBody) { %><div class="doc-para" style="margin-top:10px;"><%- email.body %></div><% } %>
       </div>
 
       <% } else if (tipe === 'Surat Undangan Dinas') { %>
@@ -640,36 +635,33 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       <div class="doc-body">
         <div class="doc-title">SURAT UNDANGAN DINAS</div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-        <p style="font-size:12.5px;margin-bottom:8px;">Kepada Yth.</p>
-        <p style="font-size:12.5px;font-weight:600;margin-bottom:14px;"><%= email.jenis === 'internal' ? email.to.map(r=>r.name).join(', <br>') : (email.toExternal||[]).map(r=>r.name).join(', ') || '—' %></p>
-        <p style="font-size:12.5px;margin-bottom:10px;">Dengan hormat,</p>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
-        <div style="font-size:12.5px;line-height:1.9;margin-bottom:12px;"><%- email.body %></div>
-        <% } else { %>
-        <p style="font-size:12.5px;margin-bottom:12px;">Dalam rangka <%- email.subject %>, dengan ini kami mengundang Saudara/i untuk hadir dalam kegiatan dengan rincian sebagai berikut:</p>
-        <% } %>
-        <table class="und-table">
-          <% if(sd.tanggalUndangan){%><tr><td>Hari / Tanggal</td><td><%= fmtDateSimple(sd.tanggalUndangan) %></td></tr><%}%>
-          <% if(sd.waktuUndangan){%><tr><td>Waktu</td><td><%= sd.waktuUndangan %></td></tr><%}%>
-          <% if(sd.tempatUndangan){%><tr><td>Tempat</td><td><%= sd.tempatUndangan %></td></tr><%}%>
-          <% if(sd.agendaUndangan){%><tr><td>Agenda</td><td><strong><%= sd.agendaUndangan %></strong></td></tr><%}%>
-          <% if(sd.pakaianUndangan){%><tr><td>Pakaian</td><td><%= sd.pakaianUndangan %></td></tr><%}%>
+        <p>Kepada Yth.</p>
+        <% recipients.forEach(r => { %><p><strong><%= r %></strong></p><% }) %>
+        <p>di Tempat</p><br>
+        <p class="doc-para">Dengan hormat, dalam rangka koordinasi dan pelaksanaan tugas, dengan ini kami mengundang Saudara/i untuk hadir:</p>
+        <table class="sppd-table">
+          <thead><tr><th>Keterangan</th><th>Detail</th></tr></thead>
+          <tbody>
+            <% if(sd.tanggalUndangan){%><tr><td>Hari / Tanggal</td><td><%= fmtDateSimple(sd.tanggalUndangan) %></td></tr><%}%>
+            <% if(sd.waktuUndangan){%><tr><td>Waktu</td><td><%= sd.waktuUndangan %></td></tr><%}%>
+            <% if(sd.tempatUndangan){%><tr><td>Tempat</td><td><%= sd.tempatUndangan %></td></tr><%}%>
+            <% if(sd.agendaUndangan){%><tr><td>Agenda</td><td><strong><%= sd.agendaUndangan %></strong></td></tr><%}%>
+            <% if(sd.pakaianUndangan){%><tr><td>Pakaian</td><td><%= sd.pakaianUndangan %></td></tr><%}%>
+          </tbody>
         </table>
-        <p style="font-size:12.5px;line-height:1.9;">Kehadiran Saudara/i sangat kami harapkan. Apabila berhalangan hadir, mohon menginformasikan kepada panitia penyelenggara paling lambat 1 (satu) hari sebelum pelaksanaan.</p>
-        <p style="font-size:12.5px;margin-top:8px;">Atas perhatian dan kehadiran Saudara/i, kami ucapkan terima kasih.</p>
+        <br>
+        <p class="doc-para">Kehadiran Saudara/i sangat kami harapkan. Atas perhatian dan kehadiran Saudara/i, kami ucapkan terima kasih.</p>
       </div>
 
       <% } else if (tipe === 'Surat Statuta') { %>
       <!-- ── SURAT STATUTA ── -->
       <div class="doc-body">
         <div class="doc-title">SURAT STATUTA</div>
-        <div class="doc-subtitle">PT NUSA INSPIRA TEKNOLOGI</div>
+        <div class="doc-nomor-center">PT NUSA INSPIRA TEKNOLOGI</div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-        <div style="text-align:center;font-size:12px;font-weight:700;text-decoration:underline;margin-bottom:16px;">STATUTA <%= (sd.namaOrganisasi || email.subject).toUpperCase() %></div>
-        <p style="font-weight:bold;margin-bottom:8px;">BAB I – VISI DAN MISI</p>
-        <% if (sd.visi) { %>
-        <p class="doc-para"><em>Visi:</em> <%= sd.visi %></p>
-        <% } %>
+        <p class="doc-title" style="font-size:12pt;">STATUTA <%= (sd.namaOrganisasi || email.subject).toUpperCase() %></p><br>
+        <p><strong>BAB I – VISI DAN MISI</strong></p>
+        <% if (sd.visi) { %><p class="doc-para"><em>Visi:</em> <%= sd.visi %></p><% } %>
         <% if (sd.misi && sd.misi.length > 0) { %>
         <p class="doc-para"><em>Misi:</em></p>
         <% sd.misi.forEach((m,i) => { %>
@@ -677,7 +669,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         <% }) %>
         <% } %>
         <% if (sd.anggota && sd.anggota.length > 0) { %>
-        <p style="font-weight:bold;margin-top:12px;margin-bottom:8px;">BAB II – KEANGGOTAAN</p>
+        <p style="margin-top:12px;"><strong>BAB II – KEANGGOTAAN</strong></p>
         <table class="statuta-table">
           <thead><tr><th>No.</th><th>Nama</th><th>Jabatan dalam Tim</th></tr></thead>
           <tbody>
@@ -687,42 +679,103 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
           </tbody>
         </table>
         <% } %>
-        <br>
-        <p style="font-weight:bold;margin-bottom:8px;">BAB III – PENUTUP</p>
+        <br><p><strong>BAB III – PENUTUP</strong></p>
         <p class="doc-para">Statuta ini berlaku sejak ditetapkan dan mengikat seluruh anggota tim selama menjalankan tugas yang dimandatkan.</p>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <% if (hasBody) { %><div class="doc-para" style="margin-top:10px;"><%- email.body %></div><% } %>
+      </div>
+
+      <% } else if (tipe === 'MOU') { %>
+      <!-- ── MOU ── -->
+      <div class="doc-body">
+        <div class="doc-title">MEMORANDUM OF UNDERSTANDING (MOU)</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p class="doc-para">MOU ini dibuat dan ditandatangani pada <%= fmtDate(email.createdAt) %>, di Jakarta, oleh dan antara:</p>
+        <p style="margin-bottom:4px;"><strong>1. PT NUSA INSPIRA TEKNOLOGI</strong></p>
+        <p class="doc-para" style="margin-left:20px;">Diwakili oleh <strong><%= email.from.name %></strong> selaku Direktur Utama, selanjutnya disebut <strong>PIHAK PERTAMA</strong>.</p>
+        <p style="margin-bottom:4px;"><strong>2. <%= (sd.instansiPihakKedua||'[NAMA INSTANSI]').toUpperCase() %></strong></p>
+        <p class="doc-para" style="margin-left:20px;">Diwakili oleh <strong><%= sd.namaPihakKedua||'[Nama Perwakilan]' %></strong> selaku <%= sd.jabatanPihakKedua||'[Jabatan]' %>, selanjutnya disebut <strong>PIHAK KEDUA</strong>.</p>
+        <% if (hasBody) { %>
         <div class="doc-para" style="margin-top:10px;"><%- email.body %></div>
+        <% } else { %>
+        <p style="font-weight:bold;margin-top:12px;margin-bottom:4px;">Pasal 1 – Ruang Lingkup</p>
+        <p class="doc-para">Para Pihak sepakat untuk mengadakan kerja sama dalam bidang audit, investigasi, dan peningkatan kualitas tata kelola operasional.</p>
+        <p style="font-weight:bold;margin-bottom:4px;">Pasal 2 – Jangka Waktu</p>
+        <p class="doc-para">MOU ini berlaku selama 2 (dua) tahun sejak ditandatangani dan dapat diperpanjang atas kesepakatan Para Pihak.</p>
+        <p style="font-weight:bold;margin-bottom:4px;">Pasal 3 – Kerahasiaan</p>
+        <p class="doc-para">Para Pihak wajib menjaga kerahasiaan seluruh informasi yang diperoleh dan tidak akan mengungkapkan kepada pihak ketiga tanpa persetujuan tertulis.</p>
+        <p style="font-weight:bold;margin-bottom:4px;">Pasal 4 – Penutup</p>
+        <p class="doc-para">MOU ini dibuat dalam 2 (dua) rangkap asli, bermaterai cukup, masing-masing mempunyai kekuatan hukum yang sama.</p>
         <% } %>
       </div>
 
-      <% } else if (tipe === 'MOU' || tipe === 'PKS' || tipe === 'Kontrak') { %>
-      <!-- ── MOU / PKS / KONTRAK ── -->
+      <% } else if (tipe === 'PKS') { %>
+      <!-- ── PKS ── -->
       <div class="doc-body">
-        <div class="doc-title">
-          <% if (tipe === 'MOU') { %>MEMORANDUM OF UNDERSTANDING (MOU)<% } else if (tipe === 'PKS') { %>PERJANJIAN KERJASAMA (PKS)<% } else { %>SURAT KONTRAK<% } %>
-        </div>
+        <div class="doc-title">PERJANJIAN KERJASAMA (PKS)</div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-        <p class="doc-para">
-          <% if (tipe === 'MOU') { %>MOU ini dibuat dan ditandatangani pada <%= fmtDate(email.createdAt) %>, di Jakarta, oleh dan antara:<% } else if (tipe === 'PKS') { %>Perjanjian Kerjasama ini dibuat pada <%= fmtDate(email.createdAt) %>, di Jakarta, oleh dan antara:<% } else { %>Kontrak ini dibuat pada <%= fmtDate(email.createdAt) %>, di Jakarta, oleh dan antara:<% } %>
-        </p>
-        <p style="margin-bottom:6px;"><strong>1. PT NUSA INSPIRA TEKNOLOGI</strong></p>
-        <p class="doc-para" style="margin-left:20px;">Diwakili oleh <strong><%= email.from.name %></strong> selaku Direktur Utama, selanjutnya disebut <strong>PIHAK PERTAMA</strong>.</p>
-        <p style="margin-bottom:6px;"><strong>2. <%= (sd.instansiPihakKedua || '[NAMA INSTANSI]').toUpperCase() %></strong></p>
-        <p class="doc-para" style="margin-left:20px;">Diwakili oleh <strong><%= sd.namaPihakKedua || '[Nama Perwakilan]' %></strong> selaku <%= sd.jabatanPihakKedua || '[Jabatan]' %>, selanjutnya disebut <strong>PIHAK KEDUA</strong>.</p>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
+        <p class="doc-para">PKS ini dibuat pada <%= fmtDate(email.createdAt) %>, di Jakarta, oleh dan antara:</p>
+        <p><strong><u>PIHAK PERTAMA</u></strong></p>
+        <table class="surat-field-table">
+          <tr><td>Nama</td><td>:</td><td><strong><%= email.from.name %></strong></td></tr>
+          <tr><td>Jabatan</td><td>:</td><td>Direktur Utama</td></tr>
+          <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
+        </table>
+        <p class="doc-para" style="margin-top:8px;">Selanjutnya disebut <strong>PIHAK PERTAMA</strong>.</p>
+        <p><strong><u>PIHAK KEDUA</u></strong></p>
+        <table class="surat-field-table">
+          <tr><td>Nama</td><td>:</td><td><strong><%= sd.namaPihakKedua||'[Nama]' %></strong></td></tr>
+          <tr><td>Jabatan</td><td>:</td><td><%= sd.jabatanPihakKedua||'[Jabatan]' %></td></tr>
+          <tr><td>Instansi</td><td>:</td><td><%= sd.instansiPihakKedua||'[Instansi]' %></td></tr>
+          <% if(sd.alamatPihakKedua){%><tr><td>Alamat</td><td>:</td><td><%= sd.alamatPihakKedua %></td></tr><%}%>
+        </table>
+        <p class="doc-para" style="margin-top:8px;">Selanjutnya disebut <strong>PIHAK KEDUA</strong>.</p>
+        <% if (hasBody) { %>
         <div class="doc-para" style="margin-top:10px;"><%- email.body %></div>
         <% } else { %>
-        <p style="font-weight:bold;margin-top:12px;margin-bottom:6px;">Pasal 1 – Ruang Lingkup</p>
-        <p class="doc-para">Para Pihak sepakat untuk mengadakan kerja sama dalam bidang yang telah disepakati bersama.</p>
-        <p style="font-weight:bold;margin-bottom:6px;">Pasal 2 – Jangka Waktu</p>
-        <p class="doc-para"><%= tipe === 'MOU' ? 'MOU' : (tipe === 'PKS' ? 'Perjanjian Kerjasama' : 'Kontrak') %> ini berlaku selama 1 (satu) tahun sejak ditandatangani dan dapat diperpanjang atas kesepakatan Para Pihak.</p>
-        <p style="font-weight:bold;margin-bottom:6px;">Pasal 3 – Kerahasiaan</p>
-        <p class="doc-para">Para Pihak wajib menjaga kerahasiaan seluruh informasi yang diperoleh dan tidak akan mengungkapkan kepada pihak ketiga tanpa persetujuan tertulis.</p>
-        <p style="font-weight:bold;margin-bottom:6px;">Pasal 4 – Penutup</p>
-        <p class="doc-para"><%= tipe === 'MOU' ? 'MOU' : (tipe === 'PKS' ? 'PKS' : 'Kontrak') %> ini dibuat dalam 2 (dua) rangkap asli, bermaterai cukup, masing-masing mempunyai kekuatan hukum yang sama.</p>
+        <p style="font-weight:bold;margin-top:12px;margin-bottom:4px;">Pasal 1 — Objek Kerjasama</p>
+        <p class="doc-para">Para Pihak sepakat mengadakan kerjasama dalam pelaksanaan audit, investigasi, dan peningkatan kualitas tata kelola operasional.</p>
+        <p style="font-weight:bold;margin-bottom:4px;">Pasal 2 — Hak dan Kewajiban</p>
+        <p class="doc-para">(1) Pihak Pertama berhak mendapatkan akses penuh dan laporan yang akurat dari Pihak Kedua.</p>
+        <p class="doc-para">(2) Pihak Kedua wajib menyediakan fasilitas, dokumen, dan personel yang diperlukan.</p>
+        <p class="doc-para">(3) Kedua pihak wajib menjaga kerahasiaan informasi selama dan setelah berakhirnya perjanjian.</p>
+        <p style="font-weight:bold;margin-bottom:4px;">Pasal 3 — Jangka Waktu</p>
+        <p class="doc-para">Perjanjian berlaku selama 1 (satu) tahun sejak ditandatangani dan dapat diperpanjang atas kesepakatan Para Pihak.</p>
+        <p style="font-weight:bold;margin-bottom:4px;">Pasal 4 — Penutup</p>
+        <p class="doc-para">PKS ini dibuat dalam 2 (dua) rangkap asli, bermaterai cukup, dan mempunyai kekuatan hukum yang sama.</p>
         <% } %>
-        <% if (tipe === 'Kontrak' && sd.nilaiKontrak) { %>
-        <p style="margin-top:12px;"><strong>Nilai Kontrak:</strong> Rp <%= sd.nilaiKontrak %></p>
+      </div>
+
+      <% } else if (tipe === 'Kontrak') { %>
+      <!-- ── KONTRAK ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT KONTRAK</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p class="doc-para">Kontrak ini dibuat pada <%= fmtDate(email.createdAt) %>, di Jakarta, oleh dan antara:</p>
+        <p><strong><u>PIHAK PERTAMA</u></strong></p>
+        <table class="surat-field-table">
+          <tr><td>Nama</td><td>:</td><td><strong><%= email.from.name %></strong></td></tr>
+          <tr><td>Jabatan</td><td>:</td><td>Direktur Utama</td></tr>
+          <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
+        </table>
+        <p class="doc-para" style="margin-top:8px;">Selanjutnya disebut <strong>PIHAK PERTAMA</strong>.</p>
+        <p><strong><u>PIHAK KEDUA</u></strong></p>
+        <table class="surat-field-table">
+          <tr><td>Nama</td><td>:</td><td><strong><%= sd.namaPihakKedua||'[Nama]' %></strong></td></tr>
+          <tr><td>Jabatan</td><td>:</td><td><%= sd.jabatanPihakKedua||'[Jabatan]' %></td></tr>
+          <tr><td>Instansi</td><td>:</td><td><%= sd.instansiPihakKedua||'[Instansi]' %></td></tr>
+        </table>
+        <p class="doc-para" style="margin-top:8px;">Selanjutnya disebut <strong>PIHAK KEDUA</strong>.</p>
+        <% if (hasBody) { %>
+        <div class="doc-para" style="margin-top:10px;"><%- email.body %></div>
+        <% } else { %>
+        <p style="font-weight:bold;margin-top:12px;margin-bottom:4px;">Pasal 1 — Objek Kontrak</p>
+        <p class="doc-para">Pihak Kedua setuju melaksanakan pekerjaan sesuai spesifikasi yang ditetapkan Pihak Pertama.</p>
+        <p style="font-weight:bold;margin-bottom:4px;">Pasal 2 — Nilai Kontrak</p>
+        <p class="doc-para">Nilai kontrak sebesar Rp. <%= sd.nilaiKontrak||'[Nilai Kontrak]' %>, sudah termasuk pajak yang berlaku.</p>
+        <p style="font-weight:bold;margin-bottom:4px;">Pasal 3 — Jangka Waktu</p>
+        <p class="doc-para">Pekerjaan diselesaikan dalam 30 (tiga puluh) hari kalender sejak penandatanganan kontrak.</p>
+        <p style="font-weight:bold;margin-bottom:4px;">Pasal 4 — Penutup</p>
+        <p class="doc-para">Kontrak ini dibuat dalam 2 (dua) rangkap asli, bermaterai cukup, dan mempunyai kekuatan hukum yang sama.</p>
         <% } %>
       </div>
 
@@ -731,107 +784,107 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       <div class="doc-body">
         <div class="doc-title">SURAT PERINTAH KERJA (SPK)</div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-        <p style="font-size:12.5px;margin-top:14px;margin-bottom:10px;">Yang bertanda tangan di bawah ini:</p>
-        <table class="surat-field-table" style="margin-bottom:12px;margin-left:16px;">
+        <p class="doc-para">Yang bertanda tangan di bawah ini:</p>
+        <table class="surat-field-table">
           <tr><td>Nama</td><td>:</td><td><strong><%= email.from.name %></strong></td></tr>
           <tr><td>Jabatan</td><td>:</td><td>Direktur Utama</td></tr>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
-        <p style="font-size:12.5px;margin:10px 0;">Selanjutnya disebut <strong>PEMBERI KERJA</strong>. Dengan ini memerintahkan kepada:</p>
-        <table class="surat-field-table" style="margin-bottom:12px;margin-left:16px;">
-          <% if (sd.namaTim) { %><tr><td>Nama Tim</td><td>:</td><td><strong><%= sd.namaTim %></strong></td></tr><% } %>
-          <% if (sd.ketuaTim) { %><tr><td>Ketua Tim</td><td>:</td><td><strong><%= sd.ketuaTim %></strong></td></tr><% } %>
-          <% if (sd.anggotaTim) { %><tr><td>Anggota</td><td>:</td><td><%= sd.anggotaTim %></td></tr><% } %>
+        <p class="doc-para" style="margin-top:10px;">Selanjutnya disebut PEMBERI KERJA, dengan ini memerintahkan kepada:</p>
+        <table class="surat-field-table">
+          <% if(sd.namaTim){%><tr><td>Nama Tim</td><td>:</td><td><strong><%= sd.namaTim %></strong></td></tr><%}%>
+          <% if(sd.ketuaTim){%><tr><td>Ketua Tim</td><td>:</td><td><strong><%= sd.ketuaTim %></strong></td></tr><%}%>
+          <% if(sd.anggotaTim){%><tr><td>Anggota</td><td>:</td><td><%= sd.anggotaTim %></td></tr><%}%>
         </table>
-        <p style="font-size:12.5px;margin:10px 0;">Selanjutnya disebut <strong>PELAKSANA</strong>. Untuk melaksanakan pekerjaan sebagai berikut:</p>
+        <p class="doc-para" style="margin-top:10px;">Untuk melaksanakan pekerjaan sebagai berikut:</p>
         <% if (sd.pekerjaanSPK && sd.pekerjaanSPK.length > 0) { %>
         <table class="sppd-table" style="margin-bottom:14px;">
           <thead><tr><th>No.</th><th>Uraian Pekerjaan</th><th>Keterangan</th></tr></thead>
           <tbody>
           <% sd.pekerjaanSPK.forEach((p,i) => { %>
-          <tr><td style="text-align:center;"><%= i+1 %></td><td><%= p.uraian %></td><td><%= p.keterangan || '—' %></td></tr>
+          <tr><td style="text-align:center;"><%= i+1 %></td><td><%= p.uraian %></td><td><%= p.keterangan||'—' %></td></tr>
           <% }) %>
           </tbody>
         </table>
         <% } %>
-        <% if (sd.lokasiSPK || sd.tanggalSPK || sd.waktuSPK) { %>
-        <p style="font-size:12px;font-weight:700;margin-bottom:6px;">Ketentuan Pelaksanaan:</p>
-        <table class="surat-field-table" style="margin-bottom:12px;margin-left:16px;">
-          <% if (sd.lokasiSPK) { %><tr><td>Lokasi</td><td>:</td><td><%= sd.lokasiSPK %></td></tr><% } %>
-          <% if (sd.tanggalSPK) { %><tr><td>Tanggal</td><td>:</td><td><%= fmtDateSimple(sd.tanggalSPK) %></td></tr><% } %>
-          <% if (sd.waktuSPK) { %><tr><td>Waktu</td><td>:</td><td><%= sd.waktuSPK %></td></tr><% } %>
+        <% if (sd.lokasiSPK||sd.tanggalSPK||sd.waktuSPK) { %>
+        <p><strong>Ketentuan Pelaksanaan:</strong></p>
+        <table class="surat-field-table">
+          <% if(sd.lokasiSPK){%><tr><td>Lokasi</td><td>:</td><td><%= sd.lokasiSPK %></td></tr><%}%>
+          <% if(sd.tanggalSPK){%><tr><td>Tanggal</td><td>:</td><td><%= fmtDateSimple(sd.tanggalSPK) %></td></tr><%}%>
+          <% if(sd.waktuSPK){%><tr><td>Waktu</td><td>:</td><td><%= sd.waktuSPK %></td></tr><%}%>
         </table>
         <% } %>
-        <% if (email.body && email.body.trim() && email.body.trim() !== '<p><br></p>') { %>
-        <div style="font-size:12.5px;line-height:1.9;color:#1f2937;margin-bottom:12px;"><%- email.body %></div>
-        <% } %>
-        <p style="font-size:12.5px;margin-top:10px;">Demikian Surat Perintah Kerja ini diberikan untuk dilaksanakan dengan penuh tanggung jawab dan profesionalisme.</p>
+        <% if (hasBody) { %><div class="doc-para" style="margin-top:12px;"><%- email.body %></div><% } %>
+        <p class="doc-para">Demikian Surat Perintah Kerja ini diberikan untuk dilaksanakan dengan penuh tanggung jawab dan profesionalisme.</p>
+      </div>
+
+      <% } else if (tipe === 'Surat Instruksi') { %>
+      <!-- ── SURAT INSTRUKSI ── -->
+      <div class="doc-body">
+        <div class="doc-title">SURAT INSTRUKSI</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p>Kepada Yth.</p>
+        <p><strong><%= recipients.join(', ') || '—' %></strong></p><br>
+        <p class="doc-para">Dalam rangka pelaksanaan tugas, dengan ini disampaikan instruksi sebagai berikut:</p>
+        <% if (hasBody) { %><div class="doc-para"><%- email.body %></div><% } %>
+        <p class="doc-para">Seluruh instruksi ini wajib dilaksanakan dengan penuh dedikasi dan profesionalisme.</p>
+      </div>
+
+      <% } else if (tipe === 'Surat Rahasia') { %>
+      <!-- ── SURAT RAHASIA ── -->
+      <div class="doc-body">
+        <div class="kls">[ RAHASIA ]</div>
+        <div class="doc-title">SURAT RAHASIA</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p>Kepada Yth. <em>(Sangat Terbatas)</em></p>
+        <p><strong><%= recipients.join(', ') || '—' %></strong></p><br>
+        <table class="surat-field-table"><tr><td>Perihal</td><td>:</td><td><strong><%= email.subject %></strong></td></tr></table>
+        <br><p>Yang Terhormat,</p><br>
+        <% if (hasBody) { %><div class="doc-para"><%- email.body %></div><% } %>
+        <p style="text-align:center;font-weight:bold;font-size:10pt;margin-top:20px;">[ Dokumen ini bersifat RAHASIA — Tidak untuk disebarluaskan ]</p>
+      </div>
+
+      <% } else if (tipe === 'Surat Konfidensial') { %>
+      <!-- ── SURAT KONFIDENSIAL ── -->
+      <div class="doc-body">
+        <div class="kls">[ KONFIDENSIAL ]</div>
+        <div class="doc-title">SURAT KONFIDENSIAL</div>
+        <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
+        <p>Kepada Yth. <em>(Terbatas)</em></p>
+        <p><strong><%= recipients.join(', ') || '—' %></strong></p><br>
+        <table class="surat-field-table"><tr><td>Perihal</td><td>:</td><td><strong><%= email.subject %></strong></td></tr></table>
+        <br><p>Dengan hormat,</p><br>
+        <% if (hasBody) { %><div class="doc-para"><%- email.body %></div><% } %>
+        <p style="text-align:center;font-weight:bold;font-size:10pt;margin-top:20px;">[ Dokumen ini bersifat KONFIDENSIAL — Harap dijaga dengan ketat ]</p>
       </div>
 
       <% } else { %>
-      <!-- ── STANDARD LETTERS (Surat, Surat Resmi, Formal, Instruksi, Edaran, Rahasia, Konfidensial) ── -->
+      <!-- ── STANDARD LETTERS (Surat, Surat Resmi, Surat Formal, Surat Edaran, Surat Biasa, dll) ── -->
       <div class="doc-body">
         <div class="doc-title"><%= tipe.toUpperCase() %></div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
-
-        <!-- Kepada Yth. block -->
-        <div style="margin-top:16px;margin-bottom:10px;">
-          <% if (tipe === 'Surat Edaran') { %>
-          <p style="font-size:12.5px;margin-bottom:2px;">Kepada Yth.</p>
-          <p style="font-size:12.5px;font-weight:600;margin-bottom:2px;">Seluruh Karyawan dan Pimpinan Unit</p>
-          <p style="font-size:12.5px;font-weight:600;margin-bottom:2px;">PT Nusa Inspira Teknologi</p>
-          <p style="font-size:12.5px;margin-bottom:0;">di Tempat</p>
-          <% } else if (tipe === 'Surat Rahasia' || tipe === 'Surat Konfidensial') { %>
-          <p style="font-size:12.5px;font-weight:700;margin-bottom:2px;">Kepada Yth. (<%= tipe === 'Surat Rahasia' ? 'Sangat Terbatas' : 'Terbatas' %>)</p>
-          <% if (email.jenis === 'internal') { %>
-            <% email.to.forEach(r => { %><p style="font-size:12.5px;font-weight:600;margin-bottom:1px;"><%= r.name %></p><% }) %>
-          <% } else { %>
-            <% (email.toExternal||[]).forEach(r => { %><p style="font-size:12.5px;font-weight:600;margin-bottom:1px;"><%= r.name %></p><% }) %>
-          <% } %>
-          <p style="font-size:12.5px;">PT Nusa Inspira Teknologi</p>
-          <% } else { %>
-          <p style="font-size:12.5px;margin-bottom:2px;">Kepada Yth.</p>
-          <% if (sd.jabatanPenerima) { %><p style="font-size:12.5px;font-weight:600;margin-bottom:1px;"><%= sd.jabatanPenerima %></p><% } %>
-          <% if (email.jenis === 'internal') { %>
-            <% email.to.forEach(r => { %><p style="font-size:12.5px;font-weight:600;margin-bottom:1px;"><%= r.name %></p><% }) %>
-          <% } else { %>
-            <% (email.toExternal||[]).forEach(r => { %><p style="font-size:12.5px;font-weight:600;margin-bottom:1px;"><%= r.name %></p><% }) %>
-          <% } %>
-          <% if (sd.instansiPenerima) { %><p style="font-size:12.5px;margin-bottom:1px;"><%= sd.instansiPenerima %></p><% } %>
-          <% if (sd.alamatPenerima) { %><p style="font-size:12.5px;margin-bottom:0;"><%= sd.alamatPenerima %></p><% } %>
-          <% } %>
-        </div>
-
-        <% if (email.subject) { %>
-        <p style="font-size:12.5px;margin-bottom:<%= email.berkas ? '4px' : '14px' %>;"><strong>Perihal</strong> : <strong><%= email.subject %></strong></p>
+        <p>Kepada Yth.</p>
+        <% if (sd.jabatanPenerima) { %><p><strong><%= sd.jabatanPenerima %></strong></p><% } %>
+        <% if (email.jenis === 'internal') { %>
+          <% email.to.forEach(r => { %><p><strong><%= r.name %></strong></p><% }) %>
+        <% } else { %>
+          <% (email.toExternal||[]).forEach(r => { %><p><strong><%= r.name %></strong></p><% }) %>
         <% } %>
-        <% if (email.berkas) { %>
-        <p style="font-size:12.5px;margin-bottom:14px;">Lampiran : <%= email.berkas %></p>
+        <% if (sd.instansiPenerima) { %><p><%= sd.instansiPenerima %></p><% } %>
+        <% if (sd.alamatPenerima) { %><p><%= sd.alamatPenerima %></p><% } %>
+        <% if (tipe === 'Surat Edaran') { %><p>di Tempat</p><% } %>
+        <br>
+        <% if (tipe !== 'Surat Edaran') { %>
+        <% if (email.subject) { %><table class="surat-field-table"><tr><td>Perihal</td><td>:</td><td><strong><%= email.subject %></strong></td></tr><% if(email.berkas){%><tr><td>Lampiran</td><td>:</td><td><%= email.berkas %></td></tr><%}%></table><% } %>
+        <br><p>Dengan hormat,</p><br>
         <% } %>
-
-        <p style="font-size:12.5px;margin-bottom:12px;">
-          <% if (tipe === 'Surat Edaran') { %>
-          Assalamu'alaikum Warahmatullahi Wabarakatuh,
-          <% } else if (tipe === 'Surat Rahasia' || tipe === 'Surat Konfidensial') { %>
-          Yang Terhormat <%= email.jenis === 'internal' ? email.to.map(r=>r.name).join(', ') : (email.toExternal||[]).map(r=>r.name).join(', ') || 'Bapak/Ibu' %>,
-          <% } else { %>
-          Dengan hormat,
-          <% } %>
-        </p>
-
-        <div class="doc-body-content"><%- email.body || '<em style="color:#94a3b8;">Tidak ada isi surat.</em>' %></div>
-
+        <% if (hasBody) { %><div class="doc-para"><%- email.body %></div><% } %>
         <% if (tipe === 'Surat Edaran') { %>
-        <p style="font-size:12.5px;margin-top:14px;">Demikian Surat Edaran ini disampaikan untuk menjadi perhatian dan dilaksanakan dengan penuh tanggung jawab.</p>
-        <p style="font-size:12.5px;margin-top:6px;">Wassalamu'alaikum Warahmatullahi Wabarakatuh.</p>
+        <p class="doc-para">Demikian Surat Edaran ini disampaikan untuk menjadi perhatian dan dilaksanakan dengan penuh tanggung jawab.</p>
         <% } %>
-
         <% if (email.cc && email.cc.length > 0) { %>
-        <p style="font-size:11.5px;margin-top:14px;color:#6b7280;">Tembusan: <%= email.cc.map(r=>r.name).join(', ') %></p>
-        <% } %>
-
-        <% if (tipe === 'Surat Rahasia' || tipe === 'Surat Konfidensial') { %>
-        <p style="font-size:11px;font-style:italic;color:#94a3b8;margin-top:12px;text-align:center;">[ Dokumen ini bersifat <%= tipe === 'Surat Rahasia' ? 'RAHASIA' : 'KONFIDENSIAL' %> — Tidak untuk disebarluaskan ]</p>
+        <p style="margin-top:14px;font-size:10pt;">Tembusan: <%= email.cc.map(r=>r.name).join(', ') %></p>
         <% } %>
       </div>
       <% } %>
