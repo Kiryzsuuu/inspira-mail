@@ -57,8 +57,7 @@
     var avatarColors = ['av-green','av-teal','av-blue','av-amber','av-purple'];
     var avColor = avatarColors[m.id % avatarColors.length];
   %>
-  <a href="#" class="mail-item <%= m.read ? '' : 'unread' %>" data-tag="<%= m.tag.toLowerCase() %>" data-read="<%= m.read %>">
-    <input type="checkbox" class="mail-checkbox" onclick="event.preventDefault(); event.stopPropagation();">
+  <a href="/email/<%= m.id %>" class="mail-item <%= m.read ? '' : 'unread' %>" data-tag="<%= m.tag.toLowerCase() %>" data-read="<%= m.read %>">
     <div class="mail-avatar <%= avColor %>"><%= initials %></div>
     <div class="mail-body">
       <div class="mail-from"><%= m.from %></div>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview Surat — <%= email.subject %></title>
+<link rel="icon" type="image/png" href="/img/Group 1597880519.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; min-height: 100vh; }
+
+.pdf-toolbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 54px; background: #071840;
+  display: flex; align-items: center; gap: 12px; padding: 0 20px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.08);
+}
+.toolbar-back {
+  display: flex; align-items: center; gap: 6px;
+  color: rgba(255,255,255,.6); font-size: 13px; text-decoration: none;
+  padding: 5px 10px; border-radius: 6px; transition: background .15s;
+}
+.toolbar-back:hover { background: rgba(255,255,255,.08); color: #fff; }
+.toolbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,.12); }
+.toolbar-title { font-size: 13.5px; font-weight: 500; color: #fff; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.toolbar-hint { font-size: 12px; color: rgba(255,255,255,.4); }
+.btn-dl {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); border: none; border-radius: 7px;
+  padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background .15s; white-space: nowrap;
+}
+.btn-dl:hover { background: rgba(255,255,255,.15); }
+.btn-send {
+  display: flex; align-items: center; gap: 6px;
+  background: #1a56a8; color: #fff; border: none; border-radius: 7px;
+  padding: 7px 16px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background .15s; white-space: nowrap;
+}
+.btn-send:hover { background: #1d63c0; }
+.btn-send:disabled { background: #334155; color: rgba(255,255,255,.35); cursor: not-allowed; }
+
+.pdf-shell { display: flex; height: 100vh; padding-top: 54px; }
+.pdf-canvas-area {
+  flex: 1; overflow: auto; background: #1e293b;
+  display: flex; align-items: flex-start; justify-content: center; padding: 40px 24px;
+}
+
+/* A4 */
+.a4-page {
+  position: relative; width: 794px; min-height: 1123px;
+  background: #fff; box-shadow: 0 8px 40px rgba(0,0,0,.5); flex-shrink: 0; overflow: hidden;
+}
+.doc-header { background: #071840; padding: 24px 48px 20px; display: flex; align-items: center; gap: 16px; }
+.doc-header-logo { width: 36px; height: 36px; object-fit: contain; filter: brightness(10); }
+.doc-header-text { color: #fff; }
+.doc-header-org { font-size: 14px; font-weight: 600; }
+.doc-header-sub { font-size: 11px; color: rgba(255,255,255,.55); margin-top: 1px; }
+.doc-divider { height: 4px; background: linear-gradient(90deg,#1a56a8,#0f3270); }
+
+.doc-meta {
+  padding: 16px 48px 14px;
+  background: #f8fafc; border-bottom: 1px solid #e2e8f0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.doc-nomor { font-size: 12px; font-weight: 700; color: #475569; }
+.doc-meta-right { display: flex; gap: 8px; align-items: center; }
+.doc-pill {
+  font-size: 10.5px; font-weight: 600; padding: 3px 10px; border-radius: 20px;
+}
+.pill-biasa    { background: #dcfce7; color: #16a34a; }
+.pill-rahasia  { background: #faf5ff; color: #9333ea; }
+.pill-terbatas { background: #fef9c3; color: #a16207; }
+.pill-segera   { background: #fee2e2; color: #dc2626; }
+.pill-internal { background: #e0f2fe; color: #075985; }
+.pill-eksternal{ background: #fce7f3; color: #9d174d; }
+
+.doc-body { padding: 28px 48px 20px; }
+.doc-title { font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 20px; line-height: 1.4; }
+.doc-info-table { width: 100%; border-collapse: collapse; margin-bottom: 22px; }
+.doc-info-table td {
+  padding: 7px 0; vertical-align: top; font-size: 13px; color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+.doc-info-table td:first-child {
+  width: 130px; font-weight: 600; color: #64748b;
+  font-size: 11.5px; text-transform: uppercase; letter-spacing: .4px; padding-right: 12px;
+}
+.doc-colon { color: #94a3b8; padding-right: 6px; }
+.doc-body-content {
+  background: #f8fafc; border: 1px solid #e2e8f0;
+  border-radius: 8px; padding: 20px 24px;
+  font-size: 13.5px; line-height: 1.8; color: #334155; min-height: 200px;
+}
+
+.doc-sig-area { padding: 20px 48px 40px; border-top: 1px solid #f1f5f9; }
+.doc-sig-label {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: #94a3b8; margin-bottom: 12px;
+}
+.doc-sig-hint { font-size: 12px; color: #94a3b8; font-style: italic; text-align: center; padding: 20px 0; }
+
+/* QR stamp */
+.qr-stamp {
+  position: absolute; cursor: move; user-select: none;
+  border: 2px dashed transparent; border-radius: 4px; transition: border-color .15s;
+  display: flex; flex-direction: column; align-items: center; padding-bottom: 4px;
+}
+.qr-stamp:hover, .qr-stamp.active { border-color: #1a56a8; }
+.qr-stamp img { width: 100%; display: block; flex-shrink: 0; }
+.qr-stamp-sig { width: 100%; border-top: 1.5px solid #071840; margin-top: 4px; }
+.qr-stamp-name { font-size: 8.5px; font-weight: 700; text-align: center; color: #071840; padding: 3px 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.qr-stamp-role { font-size: 7.5px; color: #475569; text-align: center; padding: 1px 4px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.qr-resize { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; cursor: se-resize; background: #1a56a8; border-radius: 2px 0 0 0; opacity: 0; transition: opacity .15s; }
+.qr-stamp:hover .qr-resize, .qr-stamp.active .qr-resize { opacity: 1; }
+.qr-delete {
+  position: absolute; top: -10px; right: -10px; width: 20px; height: 20px; border-radius: 50%;
+  background: #ef4444; color: #fff; border: none; cursor: pointer; font-size: 12px;
+  opacity: 0; transition: opacity .15s; display: flex; align-items: center; justify-content: center;
+}
+.qr-stamp:hover .qr-delete, .qr-stamp.active .qr-delete { opacity: 1; }
+
+/* Right panel */
+.pdf-panel {
+  width: 280px; flex-shrink: 0; background: #0f172a;
+  border-left: 1px solid rgba(255,255,255,.06); overflow-y: auto; display: flex; flex-direction: column;
+}
+.panel-section { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.panel-title { font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 12px; }
+.panel-hint { font-size: 12px; color: rgba(255,255,255,.4); line-height: 1.6; margin-bottom: 12px; }
+.btn-add-self {
+  width: 100%; padding: 9px; border-radius: 8px; background: #1a56a8; color: #fff; border: none;
+  cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background .15s;
+}
+.btn-add-self:hover { background: #1d63c0; }
+.btn-add-self:disabled { background: #334155; color: rgba(255,255,255,.35); cursor: not-allowed; }
+.cosign-toggle {
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04); color: rgba(255,255,255,.75); font-size: 13px; transition: background .15s;
+}
+.cosign-toggle input { accent-color: #1a56a8; width: 15px; height: 15px; }
+.cosign-panel { margin-top: 12px; display: none; }
+.cosign-panel.open { display: block; }
+.panel-select { width: 100%; padding: 8px 10px; border-radius: 6px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); color: #fff; font-size: 13px; margin-bottom: 8px; outline: none; }
+.panel-select option { background: #1e293b; color: #fff; }
+.btn-add-cosign { width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); color: rgba(255,255,255,.8); font-size: 13px; cursor: pointer; transition: background .15s; }
+.btn-add-cosign:hover { background: rgba(255,255,255,.14); }
+.signer-list { display: flex; flex-direction: column; gap: 8px; }
+.signer-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); }
+.signer-av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,#0f3270,#1a56a8); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.signer-info { flex: 1; min-width: 0; }
+.signer-name { font-size: 12.5px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.signer-role { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 1px; }
+.signer-del { width: 24px; height: 24px; border-radius: 5px; background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.2); color: #ef4444; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
+.signer-del:hover { background: rgba(239,68,68,.3); }
+.empty-signers { text-align: center; padding: 16px 0; color: rgba(255,255,255,.25); font-size: 12px; line-height: 1.7; }
+
+@media print {
+  @page { size: A4; margin: 0; }
+  html, body { margin: 0; padding: 0; background: #fff !important; }
+  .pdf-toolbar, .pdf-panel { display: none !important; }
+  .pdf-shell { display: block !important; padding-top: 0 !important; }
+  .pdf-canvas-area { display: block !important; padding: 0 !important; background: #fff !important; overflow: visible !important; }
+  .a4-page { width: 210mm !important; min-height: 297mm !important; box-shadow: none !important; overflow: hidden !important; }
+  .qr-resize, .qr-delete { display: none !important; }
+  .qr-stamp { border-color: transparent !important; cursor: default !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="pdf-toolbar">
+  <a href="/compose" class="toolbar-back">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M12 4l-8 8 8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Kembali
+  </a>
+  <div class="toolbar-sep"></div>
+  <div class="toolbar-title">Preview — <%= email.subject %></div>
+  <span class="toolbar-hint">Tambah tanda tangan, lalu kirim</span>
+  <button class="btn-dl" onclick="window.print()">
+    <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 9l4 4 4-4M3 17h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Download PDF
+  </button>
+  <button class="btn-send" id="btnKirim" onclick="kirimSurat()">
+    <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Kirim Surat
+  </button>
+</div>
+
+<div class="pdf-shell">
+  <div class="pdf-canvas-area">
+    <div class="a4-page" id="a4Page">
+
+      <div class="doc-header">
+        <img src="/img/Group 1597880519.png" class="doc-header-logo" alt="" onerror="this.style.display='none'">
+        <div class="doc-header-text">
+          <div class="doc-header-org">Inspira Mailer</div>
+          <div class="doc-header-sub">Sistem Manajemen Surat & Dokumen Digital</div>
+        </div>
+      </div>
+      <div class="doc-divider"></div>
+
+      <div class="doc-meta">
+        <div class="doc-nomor">No. <%= email.nomorSurat %></div>
+        <div class="doc-meta-right">
+          <%
+          const sifatPill = { 'Biasa/Terbuka':'pill-biasa','Rahasia':'pill-rahasia','Terbatas':'pill-terbatas','Segera':'pill-segera' };
+          %>
+          <span class="doc-pill <%= sifatPill[email.sifat] || 'pill-biasa' %>"><%= email.sifat %></span>
+          <span class="doc-pill <%= email.jenis === 'internal' ? 'pill-internal' : 'pill-eksternal' %>"><%= email.jenis === 'internal' ? 'Internal' : 'Eksternal' %></span>
+        </div>
+      </div>
+
+      <div class="doc-body">
+        <div class="doc-title"><%= email.subject %></div>
+        <table class="doc-info-table">
+          <tr>
+            <td>Nomor<span class="doc-colon">:</span></td>
+            <td><strong><%= email.nomorSurat %></strong></td>
+          </tr>
+          <tr>
+            <td>Dari<span class="doc-colon">:</span></td>
+            <td><strong><%= email.from.name %></strong> &lt;<%= email.from.email %>&gt;</td>
+          </tr>
+          <tr>
+            <td>Kepada<span class="doc-colon">:</span></td>
+            <td>
+              <% if (email.jenis === 'internal') { %>
+                <%= email.to.map(r => r.name).join(', ') || '—' %>
+              <% } else { %>
+                <%= (email.toExternal||[]).map(r => `${r.name} <${r.email}>`).join(', ') || '—' %>
+              <% } %>
+            </td>
+          </tr>
+          <% if (email.cc && email.cc.length > 0) { %>
+          <tr>
+            <td>Tembusan<span class="doc-colon">:</span></td>
+            <td><%= email.cc.map(r => r.name).join(', ') %></td>
+          </tr>
+          <% } %>
+          <tr>
+            <td>Tanggal<span class="doc-colon">:</span></td>
+            <td><%= new Date(email.createdAt).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) %></td>
+          </tr>
+          <% if (email.berkas) { %>
+          <tr>
+            <td>Berkas<span class="doc-colon">:</span></td>
+            <td><%= email.berkas %></td>
+          </tr>
+          <% } %>
+        </table>
+
+        <div class="doc-body-content"><%- email.body || '<em style="color:#94a3b8;">Tidak ada isi surat.</em>' %></div>
+      </div>
+
+      <div class="doc-sig-area">
+        <div class="doc-sig-label">Area Tanda Tangan Digital</div>
+        <div id="sigHint" class="doc-sig-hint" style="<%= docSig.signers.length > 0 ? 'display:none' : '' %>">
+          Tambahkan tanda tangan dari panel kanan. Seret QR untuk memindahkan posisi.
+        </div>
+      </div>
+
+      <% docSig.signers.forEach(function(s) {
+        const roleLabel = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+      %>
+      <div class="qr-stamp" id="stamp-<%= s._id %>" data-id="<%= s._id %>"
+        style="left:<%= s.position.x %>px;top:<%= s.position.y %>px;width:<%= s.position.width %>px;height:<%= s.position.height %>px;">
+        <img src="<%= s.qrDataUrl %>" alt="QR" draggable="false">
+        <div class="qr-stamp-sig"></div>
+        <div class="qr-stamp-name"><%= s.userName %></div>
+        <div class="qr-stamp-role"><%= s.userRole ? roleLabel[s.userRole]||s.userRole : (s.userOrg||'') %></div>
+        <div class="qr-resize"></div>
+        <button class="qr-delete" onclick="removeSigner('<%= s._id %>',event)">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <% }) %>
+
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="pdf-panel">
+    <div class="panel-section">
+      <div class="panel-title">Tanda Tangan Saya</div>
+      <div class="panel-hint">QR unik per surat per penandatangan. Scan untuk verifikasi.</div>
+      <button class="btn-add-self" id="btnAddSelf" onclick="addSelf()"
+        <% if (docSig.signers.some(s => s.userId.toString() === currentUser._id.toString())) { %>disabled<% } %>>
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <% if (docSig.signers.some(s => s.userId.toString() === currentUser._id.toString())) { %>
+          Sudah Ditambahkan
+        <% } else { %>
+          Tambah Tanda Tangan Saya
+        <% } %>
+      </button>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">Co-Sign</div>
+      <label class="cosign-toggle">
+        <input type="checkbox" id="coSignCheck" onchange="toggleCoSign(this)">
+        Aktifkan Multi Penandatangan
+      </label>
+      <div class="cosign-panel" id="coSignPanel">
+        <div style="margin-top:12px;">
+          <select class="panel-select" id="coSignSelect">
+            <option value="">— Pilih pengguna —</option>
+            <% users.forEach(u => { %>
+            <% if (u._id.toString() !== currentUser._id.toString()) { %>
+            <option value="<%= u._id %>"><%= u.name %> (<%= u.email %>)</option>
+            <% } %>
+            <% }) %>
+          </select>
+          <button class="btn-add-cosign" onclick="addCoSigner()">+ Tambah Penandatangan</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section" style="flex:1;">
+      <div class="panel-title">Penandatangan (<span id="signerCount"><%= docSig.signers.length %></span>)</div>
+      <div class="signer-list" id="signerList">
+        <% if (docSig.signers.length === 0) { %>
+        <div class="empty-signers" id="emptySig">Belum ada penandatangan.</div>
+        <% } %>
+        <% docSig.signers.forEach(function(s) {
+          const inits = s.userName.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+          const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+        %>
+        <div class="signer-item" id="si-<%= s._id %>">
+          <div class="signer-av"><%= inits %></div>
+          <div class="signer-info">
+            <div class="signer-name"><%= s.userName %></div>
+            <div class="signer-role"><%= s.userRole ? rl[s.userRole]||s.userRole : (s.userOrg||'') %></div>
+          </div>
+          <button class="signer-del" onclick="removeSigner('<%= s._id %>',event)">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <div class="panel-section" style="border-bottom:none;">
+      <div style="font-size:11px;color:rgba(255,255,255,.25);line-height:1.9;">
+        • Seret QR untuk pindahkan posisi<br>
+        • Tarik sudut kanan bawah untuk resize<br>
+        • Setiap QR unik per surat &amp; penandatangan<br>
+        • Scan QR = verifikasi dokumen + info surat
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const EMAIL_ID = '<%= email._id %>';
+const CURRENT_USER_ID = '<%= currentUser._id %>';
+let dragState = null;
+
+document.addEventListener('mousemove', e => {
+  if (!dragState) return;
+  const { type, el, startX, startY, origX, origY, origW, origH, page } = dragState;
+  const dx = e.clientX - startX, dy = e.clientY - startY;
+  const rect = page.getBoundingClientRect();
+  if (type === 'drag') {
+    el.style.left = Math.max(0, Math.min(origX+dx, rect.width-el.offsetWidth)) + 'px';
+    el.style.top  = Math.max(0, Math.min(origY+dy, page.scrollHeight-el.offsetHeight)) + 'px';
+  } else {
+    el.style.width  = Math.max(60, origW+dx) + 'px';
+    el.style.height = Math.max(60, origH+dy) + 'px';
+  }
+});
+document.addEventListener('mouseup', () => {
+  if (!dragState) return;
+  dragState.el.classList.remove('active');
+  savePosition(dragState.el.dataset.id, dragState.el);
+  dragState = null;
+});
+
+function initStamp(el) {
+  const page = document.getElementById('a4Page');
+  el.addEventListener('mousedown', e => {
+    if (e.target.classList.contains('qr-resize') || e.target.closest('.qr-delete')) return;
+    e.preventDefault(); el.classList.add('active');
+    dragState = { type:'drag', el, startX:e.clientX, startY:e.clientY, origX:parseInt(el.style.left)||0, origY:parseInt(el.style.top)||0, page };
+  });
+  el.querySelector('.qr-resize')?.addEventListener('mousedown', e => {
+    e.preventDefault(); e.stopPropagation(); el.classList.add('active');
+    dragState = { type:'resize', el, startX:e.clientX, startY:e.clientY, origX:parseInt(el.style.left)||0, origY:parseInt(el.style.top)||0, origW:el.offsetWidth, origH:el.offsetHeight, page };
+  });
+}
+document.querySelectorAll('.qr-stamp').forEach(initStamp);
+
+async function savePosition(id, el) {
+  await fetch(`/email/${EMAIL_ID}/sign/update-position`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ signerId:id, x:parseInt(el.style.left)||0, y:parseInt(el.style.top)||0, width:el.offsetWidth, height:el.offsetHeight })
+  });
+}
+
+async function addSelf() {
+  const btn = document.getElementById('btnAddSelf');
+  btn.disabled = true; btn.textContent = 'Memproses...';
+  const res  = await fetch(`/email/${EMAIL_ID}/sign/add-signer`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ userId: CURRENT_USER_ID }) });
+  const data = await res.json();
+  if (data.ok) { addStampToPage(data.signer); addSignerToPanel(data.signer); btn.textContent = 'Sudah Ditambahkan'; }
+  else { alert(data.message||'Gagal.'); btn.disabled = false; btn.textContent = 'Tambah Tanda Tangan Saya'; }
+}
+
+function toggleCoSign(cb) { document.getElementById('coSignPanel').classList.toggle('open', cb.checked); }
+
+async function addCoSigner() {
+  const sel = document.getElementById('coSignSelect');
+  if (!sel.value) { alert('Pilih pengguna.'); return; }
+  const res  = await fetch(`/email/${EMAIL_ID}/sign/add-signer`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ userId: sel.value }) });
+  const data = await res.json();
+  if (data.ok) { addStampToPage(data.signer); addSignerToPanel(data.signer); sel.querySelector(`option[value="${sel.value}"]`)?.remove(); sel.value=''; }
+  else alert(data.message||'Gagal.');
+}
+
+function addStampToPage(s) {
+  document.getElementById('sigHint').style.display = 'none';
+  const page = document.getElementById('a4Page');
+  const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+  const rt = s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||'');
+  const div = document.createElement('div');
+  div.className = 'qr-stamp'; div.id = `stamp-${s._id}`; div.dataset.id = s._id;
+  div.style.cssText = `left:${s.position.x}px;top:${s.position.y}px;width:${s.position.width}px;height:${s.position.height}px;`;
+  div.innerHTML = `<img src="${s.qrDataUrl}" draggable="false"><div class="qr-stamp-sig"></div><div class="qr-stamp-name">${s.userName}</div><div class="qr-stamp-role">${rt}</div><div class="qr-resize"></div><button class="qr-delete" onclick="removeSigner('${s._id}',event)"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>`;
+  page.appendChild(div); initStamp(div);
+}
+
+function addSignerToPanel(s) {
+  document.getElementById('emptySig')?.remove();
+  const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+  const rt = s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||'');
+  const ini = s.userName.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  const item = document.createElement('div');
+  item.className = 'signer-item'; item.id = `si-${s._id}`;
+  item.innerHTML = `<div class="signer-av">${ini}</div><div class="signer-info"><div class="signer-name">${s.userName}</div><div class="signer-role">${rt}</div></div><button class="signer-del" onclick="removeSigner('${s._id}',event)"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>`;
+  document.getElementById('signerList').appendChild(item);
+  document.getElementById('signerCount').textContent = parseInt(document.getElementById('signerCount').textContent)+1;
+}
+
+async function removeSigner(id, e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  if (!confirm('Hapus penandatangan ini?')) return;
+  const res  = await fetch(`/email/${EMAIL_ID}/sign/signers/${id}`, { method:'DELETE' });
+  const data = await res.json();
+  if (data.ok) {
+    document.getElementById(`stamp-${id}`)?.remove();
+    document.getElementById(`si-${id}`)?.remove();
+    const cnt = document.getElementById('signerCount');
+    cnt.textContent = Math.max(0, parseInt(cnt.textContent)-1);
+    if (!document.querySelector('.signer-item')) {
+      const e2 = document.createElement('div'); e2.className='empty-signers'; e2.id='emptySig'; e2.textContent='Belum ada penandatangan.';
+      document.getElementById('signerList').appendChild(e2);
+      document.getElementById('sigHint').style.display='';
+    }
+    if (data.wasCurrentUser) {
+      const b = document.getElementById('btnAddSelf'); b.disabled=false; b.textContent='Tambah Tanda Tangan Saya';
+    }
+  }
+}
+
+async function kirimSurat() {
+  const btn = document.getElementById('btnKirim');
+  btn.disabled = true; btn.textContent = 'Mengirim...';
+  try {
+    const res  = await fetch(`/email/${EMAIL_ID}/send`, { method:'POST', headers:{'Content-Type':'application/json'} });
+    const data = await res.json();
+    if (data.ok) { window.location.href = '/sent'; }
+    else { alert(data.message||'Gagal mengirim surat.'); btn.disabled=false; btn.textContent='Kirim Surat'; }
+  } catch { alert('Terjadi kesalahan.'); btn.disabled=false; btn.textContent='Kirim Surat'; }
+}
+</script>
+</body>
+</html>

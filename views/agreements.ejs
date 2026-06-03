@@ -59,11 +59,13 @@
         <option value="<%= s %>" <%= filter.status === s ? 'selected' : '' %>><%= s.charAt(0).toUpperCase() + s.slice(1) %></option>
         <% }) %>
       </select>
-      <input type="text" name="q" class="search-input" placeholder="Cari judul..." value="<%= filter.q || '' %>" style="max-width:200px;padding:7px 12px;">
-      <button type="submit" class="btn btn-secondary" style="padding:7px 14px;font-size:13px;">Cari</button>
-      <% if (filter.type || filter.status || filter.q) { %>
-      <a href="/agreements" class="btn btn-ghost" style="padding:7px 12px;font-size:13px;">Reset</a>
-      <% } %>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input type="text" name="q" class="search-input" placeholder="Cari judul..." value="<%= filter.q || '' %>" style="width:200px;padding:7px 12px;">
+        <button type="submit" class="btn btn-secondary" style="padding:7px 14px;font-size:13px;white-space:nowrap;">Cari</button>
+        <% if (filter.type || filter.status || filter.q) { %>
+        <a href="/agreements" class="btn btn-ghost" style="padding:7px 12px;font-size:13px;white-space:nowrap;">Reset</a>
+        <% } %>
+      </div>
     </form>
   </div>
 

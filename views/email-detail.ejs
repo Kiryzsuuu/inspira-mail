@@ -1,0 +1,147 @@
+<%- include('./partials/header') %>
+
+<%
+const tagClass = { Penting:'tag-penting', Urgent:'tag-urgent', Info:'tag-info', Normal:'tag-normal' };
+const sifatColor = { 'Biasa/Terbuka':'var(--green-600)','Rahasia':'#9333ea','Terbatas':'var(--amber-600)','Segera':'var(--red-600)' };
+const sifatBg    = { 'Biasa/Terbuka':'var(--green-50)','Rahasia':'#faf5ff','Terbatas':'var(--amber-50)','Segera':'var(--red-50)' };
+const roleLabel  = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+%>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb">
+      <a href="/inbox">Dashboard</a> /
+      <a href="<%= isSender ? '/sent' : '/inbox' %>"><%= isSender ? 'Terkirim' : 'Kotak Masuk' %></a> / Detail
+    </div>
+    <h1 class="page-title"><%= email.subject %></h1>
+    <p class="page-subtitle">No. <%= email.nomorSurat %></p>
+  </div>
+  <div class="page-actions">
+    <% if (isSender && email.status === 'draft') { %>
+    <a href="/email/<%= email._id %>/preview" class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M13 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Preview &amp; Kirim
+    </a>
+    <% } %>
+    <span class="mail-tag <%= tagClass[email.tag] || 'tag-normal' %>" style="font-size:13px;padding:5px 14px;">
+      <%= email.tag %>
+    </span>
+  </div>
+</div>
+
+<div class="ag-detail-layout">
+
+  <!-- Kiri: Isi surat -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <div class="compose-card">
+      <div class="compose-card-header">
+        <span class="compose-card-title">Isi Surat</span>
+        <span style="font-size:11.5px;font-weight:600;padding:3px 12px;border-radius:20px;background:<%= sifatBg[email.sifat]||'var(--green-50)' %>;color:<%= sifatColor[email.sifat]||'var(--green-600)' %>;">
+          <%= email.sifat %>
+        </span>
+      </div>
+      <div style="padding:24px 28px;">
+
+        <!-- Meta -->
+        <div style="display:grid;grid-template-columns:100px 1fr;gap:0;margin-bottom:20px;font-size:13px;">
+          <div style="color:var(--gray-400);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:7px 0;border-bottom:1px solid var(--gray-100);">Dari</div>
+          <div style="padding:7px 0;border-bottom:1px solid var(--gray-100);color:var(--gray-800);font-weight:500;"><%= email.from.name %> &lt;<%= email.from.email %>&gt;</div>
+
+          <div style="color:var(--gray-400);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:7px 0;border-bottom:1px solid var(--gray-100);">Kepada</div>
+          <div style="padding:7px 0;border-bottom:1px solid var(--gray-100);color:var(--gray-800);">
+            <% if (email.jenis === 'eksternal' && email.toExternal && email.toExternal.length > 0) { %>
+              <%= email.toExternal.map(r => `${r.name} <${r.email}>`).join(', ') %>
+            <% } else { %>
+              <%= email.to.map(r => r.name).join(', ') || '—' %>
+            <% } %>
+          </div>
+
+          <% if (email.cc && email.cc.length > 0) { %>
+          <div style="color:var(--gray-400);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:7px 0;border-bottom:1px solid var(--gray-100);">CC</div>
+          <div style="padding:7px 0;border-bottom:1px solid var(--gray-100);color:var(--gray-800);"><%= email.cc.map(r=>r.name).join(', ') %></div>
+          <% } %>
+
+          <div style="color:var(--gray-400);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:7px 0;border-bottom:1px solid var(--gray-100);">Tanggal</div>
+          <div style="padding:7px 0;border-bottom:1px solid var(--gray-100);color:var(--gray-800);"><%= new Date(email.createdAt).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) %></div>
+
+          <% if (email.berkas) { %>
+          <div style="color:var(--gray-400);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:7px 0;">Berkas</div>
+          <div style="padding:7px 0;color:var(--gray-800);"><%= email.berkas %></div>
+          <% } %>
+        </div>
+
+        <!-- Body -->
+        <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:20px 24px;font-size:14px;line-height:1.8;color:var(--gray-700);min-height:120px;">
+          <%- email.body || '<em style="color:var(--gray-400);">Tidak ada isi surat.</em>' %>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Tanda Tangan -->
+    <% if (docSig && docSig.signers && docSig.signers.length > 0) { %>
+    <div class="compose-card">
+      <div class="compose-card-header">
+        <span class="compose-card-title">Tanda Tangan Digital</span>
+        <span style="font-size:12px;color:var(--green-600);font-weight:500;display:flex;align-items:center;gap:4px;">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <%= docSig.signers.length %> penandatangan
+        </span>
+      </div>
+      <div style="padding:16px 24px;display:flex;flex-wrap:wrap;gap:20px;">
+        <% docSig.signers.forEach(function(s) {
+          const inits = s.userName.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+          const rl = roleLabel[s.userRole] || s.userOrg || '';
+        %>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px;border:1px solid var(--gray-200);border-radius:var(--radius-md);background:var(--gray-50);min-width:130px;">
+          <img src="<%= s.qrDataUrl %>" style="width:90px;height:90px;" alt="QR <%= s.userName %>">
+          <div style="width:90px;border-top:1.5px solid var(--gray-800);"></div>
+          <div style="font-size:11.5px;font-weight:700;color:var(--gray-900);text-align:center;"><%= s.userName %></div>
+          <% if (rl) { %><div style="font-size:10.5px;color:var(--gray-500);text-align:center;"><%= rl %></div><% } %>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
+
+  </div>
+
+  <!-- Sidebar -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="info-card">
+      <div class="info-card-title">Info Surat</div>
+      <div class="info-item"><span class="info-key">Nomor</span><span class="info-val" style="font-weight:600;font-size:12.5px;"><%= email.nomorSurat %></span></div>
+      <div class="info-item"><span class="info-key">Status</span>
+        <span class="info-val" style="color:<%= email.status==='sent'?'var(--green-600)':'var(--amber-600)' %>;font-weight:500;">
+          <%= email.status === 'sent' ? 'Terkirim' : 'Draf' %>
+        </span>
+      </div>
+      <div class="info-item"><span class="info-key">Jenis</span>
+        <span class="info-val"><%= email.jenis === 'internal' ? 'Internal' : 'Eksternal' %></span>
+      </div>
+      <div class="info-item"><span class="info-key">Sifat</span><span class="info-val"><%= email.sifat %></span></div>
+      <div class="info-item" style="border-bottom:none;">
+        <span class="info-key">Penandatangan</span>
+        <span class="info-val"><%= docSig?.signers?.length || 0 %></span>
+      </div>
+    </div>
+
+    <% if (isSender) { %>
+    <div class="info-card">
+      <div class="info-card-title">Aksi</div>
+      <% if (email.status === 'draft') { %>
+      <a href="/email/<%= email._id %>/preview" class="btn btn-primary" style="width:100%;margin-bottom:8px;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M13 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Buka Preview & Kirim
+      </a>
+      <% } %>
+      <a href="/email/<%= email._id %>/preview" class="btn btn-secondary" style="width:100%;justify-content:center;font-size:13px;">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 9l4 4 4-4M3 17h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Download PDF
+      </a>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('./partials/footer') %>

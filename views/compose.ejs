@@ -1,8 +1,42 @@
 <%- include('./partials/header') %>
 
+<!-- Quill CSS -->
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<style>
+.jenis-tabs { display:flex; gap:0; border:1px solid var(--gray-200); border-radius:8px; overflow:hidden; margin-top:2px; }
+.jenis-tab {
+  flex:1; padding:9px 0; font-size:13px; font-weight:500; text-align:center; cursor:pointer;
+  background:var(--gray-50); color:var(--gray-500); border:none; transition:all .15s;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.jenis-tab.active { background:#071840; color:#fff; }
+.jenis-tab:first-child { border-right:1px solid var(--gray-200); }
+
+.ext-recipient-input { display:flex; gap:8px; margin-bottom:8px; }
+.ext-recipient-input input { flex:1; }
+.ext-list { display:flex; flex-direction:column; gap:6px; }
+.ext-item {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 12px; border-radius:7px;
+  background:var(--gray-50); border:1px solid var(--gray-200); font-size:13px;
+}
+.ext-item-name { font-weight:600; color:var(--gray-800); }
+.ext-item-email { color:var(--gray-500); }
+.ext-item-del { margin-left:auto; background:none; border:none; cursor:pointer; color:var(--gray-400); font-size:16px; line-height:1; }
+.ext-item-del:hover { color:var(--red-500); }
+
+/* Quill overrides to match app style */
+.ql-container { font-family:'DM Sans',sans-serif; font-size:14px; border:1px solid var(--gray-200) !important; border-top:0 !important; border-radius:0 0 var(--radius-md) var(--radius-md) !important; }
+.ql-toolbar { border:1px solid var(--gray-200) !important; border-radius:var(--radius-md) var(--radius-md) 0 0 !important; background:var(--gray-50); }
+.ql-editor { min-height:240px; line-height:1.8; color:var(--gray-800); padding:16px 16px; }
+.ql-editor.ql-blank::before { color:var(--gray-400); font-style:normal; font-size:13.5px; }
+.ql-toolbar .ql-formats { margin-right:10px; }
+.ql-snow .ql-picker { color:var(--gray-600); }
+</style>
+
 <div class="page-header">
   <div class="page-title-group">
-    <div class="page-breadcrumb"><a href="/">Dashboard</a> / Tulis Surat</div>
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Tulis Surat</div>
     <h1 class="page-title">Tulis Surat</h1>
     <p class="page-subtitle">Buat dan kirimkan surat dinas baru</p>
   </div>
@@ -11,19 +45,41 @@
 <form action="/compose" method="POST" id="composeForm">
   <input type="hidden" name="action" id="formAction" value="send">
   <input type="hidden" name="body" id="bodyHidden">
+  <input type="hidden" name="jenis" id="jenisHidden" value="internal">
+  <input type="hidden" name="externalRecipients" id="externalRecipientsHidden" value="[]">
 
 <div class="compose-layout">
-  <!-- Main form -->
   <div class="compose-card">
     <div class="compose-card-header">
       <span class="compose-card-title">Detail Surat</span>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <span style="font-size:11.5px;color:var(--gray-400);">Sifat:</span>
-        <span style="font-size:12px;font-weight:500;color:var(--green-600);background:var(--green-50);padding:3px 10px;border-radius:20px;">Biasa / Terbuka</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:var(--gray-400);">Sifat:</span>
+        <select name="sifat" id="sifatSelect" class="admin-role-select" style="padding:5px 24px 5px 10px;font-size:12.5px;" onchange="updateSifat(this)">
+          <option value="Biasa/Terbuka">Biasa / Terbuka</option>
+          <option value="Terbatas">Terbatas</option>
+          <option value="Rahasia">Rahasia</option>
+          <option value="Segera">Segera</option>
+        </select>
       </div>
     </div>
     <div class="compose-form">
 
+      <!-- Jenis Surat -->
+      <div class="form-group">
+        <label class="form-label">Jenis Surat</label>
+        <div class="jenis-tabs">
+          <button type="button" class="jenis-tab active" id="tabInternal" onclick="setJenis('internal')">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 100 12A6 6 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Internal (Pengguna Terdaftar)
+          </button>
+          <button type="button" class="jenis-tab" id="tabEksternal" onclick="setJenis('eksternal')">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M2 10h16M10 2c-2 2.5-3 5-3 8s1 5.5 3 8M10 2c2 2.5 3 5 3 8s-1 5.5-3 8" stroke="currentColor" stroke-width="1.5"/></svg>
+            Eksternal (Email Bebas)
+          </button>
+        </div>
+      </div>
+
+      <!-- Subjek -->
       <div class="form-group">
         <label class="form-label">Subjek / Perihal <span class="req">*</span></label>
         <input type="text" name="subject" class="form-control" placeholder="Perihal surat..." required>
@@ -57,190 +113,249 @@
         </div>
       </div>
 
-      <!-- Recipients -->
-      <div class="form-group">
-        <label class="form-label">Tertuju (Penerima)</label>
-        <div class="multi-select-wrap" id="tertujuWrap">
-          <div class="multi-select-input" id="tertujuInput" onclick="toggleDropdown('tertuju')">
-            <span class="multi-placeholder" id="tertujuPlaceholder">Pilih penerima...</span>
-            <div class="selected-tags" id="tertujuTags"></div>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--gray-400);margin-left:auto;"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="multi-dropdown" id="tertujuDropdown">
-            <div style="padding:8px;border-bottom:1px solid var(--gray-100);">
-              <input type="text" class="form-control" placeholder="Cari pengguna..." style="padding:7px 10px;font-size:13px;" oninput="searchDropdownOptions('tertuju', this.value)">
+      <!-- INTERNAL section -->
+      <div id="internalSection">
+        <div class="form-group">
+          <label class="form-label">Tertuju (Penerima Internal)</label>
+          <div class="multi-select-wrap" id="tertujuWrap">
+            <div class="multi-select-input" id="tertujuInput" onclick="toggleDropdown('tertuju')">
+              <span class="multi-placeholder" id="tertujuPlaceholder">Pilih penerima...</span>
+              <div class="selected-tags" id="tertujuTags"></div>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--gray-400);margin-left:auto;"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <% if (users.length === 0) { %>
-            <div class="dropdown-group-label" style="padding:12px 14px;color:var(--gray-400);">Belum ada pengguna lain terdaftar.</div>
-            <% } else { %>
-            <div class="dropdown-group-label">Pengguna Terdaftar</div>
-            <% users.forEach(function(u) { %>
-            <label class="dropdown-opt" data-search="<%= u.name.toLowerCase() %> <%= u.email.toLowerCase() %>">
-              <input type="checkbox" name="to" value="<%= u._id %>" onchange="toggleUserTag('tertuju', this, '<%= u.name %>')">
-              <div>
-                <div style="font-size:13.5px;color:var(--gray-800);"><%= u.name %></div>
-                <div style="font-size:11.5px;color:var(--gray-400);"><%= u.email %> · <%= u.organization %></div>
+            <div class="multi-dropdown" id="tertujuDropdown">
+              <div style="padding:8px;border-bottom:1px solid var(--gray-100);">
+                <input type="text" class="form-control" placeholder="Cari pengguna..." style="padding:7px 10px;font-size:13px;" oninput="searchDropdown('tertuju',this.value)">
               </div>
-            </label>
-            <% }); %>
-            <% } %>
+              <% if (users.length === 0) { %>
+              <div style="padding:12px 14px;color:var(--gray-400);font-size:13px;">Belum ada pengguna lain terdaftar.</div>
+              <% } else { %>
+              <div class="dropdown-group-label">Pengguna Terdaftar</div>
+              <% users.forEach(u => { %>
+              <label class="dropdown-opt" data-search="<%= u.name.toLowerCase() %> <%= u.email.toLowerCase() %>">
+                <input type="checkbox" name="to" value="<%= u._id %>" onchange="toggleTag('tertuju',this,'<%= u.name %>')">
+                <div>
+                  <div style="font-size:13.5px;color:var(--gray-800);"><%= u.name %></div>
+                  <div style="font-size:11.5px;color:var(--gray-400);"><%= u.email %> · <%= u.organization %></div>
+                </div>
+              </label>
+              <% }) %>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tembusan / CC</label>
+          <div class="multi-select-wrap" id="tembusanWrap">
+            <div class="multi-select-input" id="tembusanInput" onclick="toggleDropdown('tembusan')">
+              <span class="multi-placeholder" id="tembusanPlaceholder">Pilih tembusan...</span>
+              <div class="selected-tags" id="tembusanTags"></div>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--gray-400);margin-left:auto;"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="multi-dropdown" id="tembusanDropdown">
+              <div style="padding:8px;border-bottom:1px solid var(--gray-100);">
+                <input type="text" class="form-control" placeholder="Cari pengguna..." style="padding:7px 10px;font-size:13px;" oninput="searchDropdown('tembusan',this.value)">
+              </div>
+              <% if (users.length === 0) { %>
+              <div style="padding:12px 14px;color:var(--gray-400);font-size:13px;">Belum ada pengguna lain.</div>
+              <% } else { %>
+              <div class="dropdown-group-label">Pengguna Terdaftar</div>
+              <% users.forEach(u => { %>
+              <label class="dropdown-opt" data-search="<%= u.name.toLowerCase() %> <%= u.email.toLowerCase() %>">
+                <input type="checkbox" name="cc" value="<%= u._id %>" onchange="toggleTag('tembusan',this,'<%= u.name %>')">
+                <div>
+                  <div style="font-size:13.5px;color:var(--gray-800);"><%= u.name %></div>
+                  <div style="font-size:11.5px;color:var(--gray-400);"><%= u.email %> · <%= u.organization %></div>
+                </div>
+              </label>
+              <% }) %>
+              <% } %>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- CC -->
-      <div class="form-group">
-        <label class="form-label">Tembusan (CC)</label>
-        <div class="multi-select-wrap" id="tembusanWrap">
-          <div class="multi-select-input" id="tembusanInput" onclick="toggleDropdown('tembusan')">
-            <span class="multi-placeholder" id="tembusanPlaceholder">Pilih tembusan...</span>
-            <div class="selected-tags" id="tembusanTags"></div>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--gray-400);margin-left:auto;"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <!-- EKSTERNAL section -->
+      <div id="eksternalSection" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Tambah Penerima Eksternal</label>
+          <div class="ext-recipient-input">
+            <input type="text" id="extName" class="form-control" placeholder="Nama penerima" style="max-width:220px;">
+            <input type="email" id="extEmail" class="form-control" placeholder="email@domain.com">
+            <button type="button" class="btn btn-secondary" onclick="addExt()" style="white-space:nowrap;padding:8px 16px;">+ Tambah</button>
           </div>
-          <div class="multi-dropdown" id="tembusanDropdown">
-            <div style="padding:8px;border-bottom:1px solid var(--gray-100);">
-              <input type="text" class="form-control" placeholder="Cari pengguna..." style="padding:7px 10px;font-size:13px;" oninput="searchDropdownOptions('tembusan', this.value)">
-            </div>
-            <% if (users.length === 0) { %>
-            <div class="dropdown-group-label" style="padding:12px 14px;color:var(--gray-400);">Belum ada pengguna lain terdaftar.</div>
-            <% } else { %>
-            <div class="dropdown-group-label">Pengguna Terdaftar</div>
-            <% users.forEach(function(u) { %>
-            <label class="dropdown-opt" data-search="<%= u.name.toLowerCase() %> <%= u.email.toLowerCase() %>">
-              <input type="checkbox" name="cc" value="<%= u._id %>" onchange="toggleUserTag('tembusan', this, '<%= u.name %>')">
-              <div>
-                <div style="font-size:13.5px;color:var(--gray-800);"><%= u.name %></div>
-                <div style="font-size:11.5px;color:var(--gray-400);"><%= u.email %> · <%= u.organization %></div>
-              </div>
-            </label>
-            <% }); %>
-            <% } %>
-          </div>
+          <div class="ext-list" id="extList"></div>
+          <div id="extEmpty" style="font-size:12.5px;color:var(--gray-400);padding:6px 0;">Belum ada penerima. Tambahkan di atas.</div>
         </div>
       </div>
 
-      <!-- Rich text editor -->
+      <!-- Rich Text Editor (Quill) -->
       <div class="form-group">
         <label class="form-label">Isi Surat</label>
-        <div class="template-row" style="margin-bottom:6px;">
-          <div class="template-links"></div>
-        </div>
-        <div class="editor-toolbar">
-          <button class="toolbar-btn" title="Bold" type="button"><b>B</b></button>
-          <button class="toolbar-btn" title="Italic" type="button"><i>I</i></button>
-          <button class="toolbar-btn" title="Underline" type="button"><u>U</u></button>
-          <button class="toolbar-btn" title="Strikethrough" type="button"><s>S</s></button>
-          <div class="toolbar-sep"></div>
-          <button class="toolbar-btn" title="Align Left" type="button">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3h10M2 6h7M2 9h10M2 12h7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-          </button>
-          <button class="toolbar-btn" title="Align Center" type="button">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3h10M3.5 6h7M2 9h10M3.5 12h7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-          </button>
-          <button class="toolbar-btn" title="Align Right" type="button">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3h10M5 6h7M2 9h10M5 12h7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-          </button>
-          <div class="toolbar-sep"></div>
-          <button class="toolbar-btn" title="List" type="button">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="3" cy="4.5" r="1" fill="currentColor"/><circle cx="3" cy="9.5" r="1" fill="currentColor"/><path d="M5.5 4.5h6.5M5.5 9.5h6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-          </button>
-        </div>
-        <div class="editor-area" id="editorArea" contenteditable="true" data-placeholder="Tulis isi surat di sini..."></div>
+        <div id="quillEditor" style="min-height:240px;"></div>
       </div>
 
-      <!-- Actions -->
       <div class="compose-actions">
         <button type="button" class="btn btn-ghost" onclick="submitForm('draft')">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h10v10H2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M4 5h6M4 7h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
           Simpan Draf
         </button>
-        <button type="submit" class="btn btn-primary" onclick="submitForm('send')">
+        <button type="button" class="btn btn-primary" onclick="submitForm('send')">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M13 1L6 8M13 1l-4 11-3-5-5-3 12-3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Kirim Surat
+          Lanjut ke Preview &amp; Tanda Tangan
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Right sidebar -->
+  <!-- Sidebar -->
   <div class="compose-sidebar">
     <div class="info-card">
       <div class="info-card-title">Info Naskah</div>
       <div class="info-item"><span class="info-key">Pengirim</span><span class="info-val"><%= user.name.split(' ')[0] %></span></div>
       <div class="info-item"><span class="info-key">Status</span><span class="info-val" style="color:var(--amber-600);">Konsep</span></div>
       <div class="info-item"><span class="info-key">Tanggal</span><span class="info-val" id="infoDate"></span></div>
+      <div class="info-item"><span class="info-key">Sifat</span><span class="info-val" id="infoSifat">Biasa/Terbuka</span></div>
       <div class="info-item" style="border-bottom:none;"><span class="info-key">Penomoran</span><span class="info-val">Otomatis</span></div>
     </div>
-
+    <div class="info-card">
+      <div class="info-card-title">Alur Pengiriman</div>
+      <ul style="font-size:12.5px;color:var(--gray-600);line-height:2;padding-left:16px;">
+        <li>Isi form surat ini</li>
+        <li style="color:var(--brand-600);font-weight:500;">Preview A4 + Tanda Tangan</li>
+        <li>Kirim via email otomatis</li>
+      </ul>
+    </div>
     <div class="info-card">
       <div class="info-card-title">Petunjuk</div>
-      <ul style="font-size:12.5px;color:var(--gray-600);line-height:1.8;padding-left:16px;">
-        <li>Isi semua kolom wajib <span style="color:var(--red-500);">*</span></li>
-        <li>Pilih berkas sesuai klasifikasi</li>
-        <li>Pratinjau sebelum mengirim</li>
-        <li>Simpan draf jika belum selesai</li>
+      <ul style="font-size:12.5px;color:var(--gray-600);line-height:1.9;padding-left:16px;">
+        <li>Kolom wajib bertanda <span style="color:var(--red-500);">*</span></li>
+        <li><strong>Internal</strong>: pilih dari daftar pengguna</li>
+        <li><strong>Eksternal</strong>: ketik email manual</li>
+        <li>Nomor surat dibuat otomatis</li>
       </ul>
     </div>
   </div>
 </div>
 </form>
 
+<!-- Quill JS -->
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script>
-// Set today's date in sidebar
+// ── DATE ──
 const today = new Date();
-const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-document.getElementById('infoDate').textContent = `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+const mns = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+document.getElementById('infoDate').textContent = `${today.getDate()} ${mns[today.getMonth()]} ${today.getFullYear()}`;
 
-// Submit form with correct action
+// ── QUILL EDITOR ──
+const quill = new Quill('#quillEditor', {
+  theme: 'snow',
+  placeholder: 'Tulis isi surat di sini...',
+  modules: {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      ['blockquote', 'code-block'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ align: [] }],
+      ['link'],
+      ['clean']
+    ]
+  }
+});
+
+// ── SIFAT ──
+function updateSifat(sel) {
+  document.getElementById('infoSifat').textContent = sel.value;
+}
+
+// ── JENIS ──
+let currentJenis = 'internal';
+function setJenis(j) {
+  currentJenis = j;
+  document.getElementById('jenisHidden').value = j;
+  document.getElementById('tabInternal').classList.toggle('active', j === 'internal');
+  document.getElementById('tabEksternal').classList.toggle('active', j === 'eksternal');
+  document.getElementById('internalSection').style.display = j === 'internal' ? '' : 'none';
+  document.getElementById('eksternalSection').style.display = j === 'eksternal' ? '' : 'none';
+}
+
+// ── EXTERNAL RECIPIENTS ──
+let extList = [];
+function addExt() {
+  const n = document.getElementById('extName').value.trim();
+  const e = document.getElementById('extEmail').value.trim();
+  if (!e) { document.getElementById('extEmail').focus(); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { alert('Format email tidak valid.'); return; }
+  if (extList.find(r => r.email === e)) { alert('Email sudah ditambahkan.'); return; }
+  extList.push({ name: n||e, email: e });
+  renderExtList();
+  document.getElementById('extName').value = '';
+  document.getElementById('extEmail').value = '';
+  document.getElementById('extName').focus();
+}
+function removeExt(email) {
+  extList = extList.filter(r => r.email !== email);
+  renderExtList();
+}
+function renderExtList() {
+  const list = document.getElementById('extList');
+  const empty = document.getElementById('extEmpty');
+  list.innerHTML = '';
+  empty.style.display = extList.length ? 'none' : '';
+  extList.forEach(r => {
+    const d = document.createElement('div');
+    d.className = 'ext-item';
+    d.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="color:var(--gray-400);flex-shrink:0;"><path d="M3 5l7 5 7-5M3 5v10h14V5H3z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ext-item-name">${esc(r.name)}</span><span class="ext-item-email">&lt;${esc(r.email)}&gt;</span><button type="button" class="ext-item-del" onclick="removeExt('${esc(r.email)}')">&times;</button>`;
+    list.appendChild(d);
+  });
+  document.getElementById('externalRecipientsHidden').value = JSON.stringify(extList);
+}
+function esc(s) { return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+document.getElementById('extEmail').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();addExt();} });
+
+// ── SUBMIT ──
 function submitForm(action) {
+  if (action === 'send' && currentJenis === 'eksternal' && extList.length === 0) {
+    alert('Tambahkan minimal satu penerima eksternal.');
+    return;
+  }
   document.getElementById('formAction').value = action;
-  document.getElementById('bodyHidden').value = document.getElementById('editorArea').innerHTML;
+  document.getElementById('bodyHidden').value = quill.root.innerHTML;
+  document.getElementById('externalRecipientsHidden').value = JSON.stringify(extList);
   document.getElementById('composeForm').submit();
 }
 
-// Search users in dropdown
-function searchDropdownOptions(id, query) {
-  const dropdown = document.getElementById(id + 'Dropdown');
-  const opts = dropdown.querySelectorAll('.dropdown-opt');
-  const q = query.toLowerCase();
-  opts.forEach(opt => {
-    const search = opt.dataset.search || '';
-    opt.style.display = q === '' || search.includes(q) ? '' : 'none';
+// ── DROPDOWN HELPERS ──
+function toggleDropdown(id) { document.getElementById(id+'Dropdown').classList.toggle('open'); }
+function searchDropdown(id, q) {
+  document.getElementById(id+'Dropdown').querySelectorAll('.dropdown-opt').forEach(o => {
+    o.style.display = !q||(o.dataset.search||'').includes(q.toLowerCase()) ? '' : 'none';
   });
 }
-
-// Toggle user tag in multi-select
-function toggleUserTag(id, checkbox, name) {
-  const tagsEl = document.getElementById(id + 'Tags');
-  const placeholder = document.getElementById(id + 'Placeholder');
-  if (checkbox.checked) {
-    const tag = document.createElement('span');
-    tag.className = 'selected-tag';
-    tag.dataset.value = checkbox.value;
-    tag.innerHTML = (name.length > 20 ? name.substring(0, 18) + '…' : name);
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.innerHTML = '×';
-    btn.onclick = function(e) {
-      e.stopPropagation();
-      tag.remove();
-      checkbox.checked = false;
-      updatePlaceholder(id);
-    };
-    tag.appendChild(btn);
-    tagsEl.appendChild(tag);
-  } else {
-    const existing = tagsEl.querySelector('[data-value="' + checkbox.value + '"]');
-    if (existing) existing.remove();
-  }
-  updatePlaceholder(id);
+function toggleTag(id, cb, name) {
+  const tags = document.getElementById(id+'Tags');
+  const ph   = document.getElementById(id+'Placeholder');
+  if (cb.checked) {
+    const t = document.createElement('span');
+    t.className = 'selected-tag'; t.dataset.value = cb.value;
+    t.textContent = name.length>20 ? name.substring(0,18)+'…' : name;
+    const b = document.createElement('button'); b.type='button'; b.innerHTML='×';
+    b.onclick = e => { e.stopPropagation(); t.remove(); cb.checked=false; updatePh(id); };
+    t.appendChild(b); tags.appendChild(t);
+  } else { tags.querySelector('[data-value="'+cb.value+'"]')?.remove(); }
+  updatePh(id);
 }
-
-function updatePlaceholder(id) {
-  const tags = document.getElementById(id + 'Tags');
-  const ph = document.getElementById(id + 'Placeholder');
-  if (ph) ph.style.display = tags.children.length > 0 ? 'none' : '';
+function updatePh(id) {
+  const ph = document.getElementById(id+'Placeholder');
+  if(ph) ph.style.display = document.getElementById(id+'Tags').children.length ? 'none' : '';
 }
+document.addEventListener('click', e => {
+  ['tertuju','tembusan'].forEach(id => {
+    const w = document.getElementById(id+'Wrap');
+    if (w && !w.contains(e.target)) document.getElementById(id+'Dropdown')?.classList.remove('open');
+  });
+});
 </script>
 
 <%- include('./partials/footer') %>

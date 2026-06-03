@@ -59,8 +59,7 @@
     const avColors = ['av-teal','av-blue','av-green','av-purple','av-amber'];
     const avColor = avColors[i % avColors.length];
   %>
-  <a href="#" class="mail-item" data-tag="<%= (m.tag || 'normal').toLowerCase() %>">
-    <input type="checkbox" class="mail-checkbox" onclick="event.preventDefault(); event.stopPropagation();">
+  <a href="/email/<%= m._id %>" class="mail-item" data-tag="<%= (m.tag || 'normal').toLowerCase() %>">
     <div class="mail-avatar <%= avColor %>"><%= initials %></div>
     <div class="mail-body">
       <div class="mail-from">Kepada: <%= toStr %></div>

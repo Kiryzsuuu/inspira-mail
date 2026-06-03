@@ -17,7 +17,8 @@ const docSignerSchema = new mongoose.Schema({
 }, { _id: true });
 
 const documentSignatureSchema = new mongoose.Schema({
-  suratId:   { type: mongoose.Schema.Types.ObjectId, ref: 'SuratMasuk', required: true, unique: true, index: true },
+  suratId:  { type: mongoose.Schema.Types.ObjectId, ref: 'SuratMasuk', index: true, sparse: true },
+  emailId:  { type: mongoose.Schema.Types.ObjectId, ref: 'Email',      index: true, sparse: true },
   signers:   [docSignerSchema],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });

@@ -413,7 +413,7 @@ app.get('/compose', requireAuth, async (req, res) => {
 });
 
 app.post('/compose', requireAuth, async (req, res) => {
-  const { to, cc, subject, body, tag, berkas, action } = req.body;
+  const { to, cc, subject, body, tag, berkas, action, sifat, jenis, externalRecipients } = req.body;
   try {
     const toIds = [].concat(to || []).filter(Boolean);
     const ccIds = [].concat(cc || []).filter(Boolean);
@@ -421,28 +421,201 @@ app.post('/compose', requireAuth, async (req, res) => {
       User.find({ _id: { $in: toIds } }).select('name email'),
       User.find({ _id: { $in: ccIds } }).select('name email')
     ]);
+
+    let extRecipients = [];
+    try { extRecipients = JSON.parse(externalRecipients || '[]'); } catch {}
+
+    const now  = new Date();
+    const year = now.getFullYear();
+    const ROMAN_M = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+    const seq  = await DocCounter.nextSeq('SURAT', year);
+    const nomorSurat = `${String(seq).padStart(3,'0')}/${process.env.ORG_CODE || 'INSPIRA'}/${ROMAN_M[now.getMonth()+1]}/${year}`;
+
     const isDraft = action === 'draft';
     const email = await Email.create({
-      from: { userId: req.user._id, name: req.user.name, email: req.user.email },
-      to: toUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
-      cc: ccUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
-      subject: subject?.trim() || '(Tanpa Subjek)',
-      body: body || '',
-      tag: tag || 'Normal',
-      berkas: berkas?.trim() || '',
-      status: isDraft ? 'draft' : 'sent'
+      from:       { userId: req.user._id, name: req.user.name, email: req.user.email },
+      to:         toUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
+      cc:         ccUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
+      toExternal: jenis === 'eksternal' ? extRecipients : [],
+      subject:    subject?.trim() || '(Tanpa Subjek)',
+      body:       body || '',
+      tag:        tag || 'Normal',
+      berkas:     berkas?.trim() || '',
+      sifat:      sifat || 'Biasa/Terbuka',
+      jenis:      jenis || 'internal',
+      nomorSurat,
+      status:     'draft'
     });
-    const toNames = toUsers.map(u => u.name).join(', ') || '-';
+
+    await log(req, 'email_draft', 'email', `Surat dibuat: "${email.subject}"`, { emailId: email._id });
+
     if (isDraft) {
-      await log(req, 'email_draft', 'email', `Surat disimpan sebagai draf: "${email.subject}"`, { emailId: email._id, subject: email.subject });
+      res.redirect('/draft');
     } else {
-      await log(req, 'email_sent', 'email', `Surat dikirim kepada ${toNames}: "${email.subject}"`, { emailId: email._id, subject: email.subject, to: toNames, tag });
+      res.redirect(`/email/${email._id}/preview`);
     }
-    res.redirect(isDraft ? '/draft' : '/sent');
   } catch (err) {
     console.error(err);
     res.redirect('/compose');
   }
+});
+
+// ── EMAIL PREVIEW + SIGN + SEND ──
+
+app.get('/email/:id/preview', requireAuth, async (req, res) => {
+  try {
+    const email = await Email.findById(req.params.id);
+    if (!email) return res.redirect('/sent');
+    if (email.from.userId.toString() !== req.user._id.toString()) return res.redirect('/sent');
+    const [docSig, users, counts] = await Promise.all([
+      DocumentSignature.findOne({ emailId: email._id }),
+      User.find({ isActive: true }, 'name email role organization _id').sort({ name: 1 }),
+      getMailCounts(req.user._id)
+    ]);
+    res.render('email-preview', {
+      title: 'Preview & Tanda Tangan', email,
+      docSig: docSig || { signers: [] },
+      currentUser: req.user, users, formatDate, ...counts
+    });
+  } catch (err) { console.error(err); res.redirect('/sent'); }
+});
+
+app.post('/email/:id/sign/add-signer', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const email = await Email.findById(req.params.id);
+    if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
+    const targetUser = await User.findById(userId);
+    if (!targetUser) return res.json({ ok: false, message: 'Pengguna tidak ditemukan.' });
+
+    let docSig = await DocumentSignature.findOne({ emailId: email._id });
+    if (!docSig) docSig = new DocumentSignature({ emailId: email._id, createdBy: req.user._id, signers: [] });
+    if (docSig.signers.some(s => s.userId.toString() === userId.toString()))
+      return res.json({ ok: false, message: 'Penandatangan sudah ditambahkan.' });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const qrDataUrl = await QRCode.toDataURL(`${appUrl}/verify/doc/${token}`, {
+      errorCorrectionLevel: 'H', margin: 2, width: 200, color: { dark: '#071840', light: '#ffffff' }
+    });
+    const n = docSig.signers.length;
+    docSig.signers.push({
+      userId: targetUser._id, userName: targetUser.name,
+      userRole: targetUser.role || '', userOrg: targetUser.organization || '',
+      token, qrDataUrl,
+      position: { x: 60 + n * 140, y: 680, width: 110, height: 110 }
+    });
+    await docSig.save();
+    res.json({ ok: true, signer: docSig.signers[docSig.signers.length - 1] });
+  } catch (err) { console.error(err); res.json({ ok: false, message: 'Gagal.' }); }
+});
+
+app.post('/email/:id/sign/update-position', requireAuth, async (req, res) => {
+  try {
+    const { signerId, x, y, width, height } = req.body;
+    await DocumentSignature.updateOne(
+      { emailId: req.params.id, 'signers._id': signerId },
+      { $set: { 'signers.$.position': { x, y, width, height } } }
+    );
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
+});
+
+app.delete('/email/:id/sign/signers/:signerId', requireAuth, async (req, res) => {
+  try {
+    const docSig = await DocumentSignature.findOne({ emailId: req.params.id });
+    if (!docSig) return res.json({ ok: false });
+    const signer = docSig.signers.id(req.params.signerId);
+    const wasCurrentUser = signer?.userId?.toString() === req.user._id.toString();
+    await DocumentSignature.updateOne({ emailId: req.params.id }, { $pull: { signers: { _id: req.params.signerId } } });
+    res.json({ ok: true, wasCurrentUser });
+  } catch { res.json({ ok: false }); }
+});
+
+app.post('/email/:id/send', requireAuth, async (req, res) => {
+  try {
+    const email = await Email.findById(req.params.id);
+    if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
+    if (email.from.userId.toString() !== req.user._id.toString()) return res.json({ ok: false });
+    if (email.status === 'sent') return res.json({ ok: false, message: 'Surat sudah dikirim.' });
+
+    await Email.findByIdAndUpdate(email._id, { status: 'sent' });
+
+    const allEmails = [
+      ...email.to.map(r => r.email), ...email.cc.map(r => r.email),
+      ...(email.toExternal||[]).map(r => r.email)
+    ].filter(Boolean);
+
+    if (transporter && allEmails.length > 0) {
+      const recipientNames = [
+        ...email.to.map(r => r.name),
+        ...(email.toExternal||[]).map(r => r.name || r.email)
+      ].join(', ') || '-';
+      const sifatColor = {'Biasa/Terbuka':'#16a34a','Rahasia':'#9333ea','Terbatas':'#d97706','Segera':'#dc2626'}[email.sifat]||'#6b7280';
+      const tgl = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+      const htmlBody = `<div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;">
+        <div style="background:#071840;padding:24px 32px;border-radius:8px 8px 0 0;">
+          <div style="color:#fff;font-size:18px;font-weight:700;">Inspira Mailer</div>
+          <div style="color:rgba(255,255,255,.6);font-size:12px;margin-top:2px;">Sistem Surat Digital</div>
+        </div>
+        <div style="border:1px solid #e2e8f0;border-top:none;padding:32px;border-radius:0 0 8px 8px;background:#fff;">
+          <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #f1f5f9;">
+            <span style="background:#f0f5ff;color:#1a56a8;border:1px solid #bfcfed;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-right:6px;">${email.jenis === 'internal' ? 'Internal' : 'Eksternal'}</span>
+            <span style="background:${sifatColor}20;color:${sifatColor};border:1px solid ${sifatColor}40;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;">${email.sifat}</span>
+          </div>
+          <p style="font-size:12px;color:#94a3b8;margin:0 0 6px;">No. Surat: <strong>${email.nomorSurat}</strong></p>
+          <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 20px;">${email.subject}</h2>
+          <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;">
+            <tr><td style="padding:5px 0;color:#94a3b8;width:90px;">Dari</td><td style="padding:5px 0;color:#0f172a;font-weight:500;">${email.from.name} &lt;${email.from.email}&gt;</td></tr>
+            <tr><td style="padding:5px 0;color:#94a3b8;">Kepada</td><td style="padding:5px 0;color:#0f172a;">${recipientNames}</td></tr>
+            <tr><td style="padding:5px 0;color:#94a3b8;">Tanggal</td><td style="padding:5px 0;color:#0f172a;">${tgl}</td></tr>
+            ${email.berkas ? `<tr><td style="padding:5px 0;color:#94a3b8;">Berkas</td><td style="padding:5px 0;color:#0f172a;">${email.berkas}</td></tr>` : ''}
+          </table>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px 24px;font-size:14px;line-height:1.8;color:#334155;">
+            ${email.body || '<em>Tidak ada isi surat.</em>'}
+          </div>
+          <p style="font-size:11px;color:#94a3b8;margin-top:24px;padding-top:16px;border-top:1px solid #f1f5f9;">
+            Dikirim melalui <strong>Inspira Mailer</strong> &middot; Nomor: ${email.nomorSurat}
+          </p>
+        </div></div>`;
+
+      await transporter.sendMail({
+        from: `"${email.from.name} via Inspira Mailer" <${process.env.SMTP_USER}>`,
+        to: allEmails.join(', '),
+        replyTo: email.from.email,
+        subject: `[${email.nomorSurat}] ${email.subject}`,
+        html: htmlBody
+      });
+    }
+
+    const toNames = [...email.to.map(r=>r.name),...(email.toExternal||[]).map(r=>r.name||r.email)].join(', ')||'-';
+    await log(req, 'email_sent', 'email', `Surat dikirim kepada ${toNames}: "${email.subject}"`, { nomorSurat: email.nomorSurat });
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.json({ ok: false, message: 'Gagal mengirim.' }); }
+});
+
+// Email detail
+app.get('/email/:id', requireAuth, async (req, res) => {
+  try {
+    const email = await Email.findById(req.params.id);
+    if (!email) return res.redirect('/inbox');
+    const isSender   = email.from.userId?.toString() === req.user._id.toString();
+    const isReceiver = email.to.some(t => t.userId?.toString() === req.user._id.toString())
+                    || email.cc.some(t => t.userId?.toString() === req.user._id.toString());
+    if (!isSender && !isReceiver) return res.redirect('/inbox');
+    if (isReceiver && !email.readBy.map(String).includes(String(req.user._id))) {
+      await Email.findByIdAndUpdate(email._id, { $addToSet: { readBy: req.user._id } });
+    }
+    const docSig = await DocumentSignature.findOne({ emailId: email._id });
+    const counts = await getMailCounts(req.user._id);
+    res.render('email-detail', {
+      title: email.subject, active: isSender ? 'sent' : 'inbox',
+      email, docSig: docSig || { signers: [] },
+      isSender, currentUser: req.user,
+      formatDate, formatDateTime, ...counts
+    });
+  } catch (err) { console.error(err); res.redirect('/inbox'); }
 });
 
 // Mark email read

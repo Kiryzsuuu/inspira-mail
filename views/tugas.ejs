@@ -120,12 +120,12 @@ const statusLabel = { pending: 'Belum Dikerjakan', dikerjakan: 'Sedang Dikerjaka
 
 <!-- Modal: Tugas Baru -->
 <div class="modal-overlay" id="taskModal" onclick="closeModal(event)">
-  <div class="modal-card" onclick="event.stopPropagation()">
+  <div class="modal-card modal-card-lg" onclick="event.stopPropagation()">
     <div class="modal-header">
       <h3 class="modal-title">Buat Tugas Baru</h3>
       <button class="modal-close" onclick="closeModal()">&times;</button>
     </div>
-    <form action="/tugas" method="POST" class="compose-form" style="padding:0;">
+    <form action="/tugas" method="POST" class="compose-form" style="padding:16px 24px 24px;">
       <div class="form-group">
         <label class="form-label">Judul Tugas <span class="req">*</span></label>
         <input type="text" name="title" class="form-control" placeholder="Apa yang perlu dikerjakan?" required autofocus>
@@ -151,20 +151,44 @@ const statusLabel = { pending: 'Belum Dikerjakan', dikerjakan: 'Sedang Dikerjaka
           <input type="date" name="dueDate" class="form-control">
         </div>
       </div>
+
+      <!-- Tugaskan kepada — multi-select dropdown -->
       <div class="form-group">
         <label class="form-label">Tugaskan Kepada</label>
-        <div class="select-wrap">
-          <select name="assignedTo" class="form-control form-select" multiple style="height:auto;min-height:42px;padding-right:12px;">
+        <% if (users.length === 0) { %>
+        <div class="form-control" style="color:var(--gray-400);font-size:13px;padding:10px 12px;">Belum ada pengguna lain terdaftar.</div>
+        <% } else { %>
+        <div class="multi-select-wrap" id="assignWrap">
+          <div class="multi-select-input" id="assignInput" onclick="toggleDropdown('assign')">
+            <span class="multi-placeholder" id="assignPlaceholder">Pilih anggota tim...</span>
+            <div class="selected-tags" id="assignTags"></div>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--gray-400);margin-left:auto;"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="multi-dropdown" id="assignDropdown">
+            <div style="padding:8px;border-bottom:1px solid var(--gray-100);">
+              <input type="text" class="form-control" placeholder="Cari pengguna..." style="padding:7px 10px;font-size:13px;" oninput="searchDropdownOptions('assign', this.value)">
+            </div>
+            <div class="dropdown-group-label">Pengguna Terdaftar</div>
             <% users.forEach(function(u) { %>
-            <option value="<%= u._id %>"><%= u.name %> — <%= u.email %></option>
+            <label class="dropdown-opt" data-search="<%= u.name.toLowerCase() %> <%= u.email.toLowerCase() %>">
+              <input type="checkbox" name="assignedTo" value="<%= u._id %>" onchange="toggleUserTag('assign', this, '<%= u.name %>')">
+              <div>
+                <div style="font-size:13.5px;color:var(--gray-800);"><%= u.name %></div>
+                <div style="font-size:11.5px;color:var(--gray-400);"><%= u.email %> &middot; <%= u.organization || '' %></div>
+              </div>
+            </label>
             <% }); %>
-          </select>
+          </div>
         </div>
-        <small class="form-hint">Tahan Ctrl/Cmd untuk memilih lebih dari satu</small>
+        <% } %>
       </div>
+
       <div class="compose-actions" style="padding-top:8px;">
         <button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
-        <button type="submit" class="btn btn-primary">Simpan Tugas</button>
+        <button type="submit" class="btn btn-primary">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Simpan Tugas
+        </button>
       </div>
     </form>
   </div>
@@ -182,6 +206,43 @@ function closeModal(e) {
   document.getElementById('taskModal').classList.remove('open');
   document.body.style.overflow = '';
 }
+
+// Multi-select helpers
+function toggleDropdown(id) {
+  document.getElementById(id + 'Dropdown').classList.toggle('open');
+}
+function searchDropdownOptions(id, query) {
+  const q = query.toLowerCase();
+  document.getElementById(id + 'Dropdown').querySelectorAll('.dropdown-opt').forEach(opt => {
+    opt.style.display = !q || (opt.dataset.search || '').includes(q) ? '' : 'none';
+  });
+}
+function toggleUserTag(id, checkbox, name) {
+  const tagsEl = document.getElementById(id + 'Tags');
+  const ph     = document.getElementById(id + 'Placeholder');
+  if (checkbox.checked) {
+    const tag = document.createElement('span');
+    tag.className = 'selected-tag';
+    tag.dataset.value = checkbox.value;
+    tag.textContent = name.length > 20 ? name.substring(0,18) + '…' : name;
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.innerHTML = '×';
+    btn.onclick = e => { e.stopPropagation(); tag.remove(); checkbox.checked = false; updatePlaceholder(id); };
+    tag.appendChild(btn); tagsEl.appendChild(tag);
+  } else {
+    tagsEl.querySelector('[data-value="' + checkbox.value + '"]')?.remove();
+  }
+  updatePlaceholder(id);
+}
+function updatePlaceholder(id) {
+  const ph = document.getElementById(id + 'Placeholder');
+  if (ph) ph.style.display = document.getElementById(id + 'Tags').children.length > 0 ? 'none' : '';
+}
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('assignWrap');
+  const dd   = document.getElementById('assignDropdown');
+  if (wrap && !wrap.contains(e.target)) dd?.classList.remove('open');
+});
 
 function showToast(msg, ok) {
   const t = document.getElementById('taskToast');
