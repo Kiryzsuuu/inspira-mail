@@ -133,6 +133,12 @@
               <option value="Surat Undangan Dinas">Surat Undangan Dinas</option>
               <option value="Surat Statuta">Surat Statuta</option>
             </optgroup>
+            <optgroup label="— Dokumen Perjanjian —">
+              <option value="MOU">MOU (Memorandum of Understanding)</option>
+              <option value="PKS">PKS (Perjanjian Kerjasama)</option>
+              <option value="Kontrak">Surat Kontrak</option>
+              <option value="SPK">SPK (Surat Perintah Kerja)</option>
+            </optgroup>
           </select>
         </div>
       </div>
@@ -535,6 +541,115 @@
       </div>
 
       <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: STANDARD LETTER RECIPIENT                     -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-surat-ext" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">PENERIMA</span>
+          Identitas Penerima Surat <span style="font-weight:400;color:var(--gray-400);font-size:12px;">(opsional, untuk surat eksternal)</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Jabatan Penerima</label>
+            <input type="text" id="std_jabatan" class="form-control" placeholder="cth: Direktur Utama">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Instansi / Perusahaan</label>
+            <input type="text" id="std_instansi" class="form-control" placeholder="cth: PT Maju Bersama">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Alamat Penerima</label>
+          <input type="text" id="std_alamat" class="form-control" placeholder="cth: Jl. Gatot Subroto Kav. 51, Jakarta Selatan">
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: MOU / PKS / KONTRAK                           -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-pihak-kedua" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">PIHAK KEDUA</span>
+          Data Pihak Kedua
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Nama Perwakilan</label>
+            <input type="text" id="p2_nama" class="form-control" placeholder="Nama perwakilan pihak kedua">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jabatan</label>
+            <input type="text" id="p2_jabatan" class="form-control" placeholder="Jabatan pihak kedua">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Instansi / Perusahaan</label>
+            <input type="text" id="p2_instansi" class="form-control" placeholder="cth: PT Maju Bersama">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Alamat</label>
+            <input type="text" id="p2_alamat" class="form-control" placeholder="Alamat instansi pihak kedua">
+          </div>
+        </div>
+        <div id="sec-nilai-kontrak" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">Nilai Kontrak (Rp)</label>
+            <input type="text" id="p2_nilai" class="form-control" placeholder="cth: 50.000.000">
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: SPK                                           -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-spk" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">SPK</span>
+          Data Pelaksana &amp; Pekerjaan
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Nama Tim</label>
+            <input type="text" id="spk_tim" class="form-control" placeholder="cth: TIM MAWAR">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ketua Tim</label>
+            <input type="text" id="spk_ketua" class="form-control" placeholder="Nama ketua tim">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Anggota Tim</label>
+          <input type="text" id="spk_anggota" class="form-control" placeholder="cth: Nama 1, Nama 2, Nama 3">
+        </div>
+        <label class="form-label" style="margin-top:4px;">Rincian Pekerjaan</label>
+        <table class="dyn-table" id="spkTable">
+          <thead>
+            <tr>
+              <th style="width:40px;">No.</th>
+              <th>Uraian Pekerjaan</th>
+              <th style="width:130px;">Keterangan</th>
+              <th style="width:36px;"></th>
+            </tr>
+          </thead>
+          <tbody id="spkBody"></tbody>
+        </table>
+        <button type="button" class="btn-add-row" onclick="addSpkRow()">+ Tambah Pekerjaan</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:12px;">
+          <div class="form-group">
+            <label class="form-label">Lokasi</label>
+            <input type="text" id="spk_lokasi" class="form-control" placeholder="Alamat lokasi">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal</label>
+            <input type="date" id="spk_tanggal" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Waktu</label>
+            <input type="text" id="spk_waktu" class="form-control" placeholder="cth: 08.00 WIB s.d. selesai">
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
       <!-- JENIS SURAT (Internal / Eksternal)                     -->
       <!-- ═══════════════════════════════════════════════════════ -->
       <div class="form-group">
@@ -730,10 +845,11 @@ function updateSifat(sel) { document.getElementById('infoSifat').textContent = s
 
 // ── TIPE SURAT ──
 let currentTipe = 'Surat';
-const ALL_SECS = ['sec-memo','sec-sppd','sec-tugas','sec-delegasi','sec-keterangan','sec-pernyataan','sec-kuasa','sec-pengantar','sec-keputusan','sec-undangan','sec-statuta'];
+const ALL_SECS = ['sec-memo','sec-sppd','sec-tugas','sec-delegasi','sec-keterangan','sec-pernyataan','sec-kuasa','sec-pengantar','sec-keputusan','sec-undangan','sec-statuta','sec-surat-ext','sec-pihak-kedua','sec-spk'];
 const TIPE_SECS = {
-  'Surat':[],  'Surat Resmi':[],  'Surat Formal':[],  'Surat Instruksi':[],  'Surat Edaran':[],
-  'Surat Rahasia':[], 'Surat Konfidensial':[],
+  'Surat':['sec-surat-ext'],  'Surat Resmi':['sec-surat-ext'],  'Surat Formal':['sec-surat-ext'],
+  'Surat Instruksi':['sec-surat-ext'],  'Surat Edaran':[],
+  'Surat Rahasia':['sec-surat-ext'], 'Surat Konfidensial':['sec-surat-ext'],
   'Memo':['sec-memo'], 'Nota Dinas':['sec-memo'],
   'SPPD':['sec-sppd'],
   'Surat Tugas':['sec-tugas'],
@@ -745,6 +861,10 @@ const TIPE_SECS = {
   'Surat Keputusan':['sec-keputusan'],
   'Surat Undangan Dinas':['sec-undangan'],
   'Surat Statuta':['sec-statuta'],
+  'MOU':['sec-pihak-kedua'],
+  'PKS':['sec-pihak-kedua'],
+  'Kontrak':['sec-pihak-kedua'],
+  'SPK':['sec-spk'],
 };
 const BODY_PLACEHOLDER = {
   'Surat': 'Tulis isi surat di sini...',
@@ -766,6 +886,10 @@ const BODY_PLACEHOLDER = {
   'Surat Keputusan': 'Keterangan atau catatan tambahan keputusan (opsional)...',
   'Surat Undangan Dinas': 'Keterangan tambahan undangan (opsional)...',
   'Surat Statuta': 'Ketentuan atau pasal-pasal tambahan (opsional)...',
+  'MOU': 'Tulis pasal-pasal MOU (Pasal 1, Pasal 2, dst.) di sini...',
+  'PKS': 'Tulis pasal-pasal PKS (Pasal 1, Pasal 2, dst.) di sini...',
+  'Kontrak': 'Tulis pasal-pasal kontrak (Pasal 1, Pasal 2, dst.) di sini...',
+  'SPK': 'Keterangan tambahan SPK (opsional)...',
 };
 function onTipeChange(val) {
   currentTipe = val;
@@ -776,6 +900,8 @@ function onTipeChange(val) {
   // Show nota budget only for Nota Dinas
   const notaBudget = document.getElementById('sec-nota-budget');
   if (notaBudget) notaBudget.style.display = val === 'Nota Dinas' ? '' : 'none';
+  const nilaiKontrak = document.getElementById('sec-nilai-kontrak');
+  if (nilaiKontrak) nilaiKontrak.style.display = val === 'Kontrak' ? '' : 'none';
   // Update quill placeholder
   const ph = BODY_PLACEHOLDER[val] || 'Tulis isi surat di sini...';
   quill.root.dataset.placeholder = ph;
@@ -901,6 +1027,20 @@ function addKuasaLingkup() { addListItem('kuasa_lingkup_list','Ruang lingkup kua
 function addSkItem(type) { addListItem('sk_'+type+'_list','Poin '+type+'...'); }
 // Statuta misi
 function addStaMisi() { addListItem('sta_misi_list','Pernyataan misi...'); }
+// SPK rows
+let spkRows = [];
+function addSpkRow() {
+  const id = 'spk_' + Date.now();
+  spkRows.push(id);
+  const idx = spkRows.length;
+  const tr = document.createElement('tr');
+  tr.id = 'spkrow_' + id;
+  tr.innerHTML = `<td style="text-align:center;padding:6px 4px;">${idx}</td>
+    <td><input type="text" id="spk_uraian_${id}" class="form-control" placeholder="Uraian pekerjaan..."></td>
+    <td><input type="text" id="spk_ket_${id}" class="form-control" placeholder="cth: Menyeluruh"></td>
+    <td><button type="button" class="btn-del-row" onclick="document.getElementById('spkrow_${id}').remove();spkRows=spkRows.filter(x=>x!=='${id}')">×</button></td>`;
+  document.getElementById('spkBody').appendChild(tr);
+}
 
 // ── COLLECT SURAT DATA ──
 function collectSuratData() {
@@ -971,6 +1111,30 @@ function collectSuratData() {
     sd.anggota = staAnggotaRows.map(id => ({
       nama: v('sa_nama_'+id), jabatan: v('sa_jabatan_'+id)
     })).filter(r => r.nama);
+  }
+  else if (t === 'MOU' || t === 'PKS' || t === 'Kontrak') {
+    sd.namaPihakKedua = v('p2_nama');
+    sd.jabatanPihakKedua = v('p2_jabatan');
+    sd.instansiPihakKedua = v('p2_instansi');
+    sd.alamatPihakKedua = v('p2_alamat');
+    if (t === 'Kontrak') sd.nilaiKontrak = v('p2_nilai');
+  }
+  else if (t === 'SPK') {
+    sd.namaTim = v('spk_tim');
+    sd.ketuaTim = v('spk_ketua');
+    sd.anggotaTim = v('spk_anggota');
+    sd.pekerjaanSPK = spkRows.map(id => ({
+      uraian: v('spk_uraian_'+id),
+      keterangan: v('spk_ket_'+id)
+    })).filter(r => r.uraian);
+    sd.lokasiSPK = v('spk_lokasi');
+    sd.tanggalSPK = v('spk_tanggal');
+    sd.waktuSPK = v('spk_waktu');
+  }
+  else if (['Surat','Surat Resmi','Surat Formal','Surat Instruksi','Surat Rahasia','Surat Konfidensial'].includes(t)) {
+    sd.jabatanPenerima = v('std_jabatan');
+    sd.instansiPenerima = v('std_instansi');
+    sd.alamatPenerima = v('std_alamat');
   }
   return sd;
 }

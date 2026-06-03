@@ -264,7 +264,7 @@ app.post('/forgot-password', async (req, res) => {
       user.resetToken = token;
       user.resetTokenExpiry = Date.now() + 3600000;
       await user.save();
-      const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password/${token}`;
+      const resetUrl = `${process.env.APP_URL || 'http://localhost:3005'}/reset-password/${token}`;
       await log(req, 'password_reset_request', 'auth', `Permintaan reset kata sandi untuk: ${user.email}`, { email: user.email });
       if (transporter) {
         await transporter.sendMail({
@@ -598,7 +598,7 @@ app.post('/email/:id/sign/add-self', requireAuth, async (req, res) => {
     }
 
     const token = crypto.randomBytes(32).toString('hex');
-    const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3005}`;
     const qrDataUrl = await QRCode.toDataURL(`${appUrl}/verify/doc/${token}`, {
       errorCorrectionLevel: 'H', margin: 2, width: 200, color: { dark: '#000000', light: '#ffffff' }
     });
@@ -728,7 +728,7 @@ app.post('/email/:id/send', requireAuth, async (req, res) => {
     ].filter(Boolean);
 
     if (transporter && allEmails.length > 0) {
-      const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+      const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3005}`;
       const recipientNames = [
         ...email.to.map(r => r.name),
         ...(email.toExternal||[]).map(r => r.name || r.email)
@@ -1231,7 +1231,7 @@ app.post('/digsig/generate', requireAuth, async (req, res) => {
 
     // New unique token every time — old QR instantly invalid
     const token = crypto.randomBytes(32).toString('hex');
-    const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3005}`;
     const verifyUrl = `${appUrl}/verify/${token}`;
 
     const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, {
@@ -1680,7 +1680,7 @@ app.post('/surat-masuk/:id/pdf/add-signer', requireAuth, async (req, res) => {
     }
 
     const token = crypto.randomBytes(32).toString('hex');
-    const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3005}`;
     const verifyUrl = `${appUrl}/verify/doc/${token}`;
 
     const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
@@ -1764,5 +1764,5 @@ app.get('/verify/doc/:token', async (req, res) => {
 
 // ── START ──
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3005;
 app.listen(PORT, () => console.log(`Inspira Mailer berjalan di http://localhost:${PORT}`));

@@ -512,71 +512,57 @@ const CURRENT_USER_ID = '<%= currentUser._id %>';
 // ── DRAG & RESIZE ──
 let dragState = null;
 
-document.addEventListener('mousemove', onMouseMove);
-document.addEventListener('mouseup', onMouseUp);
-
-function onMouseMove(e) {
-  if (!dragState) return;
-  const { type, el, startX, startY, origX, origY, origW, origH, page } = dragState;
-  const dx = e.clientX - startX;
-  const dy = e.clientY - startY;
-  const rect = page.getBoundingClientRect();
-
-  if (type === 'drag') {
-    let nx = origX + dx;
-    let ny = origY + dy;
-    nx = Math.max(0, Math.min(nx, rect.width - el.offsetWidth));
-    ny = Math.max(0, Math.min(ny, page.scrollHeight - el.offsetHeight));
-    el.style.left = nx + 'px';
-    el.style.top  = ny + 'px';
-  } else { // resize
-    let nw = Math.max(60, origW + dx);
-    let nh = Math.max(60, origH + dy);
-    nw = Math.min(nw, rect.width - origX);
-    el.style.width  = nw + 'px';
-    el.style.height = nh + 'px';
-  }
-}
-
-function onMouseUp(e) {
-  if (!dragState) return;
-  const el = dragState.el;
-  el.classList.remove('active');
-  savePosition(el.dataset.id, el);
-  dragState = null;
-}
-
 function initStamp(el) {
   const page = document.getElementById('a4Page');
 
-  el.addEventListener('mousedown', function(e) {
+  // ── DRAG ──
+  el.addEventListener('pointerdown', function(e) {
     if (e.target.classList.contains('qr-resize') || e.target.closest('.qr-delete')) return;
     e.preventDefault();
+    el.setPointerCapture(e.pointerId);
     el.classList.add('active');
-    dragState = {
-      type: 'drag', el,
-      startX: e.clientX, startY: e.clientY,
-      origX: parseInt(el.style.left) || 0,
-      origY: parseInt(el.style.top)  || 0,
-      page
-    };
+    dragState = { type:'drag', el, startX:e.clientX, startY:e.clientY,
+      origX: parseInt(el.style.left)||0, origY: parseInt(el.style.top)||0, page };
   });
+  el.addEventListener('pointermove', function(e) {
+    if (!dragState || dragState.el !== el || dragState.type !== 'drag') return;
+    const dx = e.clientX - dragState.startX, dy = e.clientY - dragState.startY;
+    const rect = page.getBoundingClientRect();
+    el.style.left = Math.max(0, Math.min(dragState.origX+dx, rect.width-el.offsetWidth)) + 'px';
+    el.style.top  = Math.max(0, Math.min(dragState.origY+dy, page.scrollHeight-el.offsetHeight)) + 'px';
+  });
+  el.addEventListener('pointerup', function(e) {
+    if (!dragState || dragState.el !== el) return;
+    el.classList.remove('active');
+    savePosition(el.dataset.id, el);
+    dragState = null;
+  });
+  el.addEventListener('pointercancel', function() { dragState = null; });
 
+  // ── RESIZE ──
   const resizeHandle = el.querySelector('.qr-resize');
   if (resizeHandle) {
-    resizeHandle.addEventListener('mousedown', function(e) {
+    resizeHandle.addEventListener('pointerdown', function(e) {
       e.preventDefault(); e.stopPropagation();
+      resizeHandle.setPointerCapture(e.pointerId);
       el.classList.add('active');
-      dragState = {
-        type: 'resize', el,
-        startX: e.clientX, startY: e.clientY,
-        origX: parseInt(el.style.left) || 0,
-        origY: parseInt(el.style.top)  || 0,
-        origW: el.offsetWidth,
-        origH: el.offsetHeight,
-        page
-      };
+      dragState = { type:'resize', el, startX:e.clientX, startY:e.clientY,
+        origX: parseInt(el.style.left)||0, origY: parseInt(el.style.top)||0,
+        origW: el.offsetWidth, origH: el.offsetHeight, page };
     });
+    resizeHandle.addEventListener('pointermove', function(e) {
+      if (!dragState || dragState.type !== 'resize' || dragState.el !== el) return;
+      const rect = page.getBoundingClientRect();
+      el.style.width  = Math.max(60, Math.min(dragState.origW+(e.clientX-dragState.startX), rect.width-dragState.origX)) + 'px';
+      el.style.height = Math.max(60, dragState.origH+(e.clientY-dragState.startY)) + 'px';
+    });
+    resizeHandle.addEventListener('pointerup', function(e) {
+      if (!dragState || dragState.el !== el) return;
+      el.classList.remove('active');
+      savePosition(el.dataset.id, el);
+      dragState = null;
+    });
+    resizeHandle.addEventListener('pointercancel', function() { dragState = null; });
   }
 }
 
