@@ -115,34 +115,34 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 /* ── QR STAMP — gambar + garis + nama + jabatan ── */
 .qr-stamp {
   position: absolute; cursor: move; user-select: none;
-  border: 2px dashed transparent; border-radius: 4px; transition: border-color .15s;
+  border: none; outline: 2px dashed transparent;
+  outline-offset: 2px; border-radius: 4px; transition: outline-color .15s;
   display: flex; flex-direction: column; align-items: center;
-  padding: 0 2px 6px;
+  padding: 0;
 }
-.qr-stamp:hover, .qr-stamp.active { border-color: #1a56a8; }
+.qr-stamp:hover, .qr-stamp.active { outline-color: #1a56a8; }
 
-/* Gambar QR — max 70% tinggi container, sisanya untuk teks */
 .qr-stamp img {
   width: 100%;
-  max-height: 65%;
+  max-height: 68%;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
 }
 .qr-stamp-sig {
-  width: 92%; border-top: 1.5px solid #111;
-  margin: 5px 0 4px;
+  width: 95%; border-top: 1.5px solid #111;
+  margin: 6px 0 5px;
   flex-shrink: 0;
 }
 .qr-stamp-name {
-  font-size: 9px; font-weight: 700; text-align: center;
-  color: #111; padding: 0 3px;
+  font-size: 10px; font-weight: 700; text-align: center;
+  color: #111; padding: 0 4px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 100%; line-height: 1.4; flex-shrink: 0;
+  max-width: 100%; line-height: 1.5; flex-shrink: 0;
 }
 .qr-stamp-role {
-  font-size: 8px; color: #555; text-align: center;
-  padding: 1px 3px; white-space: nowrap; overflow: hidden;
+  font-size: 8.5px; color: #111; text-align: center;
+  padding: 1px 4px 0; white-space: nowrap; overflow: hidden;
   text-overflow: ellipsis; max-width: 100%; flex-shrink: 0;
 }
 .qr-resize { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; cursor: se-resize; background: #1a56a8; border-radius: 2px 0 0 0; opacity: 0; transition: opacity .15s; }
@@ -198,7 +198,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
   .pdf-canvas-area { display: block !important; padding: 0 !important; background: #fff !important; overflow: visible !important; }
   .a4-page { width: 210mm !important; min-height: 297mm !important; box-shadow: none !important; overflow: hidden !important; }
   .qr-resize, .qr-delete { display: none !important; }
-  .qr-stamp { border-color: transparent !important; cursor: default !important; }
+  .qr-stamp { outline: none !important; cursor: default !important; }
 }
 </style>
 </head>

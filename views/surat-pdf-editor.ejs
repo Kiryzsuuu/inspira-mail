@@ -129,37 +129,34 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 
 /* ── QR STAMP (draggable/resizable) ── */
 .qr-stamp {
-  position: absolute;
-  cursor: move;
-  user-select: none;
-  border: 2px dashed transparent;
-  border-radius: 4px;
-  transition: border-color .15s;
+  position: absolute; cursor: move; user-select: none;
+  border: none; outline: 2px dashed transparent;
+  outline-offset: 2px; border-radius: 4px; transition: outline-color .15s;
   display: flex; flex-direction: column; align-items: center;
-  padding-bottom: 4px;
+  padding: 0;
 }
-.qr-stamp:hover, .qr-stamp.active { border-color: #1a56a8; }
+.qr-stamp:hover, .qr-stamp.active { outline-color: #1a56a8; }
 .qr-stamp img {
   width: 100%;
-  max-height: 65%;
+  max-height: 68%;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
 }
 .qr-stamp-sig {
-  width: 92%;
+  width: 95%;
   border-top: 1.5px solid #111;
-  margin: 5px 0 4px;
+  margin: 6px 0 5px;
   flex-shrink: 0;
 }
 .qr-stamp-name {
-  font-size: 8.5px; font-weight: 700; text-align: center;
-  color: #071840; padding: 3px 4px 0;
+  font-size: 9px; font-weight: 700; text-align: center;
+  color: #111; padding: 3px 4px 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 100%; line-height: 1.3;
+  max-width: 100%; line-height: 1.4;
 }
 .qr-stamp-role {
-  font-size: 7.5px; color: #475569; text-align: center;
+  font-size: 8px; color: #111; text-align: center;
   padding: 1px 4px 2px; white-space: nowrap; overflow: hidden;
   text-overflow: ellipsis; max-width: 100%;
 }
@@ -273,7 +270,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
     overflow: hidden !important;
   }
   .qr-resize, .qr-delete { display: none !important; }
-  .qr-stamp { border-color: transparent !important; cursor: default !important; }
+  .qr-stamp { outline: none !important; cursor: default !important; }
 }
 </style>
 </head>
