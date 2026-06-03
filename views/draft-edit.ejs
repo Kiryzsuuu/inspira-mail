@@ -1,0 +1,301 @@
+<%- include('./partials/header') %>
+
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<style>
+.jenis-tabs { display:flex; gap:0; border:1px solid var(--gray-200); border-radius:8px; overflow:hidden; }
+.jenis-tab { flex:1; padding:9px 0; font-size:13px; font-weight:500; text-align:center; cursor:pointer; background:var(--gray-50); color:var(--gray-500); border:none; transition:all .15s; display:flex; align-items:center; justify-content:center; gap:6px; }
+.jenis-tab.active { background:#071840; color:#fff; }
+.jenis-tab:first-child { border-right:1px solid var(--gray-200); }
+.ext-recipient-input { display:flex; gap:8px; margin-bottom:8px; }
+.ext-recipient-input input { flex:1; }
+.ext-list { display:flex; flex-direction:column; gap:6px; }
+.ext-item { display:flex; align-items:center; gap:8px; padding:7px 12px; border-radius:7px; background:var(--gray-50); border:1px solid var(--gray-200); font-size:13px; }
+.ext-item-name { font-weight:600; color:var(--gray-800); }
+.ext-item-email { color:var(--gray-500); }
+.ext-item-del { margin-left:auto; background:none; border:none; cursor:pointer; color:var(--gray-400); font-size:16px; line-height:1; }
+.ext-item-del:hover { color:var(--red-500); }
+.ql-container { font-family:'DM Sans',sans-serif; font-size:14px; border:1px solid var(--gray-200) !important; border-top:0 !important; border-radius:0 0 var(--radius-md) var(--radius-md) !important; }
+.ql-toolbar { border:1px solid var(--gray-200) !important; border-radius:var(--radius-md) var(--radius-md) 0 0 !important; background:var(--gray-50); flex-wrap:wrap; }
+.ql-editor { min-height:240px; line-height:1.8; color:var(--gray-800); padding:16px; }
+.ql-editor.ql-blank::before { color:var(--gray-400); font-style:normal; font-size:13.5px; }
+.ql-editor img { max-width:100%; height:auto; border-radius:4px; }
+</style>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / <a href="/draft">Draf</a> / Edit</div>
+    <h1 class="page-title">Edit Draf</h1>
+    <p class="page-subtitle">No. <%= email.nomorSurat %></p>
+  </div>
+  <div class="page-actions">
+    <a href="/draft" class="btn btn-secondary">Kembali</a>
+  </div>
+</div>
+
+<form action="/draft/<%= email._id %>/update" method="POST" id="editForm">
+  <input type="hidden" name="body" id="bodyHidden">
+  <input type="hidden" name="jenis" id="jenisHidden" value="<%= email.jenis || 'internal' %>">
+  <input type="hidden" name="externalRecipients" id="externalRecipientsHidden" value="[]">
+
+<div class="compose-layout">
+  <div class="compose-card">
+    <div class="compose-card-header">
+      <span class="compose-card-title">Edit Draf Surat</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:var(--gray-400);">Sifat:</span>
+        <select name="sifat" id="sifatSelect" class="admin-role-select" style="padding:5px 24px 5px 10px;font-size:12.5px;" onchange="updateSifat(this)">
+          <option value="Biasa/Terbuka" <%= email.sifat==='Biasa/Terbuka'?'selected':'' %>>Biasa / Terbuka</option>
+          <option value="Terbatas"      <%= email.sifat==='Terbatas'?'selected':'' %>>Terbatas</option>
+          <option value="Rahasia"       <%= email.sifat==='Rahasia'?'selected':'' %>>Rahasia</option>
+          <option value="Segera"        <%= email.sifat==='Segera'?'selected':'' %>>Segera</option>
+        </select>
+      </div>
+    </div>
+    <div class="compose-form">
+
+      <div class="form-group">
+        <label class="form-label">Jenis Surat</label>
+        <div class="jenis-tabs">
+          <button type="button" class="jenis-tab <%= (email.jenis||'internal')==='internal'?'active':'' %>" id="tabInternal" onclick="setJenis('internal')">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 100 12A6 6 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Internal (Pengguna Terdaftar)
+          </button>
+          <button type="button" class="jenis-tab <%= email.jenis==='eksternal'?'active':'' %>" id="tabEksternal" onclick="setJenis('eksternal')">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M2 10h16M10 2c-2 2.5-3 5-3 8s1 5.5 3 8M10 2c2 2.5 3 5 3 8s-1 5.5-3 8" stroke="currentColor" stroke-width="1.5"/></svg>
+            Eksternal (Email Bebas)
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Subjek / Perihal <span class="req">*</span></label>
+        <input type="text" name="subject" class="form-control" value="<%= email.subject %>" placeholder="Perihal surat..." required>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Klasifikasi / Berkas</label>
+          <div class="select-wrap">
+            <select name="berkas" class="form-control form-select">
+              <option value="">— Pilih Berkas —</option>
+              <option value="OPS.01.02" <%= email.berkas==='OPS.01.02'?'selected':'' %>>OPS.01.02 — On Time Performance</option>
+              <option value="OPS.01.03" <%= email.berkas==='OPS.01.03'?'selected':'' %>>OPS.01.03 — Analisis Runway Capacity</option>
+              <option value="OPS.01.04" <%= email.berkas==='OPS.01.04'?'selected':'' %>>OPS.01.04 — Pemantauan Delay</option>
+              <option value="OPS.02"    <%= email.berkas==='OPS.02'?'selected':'' %>>OPS.02 — Collaborative Decision Making</option>
+              <option value="OPS.03"    <%= email.berkas==='OPS.03'?'selected':'' %>>OPS.03 — Air Traffic System</option>
+              <option value="OPS.03.02" <%= email.berkas==='OPS.03.02'?'selected':'' %>>OPS.03.02 — Pembinaan Penggunaan Peralatan ATS</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tag / Prioritas</label>
+          <div class="select-wrap">
+            <select name="tag" class="form-control form-select">
+              <option value="Normal"  <%= email.tag==='Normal'?'selected':'' %>>Normal</option>
+              <option value="Penting" <%= email.tag==='Penting'?'selected':'' %>>Penting</option>
+              <option value="Urgent"  <%= email.tag==='Urgent'?'selected':'' %>>Urgent</option>
+              <option value="Info"    <%= email.tag==='Info'?'selected':'' %>>Info</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERNAL -->
+      <div id="internalSection" style="display:<%= (email.jenis||'internal')==='internal'?'':'none' %>">
+        <div class="form-group">
+          <label class="form-label">Tertuju (Penerima Internal)</label>
+          <div class="multi-select-wrap" id="tertujuWrap">
+            <div class="multi-select-input" id="tertujuInput" onclick="toggleDropdown('tertuju')">
+              <span class="multi-placeholder" id="tertujuPlaceholder" style="<%= email.to&&email.to.length?'display:none':'' %>">Pilih penerima...</span>
+              <div class="selected-tags" id="tertujuTags">
+                <% (email.to||[]).forEach(r => { %>
+                <span class="selected-tag" data-value="<%= r.userId %>">
+                  <%= r.name.length>20 ? r.name.substring(0,18)+'…' : r.name %>
+                  <button type="button" onclick="event.stopPropagation();this.parentElement.remove();document.querySelector('[name=to][value=\'<%= r.userId %>\']').checked=false;updatePh('tertuju');">×</button>
+                </span>
+                <% }) %>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--gray-400);margin-left:auto;"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="multi-dropdown" id="tertujuDropdown">
+              <div style="padding:8px;border-bottom:1px solid var(--gray-100);">
+                <input type="text" class="form-control" placeholder="Cari..." style="padding:7px 10px;font-size:13px;" oninput="searchDD('tertuju',this.value)">
+              </div>
+              <div class="dropdown-group-label">Pengguna Terdaftar</div>
+              <% users.forEach(u => { const isSel = (email.to||[]).some(r => r.userId?.toString()===u._id.toString()); %>
+              <label class="dropdown-opt" data-search="<%= u.name.toLowerCase() %> <%= u.email.toLowerCase() %>">
+                <input type="checkbox" name="to" value="<%= u._id %>" <%= isSel?'checked':'' %> onchange="toggleTag('tertuju',this,'<%= u.name %>')">
+                <div>
+                  <div style="font-size:13.5px;color:var(--gray-800);"><%= u.name %></div>
+                  <div style="font-size:11.5px;color:var(--gray-400);"><%= u.email %></div>
+                </div>
+              </label>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EKSTERNAL -->
+      <div id="eksternalSection" style="display:<%= email.jenis==='eksternal'?'':'none' %>">
+        <div class="form-group">
+          <label class="form-label">Penerima Eksternal</label>
+          <div class="ext-recipient-input">
+            <input type="text" id="extName" class="form-control" placeholder="Nama penerima" style="max-width:220px;">
+            <input type="email" id="extEmail" class="form-control" placeholder="email@domain.com">
+            <button type="button" class="btn btn-secondary" onclick="addExt()" style="white-space:nowrap;padding:8px 16px;">+ Tambah</button>
+          </div>
+          <div class="ext-list" id="extList"></div>
+          <div id="extEmpty" style="font-size:12.5px;color:var(--gray-400);padding:6px 0;display:<%= (email.toExternal||[]).length?'none':'' %>">Belum ada penerima.</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Isi Surat</label>
+        <div id="quillEditor"></div>
+      </div>
+
+      <div class="compose-actions">
+        <a href="/draft" class="btn btn-ghost">Batal</a>
+        <button type="submit" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Simpan &amp; Lanjut ke Preview
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="compose-sidebar">
+    <div class="info-card">
+      <div class="info-card-title">Info Draf</div>
+      <div class="info-item"><span class="info-key">No. Surat</span><span class="info-val" style="font-size:11.5px;font-weight:600;"><%= email.nomorSurat %></span></div>
+      <div class="info-item"><span class="info-key">Pengirim</span><span class="info-val"><%= email.from.name.split(' ')[0] %></span></div>
+      <div class="info-item"><span class="info-key">Sifat</span><span class="info-val" id="infoSifat"><%= email.sifat %></span></div>
+      <div class="info-item" style="border-bottom:none;"><span class="info-key">Dibuat</span><span class="info-val" style="font-size:12px;"><%= formatDate(email.createdAt) %></span></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-title">Alur</div>
+      <ul style="font-size:12.5px;color:var(--gray-600);line-height:2;padding-left:16px;">
+        <li style="color:var(--green-600);font-weight:500;">Edit konten surat</li>
+        <li style="color:var(--brand-600);font-weight:500;">Preview A4 + Tanda Tangan</li>
+        <li>Kirim via email</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</form>
+
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script>
+const SizeStyle = Quill.import('attributors/style/size');
+SizeStyle.whitelist = ['10px','12px','14px','16px','18px','20px','24px','28px','32px'];
+Quill.register(SizeStyle, true);
+
+const quill = new Quill('#quillEditor', {
+  theme: 'snow',
+  placeholder: 'Tulis isi surat di sini...',
+  modules: {
+    toolbar: {
+      container: [
+        [{ font: [] }, { size: ['10px','12px','14px','16px','18px','20px','24px','28px','32px'] }],
+        [{ header: [1,2,3,4,false] }],
+        ['bold','italic','underline','strike'],
+        [{ color: [] },{ background: [] }],
+        ['blockquote','code-block'],
+        [{ list:'ordered' },{ list:'bullet' },{ list:'check' }],
+        [{ indent:'-1' },{ indent:'+1' }],
+        [{ align: [] }],
+        ['link','image'],
+        ['clean']
+      ],
+      handlers: {
+        image() {
+          const inp = document.createElement('input');
+          inp.setAttribute('type','file'); inp.setAttribute('accept','image/*'); inp.click();
+          inp.onchange = () => {
+            const file = inp.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => { const r = quill.getSelection(true); quill.insertEmbed(r.index,'image',e.target.result); quill.setSelection(r.index+1); };
+            reader.readAsDataURL(file);
+          };
+        }
+      }
+    }
+  }
+});
+
+// Pre-fill body content
+quill.root.innerHTML = `<%- email.body || '' %>`;
+
+// Submit
+document.getElementById('editForm').addEventListener('submit', function(e) {
+  document.getElementById('bodyHidden').value = quill.root.innerHTML;
+  document.getElementById('externalRecipientsHidden').value = JSON.stringify(extList);
+});
+
+function updateSifat(s) { document.getElementById('infoSifat').textContent = s.value; }
+
+// JENIS
+let currentJenis = '<%= email.jenis || "internal" %>';
+function setJenis(j) {
+  currentJenis = j;
+  document.getElementById('jenisHidden').value = j;
+  document.getElementById('tabInternal').classList.toggle('active', j==='internal');
+  document.getElementById('tabEksternal').classList.toggle('active', j==='eksternal');
+  document.getElementById('internalSection').style.display = j==='internal'?'':'none';
+  document.getElementById('eksternalSection').style.display = j==='eksternal'?'':'none';
+}
+
+// EXTERNAL
+let extList = <%- JSON.stringify(email.toExternal || []) %>;
+function addExt() {
+  const n = document.getElementById('extName').value.trim();
+  const e = document.getElementById('extEmail').value.trim();
+  if (!e) return;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { showAlert('Format email tidak valid.'); return; }
+  if (extList.find(r=>r.email===e)) { showAlert('Email sudah ditambahkan.'); return; }
+  extList.push({ name:n||e, email:e });
+  renderExtList();
+  document.getElementById('extName').value=''; document.getElementById('extEmail').value='';
+}
+function removeExt(email) { extList = extList.filter(r=>r.email!==email); renderExtList(); }
+function renderExtList() {
+  const list=document.getElementById('extList'), empty=document.getElementById('extEmpty');
+  list.innerHTML=''; empty.style.display=extList.length?'none':'';
+  extList.forEach(r=>{
+    const d=document.createElement('div'); d.className='ext-item';
+    d.innerHTML=`<svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="color:var(--gray-400);flex-shrink:0;"><path d="M3 5l7 5 7-5M3 5v10h14V5H3z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ext-item-name">${r.name}</span><span class="ext-item-email">&lt;${r.email}&gt;</span><button type="button" class="ext-item-del" onclick="removeExt('${r.email}')">&times;</button>`;
+    list.appendChild(d);
+  });
+  document.getElementById('externalRecipientsHidden').value = JSON.stringify(extList);
+}
+renderExtList();
+
+// DROPDOWN HELPERS
+function toggleDropdown(id) { document.getElementById(id+'Dropdown').classList.toggle('open'); }
+function searchDD(id, q) {
+  document.getElementById(id+'Dropdown').querySelectorAll('.dropdown-opt').forEach(o=>{
+    o.style.display=!q||(o.dataset.search||'').includes(q.toLowerCase())?'':'none';
+  });
+}
+function toggleTag(id, cb, name) {
+  const tags=document.getElementById(id+'Tags'), ph=document.getElementById(id+'Placeholder');
+  if (cb.checked) {
+    const t=document.createElement('span'); t.className='selected-tag'; t.dataset.value=cb.value;
+    t.textContent=name.length>20?name.substring(0,18)+'…':name;
+    const b=document.createElement('button'); b.type='button'; b.innerHTML='×';
+    b.onclick=e=>{e.stopPropagation();t.remove();cb.checked=false;updatePh(id);};
+    t.appendChild(b); tags.appendChild(t);
+  } else { tags.querySelector('[data-value="'+cb.value+'"]')?.remove(); }
+  updatePh(id);
+}
+function updatePh(id) {
+  const ph=document.getElementById(id+'Placeholder');
+  if(ph) ph.style.display=document.getElementById(id+'Tags').children.length?'none':'';
+}
+document.addEventListener('click', e=>{
+  if (!e.target.closest('.multi-select-wrap')) document.querySelectorAll('.multi-dropdown').forEach(d=>d.classList.remove('open'));
+});
+</script>
+
+<%- include('./partials/footer') %>

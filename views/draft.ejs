@@ -2,48 +2,185 @@
 
 <div class="page-header">
   <div class="page-title-group">
-    <div class="page-breadcrumb"><a href="/">Dashboard</a> / Draf</div>
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Draf</div>
     <h1 class="page-title">Draf</h1>
     <p class="page-subtitle"><%= mails.length %> konsep surat tersimpan</p>
   </div>
   <div class="page-actions">
+    <button id="btnBulkDel" class="btn btn-secondary" style="color:var(--red-500);display:none;" onclick="bulkDelete()">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Hapus Terpilih
+    </button>
     <a href="/compose" class="btn btn-primary">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <span>Tulis Surat</span>
+      Tulis Surat
     </a>
   </div>
 </div>
 
 <div class="mail-list-wrap">
-  <div class="mail-list-header">
-    <span class="mail-list-title"><%= mails.length %> draf</span>
+  <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--gray-500);">
+        <input type="checkbox" id="checkAll" onclick="toggleAll(this)" style="width:14px;height:14px;accent-color:var(--brand-600);">
+        Semua
+      </label>
+      <span class="mail-list-title" id="draftCount"><%= mails.length %> draf</span>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <input type="text" id="searchBox" class="search-input" placeholder="Cari subjek, penerima..."
+        style="width:240px;padding:7px 12px;" oninput="liveSearch(this.value)">
+      <button class="btn btn-ghost" style="padding:7px 10px;" onclick="document.getElementById('searchBox').value='';liveSearch('');" title="Reset">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
   </div>
 
   <% if (mails.length === 0) { %>
   <div class="empty-state">
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M12 12h24M12 20h16M12 28h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M32 30l4 4 8-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M12 12h24M12 20h16M12 28h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     <p>Tidak ada draf tersimpan.</p>
     <a href="/compose" class="btn btn-primary" style="margin-top:12px;">Tulis Surat Baru</a>
   </div>
   <% } %>
 
-  <% mails.forEach(function(m) { %>
-  <a href="/compose" class="mail-item">
-    <input type="checkbox" class="mail-checkbox" onclick="event.preventDefault(); event.stopPropagation();">
-    <div class="mail-avatar av-amber">DS</div>
-    <div class="mail-body">
-      <div class="mail-from" style="color: var(--gray-500); font-style: italic;">
-        <% if (m.to && m.to !== '-') { %>Kepada: <%= m.to %><% } else { %>Belum dikirim<% } %>
+  <% const tagClass = { Penting:'tag-penting', Urgent:'tag-urgent', Info:'tag-info', Normal:'tag-normal' };
+     const avColors = ['av-teal','av-blue','av-green','av-purple','av-amber'];
+  %>
+  <% mails.forEach(function(m, i) {
+    const toStr = m.to.map(t => t.name).join(', ') || (m.toExternal||[]).map(r=>r.name||r.email).join(', ') || '—';
+    const initials = (m.subject||'DS').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase() || 'DS';
+    const avColor = avColors[i % avColors.length];
+  %>
+  <div class="mail-item draft-item" id="di-<%= m._id %>"
+    data-search="<%= (m.subject + ' ' + toStr).toLowerCase() %>"
+    style="position:relative;">
+
+    <!-- Checkbox -->
+    <input type="checkbox" class="mail-checkbox draft-cb" data-id="<%= m._id %>"
+      onclick="event.stopPropagation(); onCbChange(this)"
+      style="width:14px;height:14px;flex-shrink:0;accent-color:var(--brand-600);cursor:pointer;">
+
+    <!-- Avatar -->
+    <div class="mail-avatar <%= avColor %>" style="cursor:pointer;" onclick="window.location='/draft/<%= m._id %>/edit'"><%= initials %></div>
+
+    <!-- Body — klik buka edit -->
+    <div class="mail-body" style="cursor:pointer;" onclick="window.location='/draft/<%= m._id %>/edit'">
+      <div class="mail-from" style="color:var(--gray-500);font-style:italic;">
+        <% if (toStr !== '—') { %>Kepada: <%= toStr %><% } else { %>Belum ada penerima<% } %>
       </div>
       <div class="mail-subject"><%= m.subject %></div>
       <% if (m.berkas) { %><div class="mail-berkas"><%= m.berkas %></div><% } %>
     </div>
-    <div class="mail-meta">
-      <span class="mail-date"><%= m.date %></span>
+
+    <!-- Meta + actions -->
+    <div class="mail-meta" style="gap:8px;">
+      <span class="mail-date"><%= formatDate(m.createdAt) %></span>
       <span class="mail-tag tag-draft">Draf</span>
+      <!-- Action buttons -->
+      <div style="display:flex;gap:4px;margin-left:4px;" onclick="event.stopPropagation()">
+        <a href="/draft/<%= m._id %>/edit" class="btn btn-secondary" style="padding:5px 10px;font-size:12px;" title="Edit">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M13.5 3.5l3 3L7 16H4v-3L13.5 3.5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Edit
+        </a>
+        <a href="/email/<%= m._id %>/preview" class="btn btn-secondary" style="padding:5px 10px;font-size:12px;" title="Preview & Kirim">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Kirim
+        </a>
+        <button class="btn btn-secondary" style="padding:5px 10px;font-size:12px;color:var(--red-500);"
+          onclick="deleteDraft('<%= m._id %>')" title="Hapus">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
     </div>
-  </a>
+  </div>
   <% }); %>
 </div>
+
+<div class="admin-toast" id="draftToast"></div>
+
+<script>
+// ── SEARCH ──
+function liveSearch(q) {
+  const kw = q.toLowerCase().trim();
+  let n = 0;
+  document.querySelectorAll('.draft-item').forEach(el => {
+    const show = !kw || (el.dataset.search||'').includes(kw);
+    el.style.display = show ? '' : 'none';
+    if (show) n++;
+  });
+  document.getElementById('draftCount').textContent = n + ' draf';
+}
+
+// ── CHECKBOX ──
+function toggleAll(cb) {
+  document.querySelectorAll('.draft-cb').forEach(c => {
+    const item = c.closest('.draft-item');
+    if (item && item.style.display !== 'none') {
+      c.checked = cb.checked;
+      item.classList.toggle('selected', cb.checked);
+    }
+  });
+  updateBulkBtn();
+}
+function onCbChange(cb) {
+  cb.closest('.draft-item').classList.toggle('selected', cb.checked);
+  updateBulkBtn();
+  const all = document.querySelectorAll('.draft-cb');
+  const checked = document.querySelectorAll('.draft-cb:checked');
+  document.getElementById('checkAll').indeterminate = checked.length > 0 && checked.length < all.length;
+  document.getElementById('checkAll').checked = checked.length === all.length && all.length > 0;
+}
+function updateBulkBtn() {
+  const n = document.querySelectorAll('.draft-cb:checked').length;
+  const btn = document.getElementById('btnBulkDel');
+  btn.style.display = n > 0 ? '' : 'none';
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> Hapus ${n} Draf`;
+}
+
+// ── DELETE SINGLE ──
+async function deleteDraft(id) {
+  if (!await showConfirm('Hapus draf ini secara permanen?', { title:'Hapus Draf', type:'danger', confirmLabel:'Hapus' })) return;
+  const res  = await fetch('/draft/' + id, { method:'DELETE' });
+  const data = await res.json();
+  if (data.ok) {
+    document.getElementById('di-' + id)?.remove();
+    updateCount(-1);
+    showToast('Draf dihapus.', true);
+  } else showToast('Gagal menghapus.', false);
+}
+
+// ── BULK DELETE ──
+async function bulkDelete() {
+  const ids = [...document.querySelectorAll('.draft-cb:checked')].map(c => c.dataset.id);
+  if (!ids.length) return;
+  if (!await showConfirm(`Hapus ${ids.length} draf secara permanen?`, { title:'Hapus Draf', type:'danger', confirmLabel:'Hapus Semua' })) return;
+  const res  = await fetch('/draft/bulk-delete', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ ids })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    ids.forEach(id => document.getElementById('di-' + id)?.remove());
+    updateCount(-ids.length);
+    document.getElementById('btnBulkDel').style.display = 'none';
+    document.getElementById('checkAll').checked = false;
+    showToast(`${data.deleted} draf dihapus.`, true);
+  } else showToast('Gagal menghapus.', false);
+}
+
+function updateCount(delta) {
+  const el = document.getElementById('draftCount');
+  const n  = Math.max(0, parseInt(el.textContent) + delta);
+  el.textContent = n + ' draf';
+}
+
+function showToast(msg, ok) {
+  const t = document.getElementById('draftToast');
+  t.textContent = msg;
+  t.className = 'admin-toast admin-toast-' + (ok ? 'success' : 'error') + ' admin-toast-show';
+  setTimeout(() => t.className = 'admin-toast', 3000);
+}
+</script>
 
 <%- include('./partials/footer') %>

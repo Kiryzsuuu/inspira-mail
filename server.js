@@ -385,20 +385,89 @@ app.get('/draft', requireAuth, async (req, res) => {
     }).sort({ createdAt: -1 });
 
     const counts = await getMailCounts(req.user._id);
-    const formatted = mails.map(m => ({
-      _id: m._id,
-      id: m._id,
-      to: m.to.map(t => t.name).join(', ') || '-',
-      subject: m.subject,
-      date: formatDate(m.createdAt),
-      tag: m.tag,
-      berkas: m.berkas
-    }));
-
-    res.render('draft', { mails: formatted, active: 'draft', title: 'Draf', ...counts });
+    res.render('draft', { mails, active: 'draft', title: 'Draf', formatDate, ...counts });
   } catch (err) {
     console.error(err);
-    res.render('draft', { mails: [], active: 'draft', title: 'Draf', inboxCount: 0, draftCount: 0 });
+    res.render('draft', { mails: [], active: 'draft', title: 'Draf', formatDate, inboxCount: 0, draftCount: 0 });
+  }
+});
+
+// Edit draft — buka compose form dengan data yang sudah ada
+app.get('/draft/:id/edit', requireAuth, async (req, res) => {
+  try {
+    const email = await Email.findById(req.params.id);
+    if (!email || email.from.userId?.toString() !== req.user._id.toString())
+      return res.redirect('/draft');
+    const users  = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization').sort('name');
+    const counts = await getMailCounts(req.user._id);
+    res.render('draft-edit', { active: 'draft', title: 'Edit Draf', email, users, formatDate, ...counts });
+  } catch (err) {
+    console.error(err);
+    res.redirect('/draft');
+  }
+});
+
+// Update draft content
+app.post('/draft/:id/update', requireAuth, async (req, res) => {
+  try {
+    const { to, cc, subject, body, tag, berkas, sifat, jenis, externalRecipients } = req.body;
+    const email = await Email.findById(req.params.id);
+    if (!email || email.from.userId?.toString() !== req.user._id.toString())
+      return res.json({ ok: false });
+
+    const toIds = [].concat(to || []).filter(Boolean);
+    const ccIds = [].concat(cc || []).filter(Boolean);
+    const [toUsers, ccUsers] = await Promise.all([
+      User.find({ _id: { $in: toIds } }).select('name email'),
+      User.find({ _id: { $in: ccIds } }).select('name email')
+    ]);
+    let extRecipients = [];
+    try { extRecipients = JSON.parse(externalRecipients || '[]'); } catch {}
+
+    await Email.findByIdAndUpdate(email._id, {
+      to:         toUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
+      cc:         ccUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
+      toExternal: jenis === 'eksternal' ? extRecipients : [],
+      subject:    subject?.trim() || '(Tanpa Subjek)',
+      body:       body || '',
+      tag:        tag || 'Normal',
+      berkas:     berkas?.trim() || '',
+      sifat:      sifat || 'Biasa/Terbuka',
+      jenis:      jenis || 'internal'
+    });
+    res.redirect(`/email/${email._id}/preview`);
+  } catch (err) {
+    console.error(err);
+    res.redirect('/draft');
+  }
+});
+
+// Delete single draft
+app.delete('/draft/:id', requireAuth, async (req, res) => {
+  try {
+    const email = await Email.findById(req.params.id);
+    if (!email || email.from.userId?.toString() !== req.user._id.toString())
+      return res.json({ ok: false });
+    await Email.findByIdAndDelete(email._id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
+// Bulk delete drafts
+app.post('/draft/bulk-delete', requireAuth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids || !ids.length) return res.json({ ok: false });
+    await Email.deleteMany({
+      _id: { $in: ids },
+      'from.userId': req.user._id,
+      status: 'draft'
+    });
+    res.json({ ok: true, deleted: ids.length });
+  } catch (err) {
+    res.json({ ok: false });
   }
 });
 
