@@ -53,13 +53,21 @@ const statusLabel = { pending: 'Belum Dikerjakan', dikerjakan: 'Sedang Dikerjaka
 
 <!-- Filter tabs -->
 <div class="mail-list-wrap">
-  <div class="mail-list-header" style="flex-wrap:wrap;gap:8px;">
-    <span class="mail-list-title">Daftar Tugas</span>
-    <div class="filter-tabs">
-      <button class="filter-tab active" onclick="filterTask(this,'all')">Semua</button>
-      <button class="filter-tab" onclick="filterTask(this,'pending')">Belum</button>
-      <button class="filter-tab" onclick="filterTask(this,'dikerjakan')">Proses</button>
-      <button class="filter-tab" onclick="filterTask(this,'selesai')">Selesai</button>
+  <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
+    <span class="mail-list-title" id="taskCount">Daftar Tugas</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input type="text" id="searchTask" class="search-input" placeholder="Cari judul, deskripsi..." style="width:220px;padding:7px 12px;" oninput="liveSearchTask(this.value)">
+        <button class="btn btn-ghost" style="padding:7px 10px;" onclick="document.getElementById('searchTask').value='';liveSearchTask('');" title="Reset">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterTask(this,'all')">Semua</button>
+        <button class="filter-tab" onclick="filterTask(this,'pending')">Belum</button>
+        <button class="filter-tab" onclick="filterTask(this,'dikerjakan')">Proses</button>
+        <button class="filter-tab" onclick="filterTask(this,'selesai')">Selesai</button>
+      </div>
     </div>
   </div>
 
@@ -74,7 +82,8 @@ const statusLabel = { pending: 'Belum Dikerjakan', dikerjakan: 'Sedang Dikerjaka
     const isOwner = t.createdBy.userId.toString() === user._id.toString();
     const assigneeNames = (t.assignedTo || []).map(a => a.name).join(', ') || '—';
   %>
-  <div class="task-item" data-status="<%= t.status %>">
+  <div class="task-item" data-status="<%= t.status %>"
+    data-search="<%= (t.title + ' ' + (t.description||'') + ' ' + assigneeNames + ' ' + t.createdBy.name).toLowerCase() %>">
     <div class="task-item-left">
       <button class="task-check-btn" onclick="cycleStatus('<%= t._id %>', '<%= t.status %>', this)" title="Ubah status">
         <% if (t.status === 'selesai') { %>
@@ -251,12 +260,28 @@ function showToast(msg, ok) {
   setTimeout(() => t.className = 'admin-toast', 3000);
 }
 
+let currentTaskFilter = 'all';
+
+function liveSearchTask(q) {
+  const kw = q.toLowerCase().trim();
+  let visible = 0;
+  document.querySelectorAll('.task-item').forEach(el => {
+    const s      = el.dataset.search || '';
+    const status = el.dataset.status || '';
+    const matchSearch = !kw || s.includes(kw);
+    const matchFilter = currentTaskFilter === 'all' || status === currentTaskFilter;
+    const show = matchSearch && matchFilter;
+    el.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('taskCount').textContent = visible + ' tugas';
+}
+
 function filterTask(btn, status) {
   document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  document.querySelectorAll('.task-item').forEach(item => {
-    item.style.display = (status === 'all' || item.dataset.status === status) ? '' : 'none';
-  });
+  currentTaskFilter = status;
+  liveSearchTask(document.getElementById('searchTask').value);
 }
 
 const statusCycle = { pending: 'dikerjakan', dikerjakan: 'selesai', selesai: 'pending', dibatalkan: 'pending' };

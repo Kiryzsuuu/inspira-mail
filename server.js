@@ -519,7 +519,7 @@ app.post('/email/:id/sign/add-self', requireAuth, async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
     const qrDataUrl = await QRCode.toDataURL(`${appUrl}/verify/doc/${token}`, {
-      errorCorrectionLevel: 'H', margin: 2, width: 200, color: { dark: '#071840', light: '#ffffff' }
+      errorCorrectionLevel: 'H', margin: 2, width: 200, color: { dark: '#000000', light: '#ffffff' }
     });
 
     if (existing) {
@@ -539,7 +539,7 @@ app.post('/email/:id/sign/add-self', requireAuth, async (req, res) => {
       userId: req.user._id, userName: req.user.name,
       userRole: req.user.role || '', userOrg: req.user.organization || '',
       token, qrDataUrl, status: 'signed', signedAt: new Date(),
-      position: { x: 60 + n * 140, y: 660, width: 110, height: 155 }
+      position: { x: 60 + n * 140, y: 640, width: 120, height: 185 }
     });
     await docSig.save();
     res.json({ ok: true, signer: docSig.signers[docSig.signers.length - 1], action: 'added' });
@@ -568,7 +568,7 @@ app.post('/email/:id/sign/invite-cosigner', requireAuth, async (req, res) => {
       userId: targetUser._id, userName: targetUser.name,
       userRole: targetUser.role || '', userOrg: targetUser.organization || '',
       token: '', qrDataUrl: '', status: 'pending',
-      position: { x: 60 + n * 140, y: 660, width: 110, height: 155 }
+      position: { x: 60 + n * 140, y: 640, width: 120, height: 185 }
     });
     await docSig.save();
     res.json({ ok: true, signer: docSig.signers[docSig.signers.length - 1] });
@@ -1122,7 +1122,7 @@ app.post('/digsig/generate', requireAuth, async (req, res) => {
       errorCorrectionLevel: 'H',
       margin: 2,
       width: 320,
-      color: { dark: '#071840', light: '#ffffff' }
+      color: { dark: '#000000', light: '#ffffff' }
     });
 
     const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
@@ -1571,7 +1571,7 @@ app.post('/surat-masuk/:id/pdf/add-signer', requireAuth, async (req, res) => {
       errorCorrectionLevel: 'H',
       margin: 2,
       width: 200,
-      color: { dark: '#071840', light: '#ffffff' }
+      color: { dark: '#000000', light: '#ffffff' }
     });
 
     const signerCount = docSig.signers.length;

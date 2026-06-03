@@ -42,12 +42,21 @@
 </div>
 
 <div class="mail-list-wrap">
-  <div class="mail-list-header">
-    <span class="mail-list-title"><%= mails.length %> surat masuk</span>
-    <div class="filter-tabs">
-      <button class="filter-tab active" onclick="filterMails(this,'all')">Semua</button>
-      <button class="filter-tab" onclick="filterMails(this,'unread')">Belum Dibaca</button>
-      <button class="filter-tab" onclick="filterMails(this,'penting')">Penting</button>
+  <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
+    <span class="mail-list-title" id="listCount"><%= mails.length %> surat masuk</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input type="text" id="searchBox" class="search-input" placeholder="Cari subjek, pengirim..." style="width:240px;padding:7px 12px;" oninput="liveSearch(this.value)">
+        <button class="btn btn-ghost" style="padding:7px 10px;" onclick="document.getElementById('searchBox').value='';liveSearch('');" title="Reset">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterMails(this,'all')">Semua</button>
+        <button class="filter-tab" onclick="filterMails(this,'unread')">Belum Dibaca</button>
+        <button class="filter-tab" onclick="filterMails(this,'penting')">Penting</button>
+        <button class="filter-tab" onclick="filterMails(this,'urgent')">Urgent</button>
+      </div>
     </div>
   </div>
 
@@ -57,7 +66,9 @@
     var avatarColors = ['av-green','av-teal','av-blue','av-amber','av-purple'];
     var avColor = avatarColors[m.id % avatarColors.length];
   %>
-  <a href="/email/<%= m.id %>" class="mail-item <%= m.read ? '' : 'unread' %>" data-tag="<%= m.tag.toLowerCase() %>" data-read="<%= m.read %>">
+  <a href="/email/<%= m.id %>" class="mail-item <%= m.read ? '' : 'unread' %>"
+     data-tag="<%= m.tag.toLowerCase() %>" data-read="<%= m.read %>"
+     data-search="<%= (m.subject + ' ' + m.from).toLowerCase() %>">
     <div class="mail-avatar <%= avColor %>"><%= initials %></div>
     <div class="mail-body">
       <div class="mail-from"><%= m.from %></div>
@@ -71,5 +82,34 @@
   </a>
   <% }); %>
 </div>
+
+<script>
+let currentFilter = 'all';
+
+function liveSearch(q) {
+  const kw = q.toLowerCase().trim();
+  let visible = 0;
+  document.querySelectorAll('.mail-item').forEach(el => {
+    const s    = el.dataset.search || '';
+    const tag  = el.dataset.tag   || '';
+    const read = el.dataset.read;
+    const matchSearch = !kw || s.includes(kw);
+    const matchFilter = currentFilter === 'all'
+      || (currentFilter === 'unread' && read === 'false')
+      || tag === currentFilter;
+    const show = matchSearch && matchFilter;
+    el.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('listCount').textContent = visible + ' surat masuk';
+}
+
+function filterMails(btn, tag) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = tag;
+  liveSearch(document.getElementById('searchBox').value);
+}
+</script>
 
 <%- include('./partials/footer') %>
