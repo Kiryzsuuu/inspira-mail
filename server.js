@@ -1352,6 +1352,23 @@ app.delete('/digsig', requireAuth, async (req, res) => {
 });
 
 // ── VERIFY (public) ──
+
+// PENTING: route /verify/doc/:token harus SEBELUM /verify/:token
+// agar Express tidak salah cocokkan "doc" sebagai :token
+app.get('/verify/doc/:token', async (req, res) => {
+  try {
+    const docSig = await DocumentSignature.findOne({ 'signers.token': req.params.token });
+    if (!docSig) {
+      return res.render('verify-doc', { title: 'Verifikasi Dokumen', valid: false, signer: null, surat: null, scanTime: new Date() });
+    }
+    const signer = docSig.signers.find(s => s.token === req.params.token);
+    const surat  = await SuratMasuk.findById(docSig.suratId);
+    res.render('verify-doc', { title: 'Verifikasi Dokumen', valid: true, signer, surat, scanTime: new Date() });
+  } catch (err) {
+    res.render('verify-doc', { title: 'Verifikasi Dokumen', valid: false, signer: null, surat: null, scanTime: new Date() });
+  }
+});
+
 app.get('/verify/:token', async (req, res) => {
   try {
     const sig = await Signature.findOne({ verifyToken: req.params.token });
@@ -1820,21 +1837,6 @@ app.delete('/surat-masuk/:id/pdf/signers/:signerId', requireAuth, async (req, re
     res.json({ ok: true, wasCurrentUser, removedUserId: signer?.userId?.toString() });
   } catch (err) {
     res.json({ ok: false });
-  }
-});
-
-// Public: verify document QR
-app.get('/verify/doc/:token', async (req, res) => {
-  try {
-    const docSig = await DocumentSignature.findOne({ 'signers.token': req.params.token });
-    if (!docSig) {
-      return res.render('verify-doc', { title: 'Verifikasi Dokumen', valid: false, signer: null, surat: null, scanTime: new Date() });
-    }
-    const signer = docSig.signers.find(s => s.token === req.params.token);
-    const surat  = await SuratMasuk.findById(docSig.suratId);
-    res.render('verify-doc', { title: 'Verifikasi Dokumen', valid: true, signer, surat, scanTime: new Date() });
-  } catch (err) {
-    res.render('verify-doc', { title: 'Verifikasi Dokumen', valid: false, signer: null, surat: null, scanTime: new Date() });
   }
 });
 
