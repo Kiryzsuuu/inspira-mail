@@ -447,7 +447,7 @@ app.post('/draft/:id/update', requireAuth, async (req, res) => {
     const ROMAN_M = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
     const seqPart = (email.nomorSurat || '').split('/')[0] || '001';
     const datePart = email.createdAt || new Date();
-    const kd = kodeDir || email.kodeDir || 'DIR';
+    const kd = kodeDir || kodeDiv || email.kodeDir || email.kodeDiv || 'DIR';
     const tipe = email.tipeSurat || 'Nota Dinas';
     const nomorSurat = buildNomorSurat(parseInt(seqPart), tipe, kd, jenis || email.jenis || 'internal',
       ROMAN_M[datePart.getMonth()+1], datePart.getFullYear());
