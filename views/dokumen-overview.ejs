@@ -1,0 +1,122 @@
+<%- include('./partials/header') %>
+
+<style>
+.dok-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+@media(max-width:700px){ .dok-stats{ grid-template-columns:repeat(2,1fr); } }
+.dok-stat-card { background:#fff; border:1px solid var(--gray-200); border-radius:12px; padding:16px 20px; display:flex; align-items:center; gap:14px; }
+.dok-stat-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.dok-stat-label { font-size:12px; color:var(--gray-400); font-weight:500; }
+.dok-stat-val { font-size:24px; font-weight:700; color:var(--gray-800); line-height:1.1; }
+.dok-item { background:#fff; border:1px solid var(--gray-200); border-radius:10px; padding:14px 18px; margin-bottom:10px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:box-shadow .15s,border-color .15s; text-decoration:none; color:inherit; }
+.dok-item:hover { box-shadow:0 2px 12px rgba(0,0,0,.08); border-color:var(--gray-300); }
+.dok-tipe-badge { font-size:11px; font-weight:700; padding:3px 9px; border-radius:5px; white-space:nowrap; }
+.dok-tipe-Nota\ Dinas,.dok-tipe-default { background:#f0fdf4; color:#15803d; }
+.dok-tipe-Surat\ Dinas { background:#eff6ff; color:#1d4ed8; }
+.dok-tipe-MoU,.dok-tipe-MoA { background:#fdf4ff; color:#7e22ce; }
+.dok-tipe-Contract,.dok-tipe-IA { background:#fff7ed; color:#c2410c; }
+.dok-tipe-PKS,.dok-tipe-SPK { background:#fef3c7; color:#92400e; }
+.dok-status-badge { font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; }
+.dok-status-draft { background:var(--gray-100); color:var(--gray-500); }
+.dok-status-sent { background:#dcfce7; color:#15803d; }
+.dok-filters { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.dok-filters .form-control, .dok-filters .form-select { font-size:13px; padding:7px 12px; height:auto; }
+</style>
+
+<div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Manajemen Dokumen</div>
+    <h1 class="page-title">Manajemen Dokumen</h1>
+    <p class="page-subtitle">Nota Dinas, Surat Dinas<% if(user && (user.role==='admin'||user.role==='direktur')){ %>, MoU, MoA, PKS, SPK, dan dokumen resmi lainnya<% } %></p>
+  </div>
+  <a href="/compose/new" class="btn btn-primary" style="margin-top:4px;">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Buat Dokumen
+  </a>
+</div>
+
+<!-- STATS -->
+<div class="dok-stats">
+  <div class="dok-stat-card">
+    <div class="dok-stat-icon" style="background:#eff6ff;">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4h12a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="#3b82f6" stroke-width="1.5"/><path d="M7 8h6M7 11h4" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div><div class="dok-stat-label">Total Dokumen</div><div class="dok-stat-val"><%= totalAll %></div></div>
+  </div>
+  <div class="dok-stat-card">
+    <div class="dok-stat-icon" style="background:#f0fdf4;">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#22c55e" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div><div class="dok-stat-label">Terkirim</div><div class="dok-stat-val"><%= totalSent %></div></div>
+  </div>
+  <div class="dok-stat-card">
+    <div class="dok-stat-icon" style="background:#fef9c3;">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4h12M4 8h8M4 12h5" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/><path d="M14 13l1.5 1.5L18 12" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div><div class="dok-stat-label">Draf</div><div class="dok-stat-val"><%= totalDraft %></div></div>
+  </div>
+  <div class="dok-stat-card">
+    <div class="dok-stat-icon" style="background:#fdf4ff;">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#a855f7" stroke-width="1.5"/><path d="M10 7v3M10 13h.01" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div><div class="dok-stat-label">Semua Tipe</div><div class="dok-stat-val"><%= [...new Set(docs.map(d=>d.tipeSurat))].length %></div></div>
+  </div>
+</div>
+
+<!-- FILTER + LIST -->
+<div class="mail-list-wrap">
+  <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
+    <span class="mail-list-title"><%= docs.length %> dokumen ditemukan</span>
+    <form method="GET" action="/compose" class="dok-filters">
+      <select name="tipe" class="form-control form-select" style="width:170px;" onchange="this.form.submit()">
+        <option value="">Semua Jenis</option>
+        <option value="Nota Dinas"   <%= tipe==='Nota Dinas'?'selected':'' %>>Nota Dinas</option>
+        <option value="Surat Dinas"  <%= tipe==='Surat Dinas'?'selected':'' %>>Surat Dinas</option>
+        <% if(user && (user.role==='admin'||user.role==='direktur')){ %>
+        <option value="MoU"          <%= tipe==='MoU'?'selected':'' %>>MoU</option>
+        <option value="MoA"          <%= tipe==='MoA'?'selected':'' %>>MoA</option>
+        <option value="Contract"     <%= tipe==='Contract'?'selected':'' %>>Contract</option>
+        <option value="IA"           <%= tipe==='IA'?'selected':'' %>>IA</option>
+        <option value="PKS"          <%= tipe==='PKS'?'selected':'' %>>PKS</option>
+        <option value="SPK"          <%= tipe==='SPK'?'selected':'' %>>SPK</option>
+        <% } %>
+      </select>
+      <select name="status" class="form-control form-select" style="width:140px;" onchange="this.form.submit()">
+        <option value="">Semua Status</option>
+        <option value="draft"  <%= status==='draft'?'selected':'' %>>Draf</option>
+        <option value="sent"   <%= status==='sent'?'selected':'' %>>Terkirim</option>
+      </select>
+      <input type="text" name="q" value="<%= q %>" class="form-control" style="width:210px;" placeholder="Cari judul / nomor...">
+      <button type="submit" class="btn btn-secondary" style="padding:7px 14px;">Cari</button>
+      <% if(q||tipe||status){ %><a href="/compose" class="btn btn-ghost" style="padding:7px 12px;">Reset</a><% } %>
+    </form>
+  </div>
+
+  <% if (docs.length === 0) { %>
+  <div class="empty-state">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M10 8h28l8 8v28H2V8h8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M30 8v8h8M16 24h16M16 32h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <p>Belum ada dokumen.<% if(q||tipe||status){ %> Coba ubah filter.<% } else { %> Klik <strong>Buat Dokumen</strong> untuk memulai.<% } %></p>
+    <% if(!q && !tipe && !status){ %>
+    <a href="/compose/new" class="btn btn-primary" style="margin-top:8px;">+ Buat Dokumen</a>
+    <% } %>
+  </div>
+  <% } %>
+
+  <% docs.forEach(d => { %>
+  <a href="/email/<%= d._id %>" class="dok-item">
+    <span class="dok-tipe-badge dok-tipe-<%= d.tipeSurat || 'default' %>"><%= d.tipeSurat || '—' %></span>
+    <div style="flex:1;min-width:0;">
+      <div style="font-weight:600;font-size:13.5px;color:var(--gray-800);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= d.subject %></div>
+      <div style="font-size:12px;color:var(--gray-400);margin-top:2px;font-family:monospace;"><%= d.nomorSurat || '— belum bernomor —' %></div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <span class="dok-status-badge dok-status-<%= d.status %>"><%= d.status === 'sent' ? 'Terkirim' : 'Draf' %></span>
+      <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;"><%= formatDate(d.createdAt) %></div>
+    </div>
+    <% if (d.status === 'draft') { %>
+    <a href="/draft/<%= d._id %>/edit" onclick="event.stopPropagation();" style="margin-left:4px;padding:5px 10px;font-size:12px;color:var(--brand-600);border:1px solid var(--brand-200);border-radius:6px;background:#fff;text-decoration:none;white-space:nowrap;">Edit</a>
+    <% } %>
+  </a>
+  <% }) %>
+</div>
+
+<%- include('./partials/footer') %>

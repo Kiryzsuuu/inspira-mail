@@ -80,13 +80,13 @@
 
 <div class="page-header">
   <div class="page-title-group">
-    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Manajemen Dokumen</div>
-    <h1 class="page-title">Manajemen Dokumen</h1>
-    <p class="page-subtitle">Buat dokumen baru — Nota Dinas, Surat Dinas, MoU, dan dokumen resmi lainnya</p>
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / <a href="/compose">Manajemen Dokumen</a> / Buat Baru</div>
+    <h1 class="page-title">Buat Dokumen Baru</h1>
+    <p class="page-subtitle">Nota Dinas, Surat Dinas<% if(user && (user.role==='admin'||user.role==='direktur')){ %>, MoU, MoA, PKS, SPK, dan dokumen khusus lainnya<% } %></p>
   </div>
 </div>
 
-<form action="/compose" method="POST" id="composeForm">
+<form action="/compose" method="POST" id="composeForm" enctype="application/x-www-form-urlencoded">
   <input type="hidden" name="action" id="formAction" value="send">
   <input type="hidden" name="body" id="bodyHidden">
   <input type="hidden" name="jenis" id="jenisHidden" value="internal">
@@ -170,6 +170,43 @@
         <div style="font-weight:600;color:#1d4ed8;font-size:13.5px;margin-bottom:4px;">Template Eksternal</div>
         <div style="font-size:13px;color:#3b82f6;">Isi perihal dan nomor surat akan di-generate otomatis. Tidak perlu mengisi form konten.</div>
       </div>
+
+      <!-- FORM PIHAK KEDUA — hanya untuk direktur+admin & dok. khusus -->
+      <% if (user && (user.role === 'admin' || user.role === 'direktur')) { %>
+      <div id="sec-pihak-kedua-form" style="display:none;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:16px;margin-bottom:4px;">
+        <div class="sec-header" style="margin-bottom:12px;">
+          <span class="sec-badge">PIHAK KEDUA</span>
+          Data Pihak Eksternal / Mitra
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Pihak Pertama (Internal)</label>
+            <input type="text" name="pihak1" class="form-control" value="PT Nusa Inspira Teknologi" readonly style="background:var(--gray-100);">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pihak Kedua (Eksternal) <span class="req">*</span></label>
+            <input type="text" name="pihak2" id="pihak2Input" class="form-control" placeholder="Nama mitra / vendor / instansi luar">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nilai Kontrak (Rp)</label>
+            <input type="text" name="nilaiKontrak" class="form-control" placeholder="0" oninput="formatNilai(this)">
+            <small class="form-hint">Kosongkan jika tidak ada nilai</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Mulai</label>
+            <input type="date" name="tglMulai" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Berakhir</label>
+            <input type="date" name="tglBerakhir" class="form-control">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Deskripsi / Ruang Lingkup</label>
+          <textarea name="deskripsiDok" class="form-control textarea" rows="3" placeholder="Uraikan ruang lingkup, tujuan, atau klausul penting dari dokumen ini..."></textarea>
+        </div>
+      </div>
+      <% } %>
 
       <div id="mainFormSections">
       <!-- SUBJEK / PERIHAL -->
@@ -1110,6 +1147,12 @@ function insertTable(rows, cols) {
   quill.clipboard.dangerouslyPasteHTML(range ? range.index : quill.getLength(), html);
 }
 
+// ── FORMAT NILAI KONTRAK ──
+function formatNilai(el) {
+  let v = el.value.replace(/\D/g,'');
+  el.value = v ? parseInt(v).toLocaleString('id-ID') : '';
+}
+
 // ── SUMBER TEMPLATE ──
 function toggleSumberTemplate(isExternal) {
   document.getElementById('sumberTemplateHidden').value = isExternal ? 'eksternal' : 'internal';
@@ -1221,6 +1264,10 @@ function onTipeChange(val) {
     if (laySel)    laySel.value    = kode.lay;
     if (berkasSel) berkasSel.value = kode.berkas;
   }
+  // Tampilkan form Pihak Kedua untuk dokumen khusus
+  const TIPE_KHUSUS_JS = ['MoU','MoA','Contract','IA','PKS','SPK'];
+  const p2form = document.getElementById('sec-pihak-kedua-form');
+  if (p2form) p2form.style.display = TIPE_KHUSUS_JS.includes(val) ? '' : 'none';
   // Update quill placeholder
   const ph = BODY_PLACEHOLDER[val] || 'Tulis isi surat di sini...';
   quill.root.dataset.placeholder = ph;
@@ -1521,6 +1568,18 @@ function collectSuratData() {
     sd.jabatanPenerima = v('std_jabatan');
     sd.instansiPenerima = v('std_instansi');
     sd.alamatPenerima = v('std_alamat');
+  }
+  else if (['MoU','MoA','Contract','IA','PKS','SPK'].includes(t)) {
+    const p2 = document.querySelector('[name="pihak2"]');
+    const nilaiEl = document.querySelector('[name="nilaiKontrak"]');
+    const tglMulai = document.querySelector('[name="tglMulai"]');
+    const tglBerakhir = document.querySelector('[name="tglBerakhir"]');
+    const deskEl = document.querySelector('[name="deskripsiDok"]');
+    sd.pihak2 = p2?.value.trim() || '';
+    sd.nilaiKontrak = nilaiEl?.value.replace(/\./g,'') || '';
+    sd.tglMulai = tglMulai?.value || '';
+    sd.tglBerakhir = tglBerakhir?.value || '';
+    sd.deskripsi = deskEl?.value.trim() || '';
   }
   else if (t === 'Invoice') {
     sd.invKepada    = v('inv_kepada');

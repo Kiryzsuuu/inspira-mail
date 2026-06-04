@@ -472,7 +472,7 @@ app.post('/draft/:id/update', requireAuth, async (req, res) => {
     res.redirect(`/email/${email._id}/preview`);
   } catch (err) {
     console.error(err);
-    res.redirect('/draft');
+    res.redirect('/compose');
   }
 });
 
@@ -522,13 +522,50 @@ function buildNomorSurat(seq, tipeSurat, kodeDir, jenis, roman, year) {
   return `${s}/${kd}-${ei}/NIT/${roman}/${year}`;
 }
 
+// Manajemen Dokumen — Overview
 app.get('/compose', requireAuth, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const { q, tipe, status } = req.query;
+    const userId = req.user._id;
+
+    // Query Email dokumen milik user (sebagai pembuat)
+    const filter = { 'from.userId': userId };
+    if (tipe)   filter.tipeSurat = tipe;
+    if (status) filter.status = status;
+    if (q)      filter.$or = [
+      { subject: { $regex: q, $options: 'i' } },
+      { nomorSurat: { $regex: q, $options: 'i' } },
+      { tipeSurat: { $regex: q, $options: 'i' } }
+    ];
+
+    const [docs, totalAll, totalDraft, totalSent] = await Promise.all([
+      Email.find(filter).sort({ createdAt: -1 }).limit(100).lean(),
+      Email.countDocuments({ 'from.userId': userId }),
+      Email.countDocuments({ 'from.userId': userId, status: 'draft' }),
+      Email.countDocuments({ 'from.userId': userId, status: 'sent' }),
+    ]);
+
+    res.render('dokumen-overview', {
+      active: 'compose', title: 'Manajemen Dokumen',
+      docs, totalAll, totalDraft, totalSent,
+      q: q||'', tipe: tipe||'', status: status||'',
+      formatDate, TIPE_KHUSUS, ...counts
+    });
+  } catch (err) {
+    console.error(err);
+    res.redirect('/inbox');
+  }
+});
+
+// Manajemen Dokumen — Form buat dokumen baru
+app.get('/compose/new', requireAuth, async (req, res) => {
   try {
     const users = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization enik jabatan').sort('name');
     const counts = await getMailCounts(req.user._id);
-    res.render('compose', { active: 'compose', title: 'Manajemen Dokumen', users, ...counts });
+    res.render('compose', { active: 'compose', title: 'Buat Dokumen Baru', users, ...counts });
   } catch (err) {
-    res.render('compose', { active: 'compose', title: 'Manajemen Dokumen', users: [], inboxCount: 0, draftCount: 0 });
+    res.render('compose', { active: 'compose', title: 'Buat Dokumen Baru', users: [], inboxCount: 0, draftCount: 0 });
   }
 });
 
@@ -587,13 +624,13 @@ app.post('/compose', requireAuth, async (req, res) => {
     await log(req, 'email_draft', 'email', `Surat dibuat: "${email.subject}"`, { emailId: email._id });
 
     if (isDraft) {
-      res.redirect('/draft');
+      res.redirect('/compose');          // kembali ke overview → draf terlihat
     } else {
       res.redirect(`/email/${email._id}/preview`);
     }
   } catch (err) {
     console.error(err);
-    res.redirect('/compose');
+    res.redirect('/compose/new');
   }
 });
 
