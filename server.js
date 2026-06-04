@@ -141,6 +141,24 @@ function requireRole(minRole) {
 const requireAdmin = requireRole('admin');
 const requireDirektur = requireRole('direktur');
 
+// Multer for document attachment (PDF, Word, images — max 10MB)
+const lampiranUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, path.join(__dirname, 'uploads')),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname);
+      cb(null, 'lampiran-' + Date.now() + ext);
+    }
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg','image/png','image/gif','application/pdf',
+      'application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Format file tidak didukung.'));
+  }
+});
+
 // Multer for avatar — memory storage, resized then saved to MongoDB as base64
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -551,7 +569,8 @@ app.get('/compose', requireAuth, async (req, res) => {
 
     // Query Email dokumen milik user (sebagai pembuat)
     const filter = { 'from.userId': userId };
-    if (tipe)   filter.tipeSurat = tipe;
+    if (tipe === 'khusus') filter.tipeSurat = { $in: TIPE_KHUSUS };
+    else if (tipe) filter.tipeSurat = tipe;
     if (status) filter.status = status;
     if (q)      filter.$or = [
       { subject: { $regex: q, $options: 'i' } },
@@ -589,7 +608,7 @@ app.get('/compose/new', requireAuth, async (req, res) => {
   }
 });
 
-app.post('/compose', requireAuth, async (req, res) => {
+app.post('/compose', requireAuth, lampiranUpload.single('lampiran'), async (req, res) => {
   const { to, cc, subject, body, tag, berkas, action, sifat, jenis, externalRecipients,
           tipeSurat, suratData, kodeDiv, kodeLay, sumberTemplate, pengirimResmi, kodeDir } = req.body;
   try {
@@ -638,6 +657,8 @@ app.post('/compose', requireAuth, async (req, res) => {
       kodeLay:        kodeLay || 'INT',
       suratData:      parsedSuratData,
       nomorSurat,
+      lampiran:       req.file ? '/uploads/' + req.file.filename : '',
+      lampiranNama:   req.file ? req.file.originalname : '',
       status:         'draft'
     });
 

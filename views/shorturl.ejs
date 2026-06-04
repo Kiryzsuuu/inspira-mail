@@ -67,7 +67,7 @@
     <div class="info-card">
       <div class="info-card-title">Statistik</div>
       <div class="info-item"><span class="info-key">Total URL</span><span class="info-val"><%= urls.length %></span></div>
-      <div class="info-item" style="border-bottom:none;"><span class="info-key">Total Klik</span><span class="info-val"><%= urls.reduce((a,u) => a + u.clicks, 0) %></span></div>
+      <div class="info-item" style="border-bottom:none;"><span class="info-key">Total URL</span><span class="info-val"><%= urls.length %></span></div>
     </div>
   </div>
 </div>
@@ -100,7 +100,6 @@
       </div>
     </div>
     <div class="url-item-meta">
-      <span class="url-clicks"><svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v4M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> <%= u.clicks %> klik</span>
       <span class="admin-status-badge admin-status-<%= u.isActive ? 'active' : 'inactive' %>">
         <span class="admin-status-dot"></span><%= u.isActive ? 'Aktif' : 'Nonaktif' %>
       </span>

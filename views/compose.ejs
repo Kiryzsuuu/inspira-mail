@@ -86,7 +86,7 @@
   </div>
 </div>
 
-<form action="/compose" method="POST" id="composeForm" enctype="application/x-www-form-urlencoded">
+<form action="/compose" method="POST" id="composeForm" enctype="multipart/form-data">
   <input type="hidden" name="action" id="formAction" value="send">
   <input type="hidden" name="body" id="bodyHidden">
   <input type="hidden" name="jenis" id="jenisHidden" value="internal">
@@ -970,6 +970,11 @@
         <div id="quillEditor" style="min-height:200px;"></div>
       </div>
 
+      <!-- LAMPIRAN -->
+      <div class="form-group">
+        <label class="form-label">Lampiran <span style="font-size:11px;color:var(--gray-400);font-weight:400;">(opsional — PDF, Word, Gambar, maks. 10MB)</span></label>
+        <input type="file" name="lampiran" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" style="padding:6px 10px;font-size:13px;">
+      </div>
       </div><!-- /mainFormSections -->
 
       <div class="compose-actions">

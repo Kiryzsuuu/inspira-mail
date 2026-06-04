@@ -26,6 +26,8 @@ const emailSchema = new mongoose.Schema({
   sifat:       { type: String, enum: ['Biasa/Terbuka','Rahasia','Terbatas','Segera'], default: 'Biasa/Terbuka' },
   jenis:       { type: String, enum: ['internal','eksternal'], default: 'internal' },
   tipeSurat:      { type: String, default: 'Nota Dinas' },
+  lampiran:       { type: String, default: '' },
+  lampiranNama:   { type: String, default: '' },
   sumberTemplate: { type: String, enum: ['internal','eksternal'], default: 'internal' },
   pengirimResmi:  { type: String, default: '' },
   kodeDir:        { type: String, default: '' },
