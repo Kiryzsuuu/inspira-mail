@@ -205,14 +205,33 @@
         <div class="form-group">
           <label class="form-label">Klasifikasi / Berkas</label>
           <div class="select-wrap">
-            <select name="berkas" class="form-control form-select">
+            <select name="berkas" id="berkasSel" class="form-control form-select">
               <option value="">— Pilih Berkas —</option>
-              <option value="OPS.01.02">OPS.01.02 — On Time Performance</option>
-              <option value="OPS.01.03">OPS.01.03 — Analisis Runway Capacity</option>
-              <option value="OPS.01.04">OPS.01.04 — Pemantauan Delay</option>
-              <option value="OPS.02">OPS.02 — Collaborative Decision Making</option>
-              <option value="OPS.03">OPS.03 — Air Traffic System</option>
-              <option value="OPS.03.02">OPS.03.02 — Pembinaan Penggunaan Peralatan ATS</option>
+              <optgroup label="OPS — Operasional">
+                <option value="OPS-INT">OPS-INT — Internal / Memo / Nota Dinas</option>
+                <option value="OPS-ST">OPS-ST — Surat Tugas / SPPD</option>
+                <option value="OPS-SRT">OPS-SRT — Surat Keterangan</option>
+                <option value="OPS-EXT">OPS-EXT — Eksternal / PR / Undangan</option>
+                <option value="OPS-LPT">OPS-LPT — Learning Programs &amp; Training</option>
+                <option value="OPS-ARD">OPS-ARD — Academic &amp; Research Development</option>
+              </optgroup>
+              <optgroup label="TEK — Teknologi">
+                <option value="TEK-LMS">TEK-LMS — Digital Learning Platform</option>
+                <option value="TEK-LPT">TEK-LPT — Learning Programs &amp; Training</option>
+                <option value="TEK-ARD">TEK-ARD — Academic &amp; Research Development</option>
+                <option value="TEK-PSD">TEK-PSD — Professional Skill Development</option>
+              </optgroup>
+              <optgroup label="BIS — Bisnis &amp; Keuangan">
+                <option value="BIS-PKS">BIS-PKS — Perjanjian Kerja Sama / MOU</option>
+                <option value="BIS-SPK">BIS-SPK — Surat Perjanjian / Kontrak</option>
+                <option value="BIS-PSD">BIS-PSD — Professional Skill Development</option>
+                <option value="BIS-INV">BIS-INV — Invoice / Tagihan</option>
+                <option value="BIS-KEU">BIS-KEU — Keuangan / Anggaran</option>
+              </optgroup>
+              <optgroup label="DIR — Direktorat">
+                <option value="DIR-SK">DIR-SK — Surat Keputusan</option>
+                <option value="DIR-PKS">DIR-PKS — Perjanjian Strategis Korporat</option>
+              </optgroup>
             </select>
           </div>
         </div>
@@ -923,24 +942,38 @@
       <div class="info-item" style="border-bottom:none;"><span class="info-key">Penomoran</span><span class="info-val">Otomatis</span></div>
     </div>
     <div class="info-card">
+      <div class="info-card-title">Format Penomoran</div>
+      <div style="font-family:monospace;font-size:11px;color:var(--brand-700);background:var(--gray-50);border-radius:6px;padding:8px 10px;line-height:1.8;border:1px solid var(--gray-200);">
+        <strong id="nomorPreview" style="font-size:12px;">NNN / DIV-LAY / NIT / BLN / THN</strong>
+        <div style="color:var(--gray-400);font-size:10px;margin-top:2px;">Nomor urut otomatis per tahun</div>
+      </div>
+    </div>
+    <div class="info-card">
       <div class="info-card-title">Tipe Surat Tersedia</div>
-      <ul style="font-size:12px;color:var(--gray-500);line-height:2;padding-left:16px;">
-        <li>Surat Biasa, Resmi, Formal</li>
-        <li>Memo, Nota Dinas</li>
-        <li>Surat Tugas, SPPD</li>
-        <li>Surat Kuasa, Keterangan</li>
-        <li>Surat Keputusan (SK)</li>
-        <li>Undangan, Pengantar</li>
-        <li>Rahasia, Konfidensial</li>
-      </ul>
+      <div style="font-size:11.5px;color:var(--gray-500);line-height:1.9;">
+        <div style="font-weight:600;color:var(--gray-700);margin-top:4px;">Surat Umum</div>
+        <div style="padding-left:8px;">Biasa · Resmi · Formal · Edaran · Instruksi</div>
+        <div style="font-weight:600;color:var(--gray-700);margin-top:4px;">Internal</div>
+        <div style="padding-left:8px;">Memo · Nota Dinas · Rahasia · Konfidensial</div>
+        <div style="font-weight:600;color:var(--gray-700);margin-top:4px;">Penugasan</div>
+        <div style="padding-left:8px;">Surat Tugas · SPPD · Pendelegasian</div>
+        <div style="font-weight:600;color:var(--gray-700);margin-top:4px;">Otoritas</div>
+        <div style="padding-left:8px;">SK · Surat Kuasa · Keterangan · Pernyataan</div>
+        <div style="font-weight:600;color:var(--gray-700);margin-top:4px;">Eksternal</div>
+        <div style="padding-left:8px;">Pengantar · Undangan · Statuta</div>
+        <div style="font-weight:600;color:var(--gray-700);margin-top:4px;">Perjanjian</div>
+        <div style="padding-left:8px;">MOU · PKS · Kontrak · SPK</div>
+        <div style="font-weight:600;color:var(--gray-700);margin-top:4px;">Keuangan</div>
+        <div style="padding-left:8px;">Invoice / Tagihan</div>
+      </div>
     </div>
     <div class="info-card">
       <div class="info-card-title">Petunjuk</div>
       <ul style="font-size:12.5px;color:var(--gray-600);line-height:1.9;padding-left:16px;">
-        <li>Pilih tipe surat di bagian atas</li>
-        <li>Field tambahan muncul otomatis</li>
+        <li>Pilih tipe → kode &amp; berkas otomatis terisi</li>
+        <li>Ubah kode jika perlu penyesuaian manual</li>
         <li>Kolom wajib bertanda <span style="color:var(--red-500);">*</span></li>
-        <li>Nomor surat dibuat otomatis</li>
+        <li>Nomor surat dibuat otomatis saat simpan</li>
       </ul>
     </div>
   </div>
@@ -1113,6 +1146,33 @@ const BODY_PLACEHOLDER = {
   'SPK': 'Keterangan tambahan SPK (opsional)...',
   'Invoice': 'Catatan atau keterangan tambahan invoice (opsional)...',
 };
+// Auto-suggest kodeDiv, kodeLay, berkas per tipe surat (sesuai Pedoman Kodifikasi NIT)
+const TIPE_TO_KODE = {
+  'Surat':                      { div:'OPS', lay:'EXT', berkas:'OPS-EXT' },
+  'Surat Resmi':                { div:'OPS', lay:'EXT', berkas:'OPS-EXT' },
+  'Surat Formal':               { div:'OPS', lay:'EXT', berkas:'OPS-EXT' },
+  'Surat Instruksi':            { div:'OPS', lay:'INT', berkas:'OPS-INT' },
+  'Surat Edaran':               { div:'OPS', lay:'EXT', berkas:'OPS-EXT' },
+  'Surat Rahasia':              { div:'OPS', lay:'INT', berkas:'OPS-INT' },
+  'Surat Konfidensial':         { div:'OPS', lay:'INT', berkas:'OPS-INT' },
+  'Memo':                       { div:'OPS', lay:'INT', berkas:'OPS-INT' },
+  'Nota Dinas':                 { div:'OPS', lay:'INT', berkas:'OPS-INT' },
+  'SPPD':                       { div:'OPS', lay:'ST',  berkas:'OPS-ST'  },
+  'Surat Tugas':                { div:'OPS', lay:'ST',  berkas:'OPS-ST'  },
+  'Surat Tugas Pendelegasian':  { div:'OPS', lay:'ST',  berkas:'OPS-ST'  },
+  'Surat Keterangan':           { div:'OPS', lay:'SRT', berkas:'OPS-SRT' },
+  'Surat Pernyataan':           { div:'OPS', lay:'INT', berkas:'OPS-INT' },
+  'Surat Kuasa':                { div:'OPS', lay:'INT', berkas:'OPS-INT' },
+  'Surat Pengantar':            { div:'OPS', lay:'EXT', berkas:'OPS-EXT' },
+  'Surat Keputusan':            { div:'DIR', lay:'SK',  berkas:'DIR-SK'  },
+  'Surat Undangan Dinas':       { div:'OPS', lay:'EXT', berkas:'OPS-EXT' },
+  'Surat Statuta':              { div:'DIR', lay:'SK',  berkas:'DIR-SK'  },
+  'MOU':                        { div:'BIS', lay:'PKS', berkas:'BIS-PKS' },
+  'PKS':                        { div:'BIS', lay:'PKS', berkas:'BIS-PKS' },
+  'Kontrak':                    { div:'BIS', lay:'SPK', berkas:'BIS-SPK' },
+  'SPK':                        { div:'OPS', lay:'SPK', berkas:'BIS-SPK' },
+  'Invoice':                    { div:'BIS', lay:'INV', berkas:'BIS-INV' },
+};
 function onTipeChange(val) {
   currentTipe = val;
   document.getElementById('tipeSuratHidden').value = val;
@@ -1124,6 +1184,16 @@ function onTipeChange(val) {
   if (notaBudget) notaBudget.style.display = val === 'Nota Dinas' ? '' : 'none';
   const nilaiKontrak = document.getElementById('sec-nilai-kontrak');
   if (nilaiKontrak) nilaiKontrak.style.display = val === 'Kontrak' ? '' : 'none';
+  // Auto-suggest kode divisi, jenis, dan berkas
+  const kode = TIPE_TO_KODE[val];
+  if (kode) {
+    const divSel    = document.getElementById('kodeDivSel');
+    const laySel    = document.getElementById('kodeLaySel');
+    const berkasSel = document.getElementById('berkasSel');
+    if (divSel)    divSel.value    = kode.div;
+    if (laySel)    laySel.value    = kode.lay;
+    if (berkasSel) berkasSel.value = kode.berkas;
+  }
   // Update quill placeholder
   const ph = BODY_PLACEHOLDER[val] || 'Tulis isi surat di sini...';
   quill.root.dataset.placeholder = ph;
