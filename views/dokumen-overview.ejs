@@ -112,13 +112,13 @@
 
   <!-- TABS -->
   <div class="dok-tabs" style="padding:0 16px;">
-    <a href="/compose" class="dok-tab <%= (!tipe&&!status)?'active':'' %>">Semua <span class="tab-count"><%= countTab('all') %></span></a>
-    <a href="/compose?tipe=Nota+Dinas" class="dok-tab <%= tipe==='Nota Dinas'?'active':'' %>">Nota Dinas <span class="tab-count"><%= countTab('nota') %></span></a>
-    <a href="/compose?tipe=Surat+Dinas" class="dok-tab <%= tipe==='Surat Dinas'?'active':'' %>">Surat Dinas <span class="tab-count"><%= countTab('surat') %></span></a>
+    <a href="/compose" class="dok-tab <%= (!tipe&&!status)?'active':'' %>">Semua <span class="tab-count"><%= totalAll %></span></a>
+    <a href="/compose?tipe=Nota+Dinas" class="dok-tab <%= tipe==='Nota Dinas'?'active':'' %>">Nota Dinas <span class="tab-count"><%= tabNota %></span></a>
+    <a href="/compose?tipe=Surat+Dinas" class="dok-tab <%= tipe==='Surat Dinas'?'active':'' %>">Surat Dinas <span class="tab-count"><%= tabSurat %></span></a>
     <% if (isPriv) { %>
-    <a href="/compose?tipe=khusus" class="dok-tab <%= tipe==='khusus'?'active':'' %>">MoU / PKS / Kontrak <span class="tab-count"><%= countTab('khusus') %></span></a>
+    <a href="/compose?tipe=khusus" class="dok-tab <%= tipe==='khusus'?'active':'' %>">MoU / PKS / Kontrak <span class="tab-count"><%= tabKhusus %></span></a>
     <% } %>
-    <a href="/compose?status=draft" class="dok-tab <%= status==='draft'?'active':'' %>">Konsep / Draf <span class="tab-count"><%= countTab('draft') %></span></a>
+    <a href="/compose?status=draft" class="dok-tab <%= status==='draft'?'active':'' %>">Konsep / Draf <span class="tab-count"><%= totalDraft %></span></a>
   </div>
 
   <!-- SEARCH -->

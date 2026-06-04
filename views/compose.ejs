@@ -217,78 +217,6 @@
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
         <div class="form-group">
-          <label class="form-label">Kode Direktorat <span class="req">*</span></label>
-          <div class="select-wrap">
-            <select name="kodeDiv" id="kodeDivSel" class="form-control form-select">
-              <option value="KOM">KOM — Dewan Komisaris</option>
-              <option value="DIR">DIR — Direktur Utama</option>
-              <option value="PLAN">PLAN — Business Strategy &amp; Finance</option>
-              <option value="TECH">TECH — Technical &amp; Operations</option>
-              <option value="MP">MP — Marketing &amp; Partnership</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Kode Jenis Surat <span class="req">*</span></label>
-          <div class="select-wrap">
-            <select name="kodeLay" id="kodeLaySel" class="form-control form-select">
-              <optgroup label="— Lini Layanan —">
-                <option value="LPT">LPT — Learning Programs &amp; Training</option>
-                <option value="ARD">ARD — Academic &amp; Research Development</option>
-                <option value="LMS">LMS — Digital Learning Platform</option>
-                <option value="PSD">PSD — Professional Skill Development</option>
-              </optgroup>
-              <optgroup label="— Administrasi Umum —">
-                <option value="INT" selected>INT — Internal / Memo</option>
-                <option value="SK">SK — Surat Keputusan</option>
-                <option value="SPK">SPK — Surat Perjanjian / Kontrak</option>
-                <option value="PKS">PKS — Perjanjian Kerja Sama</option>
-                <option value="INV">INV — Invoice / Tagihan</option>
-                <option value="ST">ST — Surat Tugas</option>
-                <option value="SRT">SRT — Surat Keterangan</option>
-                <option value="EXT">EXT — Eksternal / PR</option>
-                <option value="KEU">KEU — Keuangan / Anggaran</option>
-              </optgroup>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div class="form-group">
-          <label class="form-label">Klasifikasi / Berkas</label>
-          <div class="select-wrap">
-            <select name="berkas" id="berkasSel" class="form-control form-select">
-              <option value="">— Pilih Berkas —</option>
-              <optgroup label="OPS — Operasional">
-                <option value="OPS-INT">OPS-INT — Internal / Memo / Nota Dinas</option>
-                <option value="OPS-ST">OPS-ST — Surat Tugas / SPPD</option>
-                <option value="OPS-SRT">OPS-SRT — Surat Keterangan</option>
-                <option value="OPS-EXT">OPS-EXT — Eksternal / PR / Undangan</option>
-                <option value="OPS-LPT">OPS-LPT — Learning Programs &amp; Training</option>
-                <option value="OPS-ARD">OPS-ARD — Academic &amp; Research Development</option>
-              </optgroup>
-              <optgroup label="TEK — Teknologi">
-                <option value="TEK-LMS">TEK-LMS — Digital Learning Platform</option>
-                <option value="TEK-LPT">TEK-LPT — Learning Programs &amp; Training</option>
-                <option value="TEK-ARD">TEK-ARD — Academic &amp; Research Development</option>
-                <option value="TEK-PSD">TEK-PSD — Professional Skill Development</option>
-              </optgroup>
-              <optgroup label="BIS — Bisnis &amp; Keuangan">
-                <option value="BIS-PKS">BIS-PKS — Perjanjian Kerja Sama / MOU</option>
-                <option value="BIS-SPK">BIS-SPK — Surat Perjanjian / Kontrak</option>
-                <option value="BIS-PSD">BIS-PSD — Professional Skill Development</option>
-                <option value="BIS-INV">BIS-INV — Invoice / Tagihan</option>
-                <option value="BIS-KEU">BIS-KEU — Keuangan / Anggaran</option>
-              </optgroup>
-              <optgroup label="DIR — Direktorat">
-                <option value="DIR-SK">DIR-SK — Surat Keputusan</option>
-                <option value="DIR-PKS">DIR-PKS — Perjanjian Strategis Korporat</option>
-              </optgroup>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
           <label class="form-label">Tag / Prioritas</label>
           <div class="select-wrap">
             <select name="tag" class="form-control form-select">
@@ -296,6 +224,17 @@
               <option value="Penting">Penting</option>
               <option value="Urgent">Urgent</option>
               <option value="Info">Info</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sifat Surat</label>
+          <div class="select-wrap">
+            <select name="sifat" id="sifatSelect2" class="form-control form-select" onchange="updateSifat(this)">
+              <option value="Biasa/Terbuka">Biasa / Terbuka</option>
+              <option value="Terbatas">Terbatas</option>
+              <option value="Rahasia">Rahasia</option>
+              <option value="Segera">Segera</option>
             </select>
           </div>
         </div>
@@ -1263,12 +1202,7 @@ function onTipeChange(val) {
   // Auto-suggest kode divisi, jenis, dan berkas
   const kode = TIPE_TO_KODE[val];
   if (kode) {
-    const divSel    = document.getElementById('kodeDivSel');
-    const laySel    = document.getElementById('kodeLaySel');
-    const berkasSel = document.getElementById('berkasSel');
-    if (divSel)    divSel.value    = kode.div;
-    if (laySel)    laySel.value    = kode.lay;
-    if (berkasSel) berkasSel.value = kode.berkas;
+    // auto-suggest kodeDir sudah tidak diperlukan — user pilih manual
   }
   // Tampilkan form Pihak Kedua untuk dokumen khusus
   const TIPE_KHUSUS_JS = ['MoU','MoA','Contract','IA','PKS','SPK'];

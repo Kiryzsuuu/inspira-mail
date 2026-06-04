@@ -578,16 +578,21 @@ app.get('/compose', requireAuth, async (req, res) => {
       { tipeSurat: { $regex: q, $options: 'i' } }
     ];
 
-    const [docs, totalAll, totalDraft, totalSent] = await Promise.all([
+    const base = { 'from.userId': userId };
+    const [docs, totalAll, totalDraft, totalSent, tabNota, tabSurat, tabKhusus] = await Promise.all([
       Email.find(filter).sort({ createdAt: -1 }).limit(100).lean(),
-      Email.countDocuments({ 'from.userId': userId }),
-      Email.countDocuments({ 'from.userId': userId, status: 'draft' }),
-      Email.countDocuments({ 'from.userId': userId, status: 'sent' }),
+      Email.countDocuments(base),
+      Email.countDocuments({ ...base, status: 'draft' }),
+      Email.countDocuments({ ...base, status: 'sent' }),
+      Email.countDocuments({ ...base, tipeSurat: 'Nota Dinas' }),
+      Email.countDocuments({ ...base, tipeSurat: 'Surat Dinas' }),
+      Email.countDocuments({ ...base, tipeSurat: { $in: TIPE_KHUSUS } }),
     ]);
 
     res.render('dokumen-overview', {
       active: 'compose', title: 'Manajemen Dokumen',
       docs, totalAll, totalDraft, totalSent,
+      tabNota, tabSurat, tabKhusus,
       q: q||'', tipe: tipe||'', status: status||'',
       formatDate, TIPE_KHUSUS, ...counts
     });
