@@ -225,7 +225,7 @@ const fdt = dt => `${dt.getDate()} ${M[dt.getMonth()]} ${dt.getFullYear()}, ${p(
         </svg>
       </div>
       <div class="stamp-text">
-        Dokumen ini <strong>SAH</strong>. Tanda tangan digital diterbitkan melalui <strong>Inspira Mailer</strong>. Setiap QR unik per dokumen per penandatangan.
+        Dokumen ini <strong>SAH</strong>. Tanda tangan digital diterbitkan melalui <strong><%= siteSettings && siteSettings.siteName ? siteSettings.siteName + ' ' + siteSettings.siteSub : 'Inspira Mailer' %></strong>. Setiap QR unik per dokumen per penandatangan.
       </div>
     </div>
 
@@ -259,7 +259,7 @@ const fdt = dt => `${dt.getDate()} ${M[dt.getMonth()]} ${dt.getFullYear()}, ${p(
   <div class="footer">
     <div class="footer-brand">
       <img src="/img/Group 1597880519.png" class="footer-logo" alt="">
-      <span class="footer-name">Inspira Mailer</span>
+      <span class="footer-name"><%= siteSettings && siteSettings.siteName ? siteSettings.siteName + ' ' + siteSettings.siteSub : 'Inspira Mailer' %></span>
     </div>
     <div class="footer-note">QR Dokumen berbeda dari QR Tanda Tangan Pribadi</div>
   </div>

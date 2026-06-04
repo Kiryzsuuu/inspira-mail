@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Inspira Mailer — <%= title %></title>
-<link rel="icon" type="image/png" href="/img/Group 1597880519.png">
+<title><%= siteSettings && siteSettings.siteName ? siteSettings.siteName : 'Inspira' %> <%= siteSettings && siteSettings.siteSub ? siteSettings.siteSub : 'Mailer' %> — <%= title %></title>
+<link rel="icon" type="image/png" href="<%= siteSettings && siteSettings.logoBase64 ? siteSettings.logoBase64 : '/img/Group 1597880519.png' %>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -15,10 +15,10 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <a href="/inbox" class="brand">
-        <img src="/img/Group 1597880519.png" alt="Inspira Logo" class="brand-logo">
+        <img src="<%= siteSettings && siteSettings.logoBase64 ? siteSettings.logoBase64 : '/img/Group 1597880519.png' %>" alt="Logo" class="brand-logo">
         <div class="brand-text">
-          <span class="brand-name">Inspira</span>
-          <span class="brand-sub">Mailer</span>
+          <span class="brand-name"><%= siteSettings && siteSettings.siteName ? siteSettings.siteName : 'Inspira' %></span>
+          <span class="brand-sub"><%= siteSettings && siteSettings.siteSub ? siteSettings.siteSub : 'Mailer' %></span>
         </div>
       </a>
       <button class="sidebar-close" id="sidebarClose" aria-label="Tutup">
@@ -87,6 +87,10 @@
       <a href="/admin" class="nav-item <%= active === 'admin' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
         Admin Dashboard
+      </a>
+      <a href="/admin/site-settings" class="nav-item <%= active === 'site-settings' ? 'active' : '' %>">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M10 13a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5"/><path d="M17.66 10a7.58 7.58 0 00-.07-1l1.42-1.11a.34.34 0 00.08-.43l-1.35-2.34a.34.34 0 00-.41-.15l-1.67.67a7.6 7.6 0 00-.87-.5l-.25-1.78A.34.34 0 0014.16 3h-2.7a.34.34 0 00-.34.29l-.25 1.78a7.6 7.6 0 00-.87.5l-1.67-.67a.34.34 0 00-.41.15L6.57 7.46a.34.34 0 00.08.43L8.07 9a7.58 7.58 0 000 2l-1.42 1.11a.34.34 0 00-.08.43l1.35 2.34c.08.15.26.21.41.15l1.67-.67c.28.18.57.34.87.5l.25 1.78c.04.17.19.29.34.29h2.7c.16 0 .3-.12.34-.29l.25-1.78c.3-.16.59-.32.87-.5l1.67.67c.15.06.33 0 .41-.15l1.35-2.34a.34.34 0 00-.08-.43L17.66 11a7.58 7.58 0 00.07-1z" stroke="currentColor" stroke-width="1.5"/></svg>
+        Pengaturan Situs
       </a>
       <% } %>
     </nav>

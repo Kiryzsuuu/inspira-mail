@@ -21,6 +21,7 @@ const Agreement = require('./models/Agreement');
 const DocCounter = require('./models/DocCounter');
 const SuratMasuk = require('./models/SuratMasuk');
 const DocumentSignature = require('./models/DocumentSignature');
+const SiteSettings = require('./models/SiteSettings');
 const QRCode = require('qrcode');
 
 const app = express();
@@ -90,6 +91,13 @@ app.use(async (req, res, next) => {
         req.session.destroy(() => {});
       }
     } catch (e) {}
+  }
+  // Inject site settings ke semua view
+  try {
+    const ss = await SiteSettings.getSettings();
+    res.locals.siteSettings = ss;
+  } catch (e) {
+    res.locals.siteSettings = {};
   }
   next();
 });
@@ -512,7 +520,8 @@ app.post('/compose', requireAuth, async (req, res) => {
     const year = now.getFullYear();
     const ROMAN_M = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
     const seq  = await DocCounter.nextSeq('SURAT', year);
-    const nomorSurat = `${String(seq).padStart(3,'0')}/${process.env.ORG_CODE || 'INSPIRA'}/${ROMAN_M[now.getMonth()+1]}/${year}`;
+    const _ss = await SiteSettings.getSettings();
+    const nomorSurat = `${String(seq).padStart(3,'0')}/${_ss.orgCode || process.env.ORG_CODE || 'INSPIRA'}/${ROMAN_M[now.getMonth()+1]}/${year}`;
 
     const isDraft = action === 'draft';
     const email = await Email.create({
@@ -898,6 +907,59 @@ app.post('/profile/avatar', requireAuth, (req, res) => {
     }
     res.redirect('/profile');
   });
+});
+
+// ── SITE SETTINGS ──
+
+app.get('/admin/site-settings', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const ss = await SiteSettings.getSettings();
+    const counts = await getMailCounts(req.user._id);
+    res.render('site-settings', { active: 'admin', title: 'Pengaturan Situs', ss, success: null, error: null, ...counts });
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin');
+  }
+});
+
+const ssUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024 } });
+
+app.post('/admin/site-settings', requireAuth, requireAdmin, ssUpload.single('logo'), async (req, res) => {
+  try {
+    const ss = await SiteSettings.getSettings();
+    const counts = await getMailCounts(req.user._id);
+    const { siteName, siteSub, orgCode, smtpHost, smtpPort, smtpUser, smtpPass } = req.body;
+
+    ss.siteName = siteName?.trim() || ss.siteName;
+    ss.siteSub  = siteSub?.trim()  || ss.siteSub;
+    ss.orgCode  = orgCode?.trim()  || ss.orgCode;
+    ss.smtpHost = smtpHost?.trim() || ss.smtpHost;
+    ss.smtpPort = parseInt(smtpPort) || ss.smtpPort;
+    ss.smtpUser = smtpUser?.trim() || ss.smtpUser;
+    if (smtpPass?.trim()) ss.smtpPass = smtpPass.trim();
+
+    if (req.file) {
+      const resized = await sharp(req.file.buffer).resize(200, 200, { fit: 'inside' }).png().toBuffer();
+      ss.logoBase64 = 'data:image/png;base64,' + resized.toString('base64');
+    }
+
+    await ss.save();
+
+    // Update transporter SMTP setelah save
+    if (ss.smtpUser && ss.smtpPass) {
+      transporter = nodemailer.createTransport({
+        host: ss.smtpHost, port: ss.smtpPort,
+        auth: { user: ss.smtpUser, pass: ss.smtpPass }
+      });
+    }
+
+    res.render('site-settings', { active: 'admin', title: 'Pengaturan Situs', ss, success: 'Pengaturan berhasil disimpan.', error: null, ...counts });
+  } catch (err) {
+    console.error(err);
+    const ss = await SiteSettings.getSettings();
+    const counts = await getMailCounts(req.user._id);
+    res.render('site-settings', { active: 'admin', title: 'Pengaturan Situs', ss, success: null, error: 'Gagal menyimpan.', ...counts });
+  }
 });
 
 // ── ADMIN ──
@@ -1322,7 +1384,8 @@ app.get('/verify/:token', async (req, res) => {
 // ── AGREEMENT (MOU / PKS / SPK / KONTRAK) ──
 
 const ROMAN = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
-const ORG_CODE = process.env.ORG_CODE || 'INSPIRA';
+let ORG_CODE = process.env.ORG_CODE || 'INSPIRA';
+SiteSettings.getSettings().then(s => { if (s.orgCode) ORG_CODE = s.orgCode; }).catch(() => {});
 
 function buildNomor(type, seq, bulan, tahun) {
   const pad = String(seq).padStart(3, '0');
