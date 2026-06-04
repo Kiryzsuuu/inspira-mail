@@ -2,12 +2,13 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  enik:     { type: String, trim: true, default: '' },
+  name:     { type: String, required: true, trim: true },
+  email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['user', 'direktur', 'admin'], default: 'user' },
+  role:     { type: String, enum: ['user', 'direktur', 'admin'], default: 'user' },
   organization: { type: String, default: 'Inspira Tekno', trim: true },
-  jabatan: { type: String, trim: true },
+  jabatan:  { type: String, trim: true },
   phone: { type: String, trim: true },
   bio: { type: String, trim: true },
   avatar: String,
@@ -26,7 +27,7 @@ userSchema.methods.getInitials = function() {
 };
 
 userSchema.methods.getRoleLabel = function() {
-  const labels = { admin: 'Administrator', direktur: 'Direktur', user: 'Pengguna' };
+  const labels = { admin: 'Super Admin', direktur: 'Direktur / Komisaris', user: 'User' };
   return labels[this.role] || 'Pengguna';
 };
 

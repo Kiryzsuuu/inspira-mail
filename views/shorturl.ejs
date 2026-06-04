@@ -33,6 +33,14 @@
         <input type="url" name="originalUrl" class="form-control" placeholder="https://contoh.com/url-yang-sangat-panjang-ini" required autofocus>
       </div>
       <div class="form-group">
+        <label class="form-label">Nama Custom Link <span style="font-size:11px;color:var(--gray-400);font-weight:400;">(opsional)</span></label>
+        <div style="display:flex;align-items:center;gap:0;border:1px solid var(--gray-200);border-radius:var(--radius-md);overflow:hidden;">
+          <span style="padding:9px 12px;background:var(--gray-50);color:var(--gray-500);font-size:13px;border-right:1px solid var(--gray-200);white-space:nowrap;">inspira/</span>
+          <input type="text" name="customSlug" class="form-control" style="border:none;border-radius:0;flex:1;" placeholder="nota-juni" pattern="[a-zA-Z0-9\-_]+" title="Hanya huruf, angka, - dan _">
+        </div>
+        <small class="form-hint">Kosongkan untuk kode otomatis · Contoh: <code>inspira/nota-juni</code></small>
+      </div>
+      <div class="form-group">
         <label class="form-label">Judul / Keterangan</label>
         <input type="text" name="title" class="form-control" placeholder="Deskripsi singkat URL ini (opsional)">
       </div>
@@ -51,8 +59,8 @@
       <div class="info-card-title">Cara Kerja</div>
       <ul style="font-size:12.5px;color:var(--gray-600);line-height:1.9;padding-left:16px;">
         <li>Masukkan URL panjang</li>
-        <li>Sistem otomatis membuat kode pendek</li>
-        <li>Bagikan tautan <code style="font-size:11px;background:var(--gray-100);padding:1px 5px;border-radius:4px;">/s/kode</code></li>
+        <li>Isi nama custom atau biarkan kosong</li>
+        <li>Bagikan tautan <code style="font-size:11px;background:var(--gray-100);padding:1px 5px;border-radius:4px;">inspira/nama</code></li>
         <li>Klik terhitung otomatis</li>
       </ul>
     </div>
@@ -81,8 +89,8 @@
   <div class="url-item" id="url-<%= u._id %>">
     <div class="url-item-main">
       <div class="url-item-code">
-        <span class="url-short-code">/s/<%= u.shortCode %></span>
-        <button class="url-copy-btn" onclick="copyUrl('/s/<%= u.shortCode %>')" title="Salin URL">
+        <span class="url-short-code">inspira/<%= u.shortCode %></span>
+        <button class="url-copy-btn" onclick="copyUrl('inspira/<%= u.shortCode %>')" title="Salin URL">
           <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="8" y="8" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 8V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v5.5A1.5 1.5 0 005 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
       </div>

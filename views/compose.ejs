@@ -80,9 +80,9 @@
 
 <div class="page-header">
   <div class="page-title-group">
-    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Tulis Surat</div>
-    <h1 class="page-title">Tulis Surat</h1>
-    <p class="page-subtitle">Buat dan kirimkan surat dinas baru</p>
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Manajemen Dokumen</div>
+    <h1 class="page-title">Manajemen Dokumen</h1>
+    <p class="page-subtitle">Buat dokumen baru — Nota Dinas, Surat Dinas, MoU, dan dokumen resmi lainnya</p>
   </div>
 </div>
 
@@ -97,8 +97,12 @@
 <div class="compose-layout">
   <div class="compose-card">
     <div class="compose-card-header">
-      <span class="compose-card-title">Detail Surat</span>
-      <div style="display:flex;align-items:center;gap:8px;">
+      <span class="compose-card-title">Detail Dokumen</span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--gray-600);cursor:pointer;">
+          <input type="checkbox" name="sumberTemplateCheck" id="sumberTemplateCheck" onchange="toggleSumberTemplate(this.checked)" style="width:14px;height:14px;">
+          Template Eksternal
+        </label>
         <span style="font-size:12px;color:var(--gray-400);">Sifat:</span>
         <select name="sifat" id="sifatSelect" class="admin-role-select" style="padding:5px 24px 5px 10px;font-size:12.5px;" onchange="updateSifat(this)">
           <option value="Biasa/Terbuka">Biasa / Terbuka</option>
@@ -108,55 +112,66 @@
         </select>
       </div>
     </div>
+    <input type="hidden" name="sumberTemplate" id="sumberTemplateHidden" value="internal">
     <div class="compose-form">
 
-      <!-- TIPE SURAT -->
-      <div class="form-group">
-        <label class="form-label">Tipe Surat <span class="req">*</span></label>
-        <div class="select-wrap">
-          <select id="tipeSuratSelect" class="form-control form-select" onchange="onTipeChange(this.value)">
-            <optgroup label="— Surat Umum —">
-              <option value="Surat">Surat (Biasa)</option>
-              <option value="Surat Resmi">Surat Resmi</option>
-              <option value="Surat Formal">Surat Formal</option>
-              <option value="Surat Instruksi">Surat Instruksi</option>
-              <option value="Surat Edaran">Surat Edaran</option>
-            </optgroup>
-            <optgroup label="— Surat Khusus —">
-              <option value="Surat Rahasia">Surat Rahasia</option>
-              <option value="Surat Konfidensial">Surat Konfidensial</option>
-              <option value="Memo">Memo</option>
-              <option value="Nota Dinas">Nota Dinas</option>
-            </optgroup>
-            <optgroup label="— Surat Tugas —">
-              <option value="Surat Tugas">Surat Tugas (Perorangan)</option>
-              <option value="Surat Tugas Pendelegasian">Surat Tugas Pendelegasian</option>
-              <option value="SPPD">SPPD (Perjalanan Dinas)</option>
-            </optgroup>
-            <optgroup label="— Surat Otoritas —">
-              <option value="Surat Keterangan">Surat Keterangan</option>
-              <option value="Surat Pernyataan">Surat Pernyataan</option>
-              <option value="Surat Kuasa">Surat Kuasa</option>
-              <option value="Surat Pengantar">Surat Pengantar</option>
-            </optgroup>
-            <optgroup label="— Dokumen Keputusan —">
-              <option value="Surat Keputusan">Surat Keputusan (SK)</option>
-              <option value="Surat Undangan Dinas">Surat Undangan Dinas</option>
-              <option value="Surat Statuta">Surat Statuta</option>
-            </optgroup>
-            <optgroup label="— Dokumen Perjanjian —">
-              <option value="MOU">MOU (Memorandum of Understanding)</option>
-              <option value="PKS">PKS (Perjanjian Kerjasama)</option>
-              <option value="Kontrak">Surat Kontrak</option>
-              <option value="SPK">SPK (Surat Perintah Kerja)</option>
-            </optgroup>
-            <optgroup label="— Dokumen Keuangan —">
-              <option value="Invoice">Invoice / Tagihan</option>
-            </optgroup>
-          </select>
+      <!-- TIPE DOKUMEN + KODE DIREKTORAT -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Jenis Dokumen <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="tipeSuratSelect" class="form-control form-select" onchange="onTipeChange(this.value)">
+              <optgroup label="— Semua Pengguna —">
+                <option value="Nota Dinas" selected>Nota Dinas (Internal)</option>
+                <option value="Surat Dinas">Surat Dinas (Eksternal)</option>
+              </optgroup>
+              <% if (user && (user.role === 'admin' || user.role === 'direktur')) { %>
+              <optgroup label="— Direktur &amp; Admin —">
+                <option value="MoU">MoU (Memorandum of Understanding)</option>
+                <option value="MoA">MoA (Memorandum of Agreement)</option>
+                <option value="Contract">Contract (Kontrak)</option>
+                <option value="IA">IA (Implementation Agreement)</option>
+                <option value="PKS">PKS (Perjanjian Kerja Sama)</option>
+                <option value="SPK">SPK (Surat Perintah Kerja)</option>
+              </optgroup>
+              <% } %>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kode Direktorat <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select name="kodeDir" id="kodeDirSel" class="form-control form-select">
+              <option value="KOM">KOM — Dewan Komisaris</option>
+              <option value="DIR">DIR — Direktur Utama</option>
+              <option value="PLAN">PLAN — Business Strategy &amp; Finance</option>
+              <option value="TECH">TECH — Technical &amp; Operations</option>
+              <option value="MP">MP — Marketing &amp; Partnership</option>
+            </select>
+          </div>
         </div>
       </div>
 
+      <!-- PENGIRIM RESMI -->
+      <div class="form-group">
+        <label class="form-label">Pengirim Resmi <span style="font-size:11px;color:var(--gray-400);font-weight:400;">(nama yang tertera di dokumen)</span></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <input type="text" name="pengirimResmi" id="pengirimResmiInput" class="form-control" value="<%= user.name %>" placeholder="Nama pengirim resmi di surat">
+          <select id="pengirimPicker" class="form-control form-select" onchange="document.getElementById('pengirimResmiInput').value=this.value;this.value=''">
+            <option value="">— Pilih dari daftar karyawan —</option>
+            <% users.forEach(u => { %><option value="<%= u.name %>"><%= u.enik ? u.enik + ' — ' : '' %><%= u.name %><%= u.jabatan ? ' (' + u.jabatan + ')' : '' %></option><% }) %>
+          </select>
+        </div>
+        <small class="form-hint">Pembuat dokumen: <strong><%= user.name %></strong><%= user.enik ? ' (ENIK: ' + user.enik + ')' : '' %></small>
+      </div>
+
+      <!-- Info jika template eksternal -->
+      <div id="eksternalTemplateInfo" style="display:none;padding:14px 16px;background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;margin-bottom:4px;">
+        <div style="font-weight:600;color:#1d4ed8;font-size:13.5px;margin-bottom:4px;">Template Eksternal</div>
+        <div style="font-size:13px;color:#3b82f6;">Isi perihal dan nomor surat akan di-generate otomatis. Tidak perlu mengisi form konten.</div>
+      </div>
+
+      <div id="mainFormSections">
       <!-- SUBJEK / PERIHAL -->
       <div class="form-group">
         <label class="form-label" id="subjectLabel">Subjek / Perihal <span class="req">*</span></label>
@@ -917,6 +932,8 @@
         <div id="quillEditor" style="min-height:200px;"></div>
       </div>
 
+      </div><!-- /mainFormSections -->
+
       <div class="compose-actions">
         <button type="button" class="btn btn-ghost" onclick="submitForm('draft')">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h10v10H2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M4 5h6M4 7h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
@@ -1091,6 +1108,16 @@ function insertTable(rows, cols) {
   html += '</tbody></table><p><br></p>';
   const range = quill.getSelection(true);
   quill.clipboard.dangerouslyPasteHTML(range ? range.index : quill.getLength(), html);
+}
+
+// ── SUMBER TEMPLATE ──
+function toggleSumberTemplate(isExternal) {
+  document.getElementById('sumberTemplateHidden').value = isExternal ? 'eksternal' : 'internal';
+  // Sembunyikan semua section form jika eksternal (hanya perlu tipe + nomor surat)
+  const formSecs = document.getElementById('mainFormSections');
+  if (formSecs) formSecs.style.display = isExternal ? 'none' : '';
+  const extInfo = document.getElementById('eksternalTemplateInfo');
+  if (extInfo) extInfo.style.display = isExternal ? '' : 'none';
 }
 
 // ── SIFAT ──

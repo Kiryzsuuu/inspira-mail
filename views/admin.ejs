@@ -109,16 +109,20 @@
                     <% if (isCurrentUser) { %><span class="admin-you-tag">Anda</span><% } %>
                   </div>
                   <div class="admin-user-email"><%= u.email %></div>
+                  <% if (u.enik) { %><div style="font-size:11px;color:var(--gray-400);margin-top:1px;">ENIK: <%= u.enik %></div><% } %>
                 </div>
               </div>
             </td>
-            <td><span class="admin-org"><%= u.organization || '-' %></span></td>
+            <td>
+              <div style="font-size:13px;color:var(--gray-700);"><%= u.jabatan || '-' %></div>
+              <div style="font-size:11px;color:var(--gray-400);"><%= u.organization || '-' %></div>
+            </td>
             <td>
               <% if (!isCurrentUser) { %>
               <select class="admin-role-select" onchange="changeRole('<%= u._id %>', this.value, this)">
-                <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>Pengguna</option>
-                <option value="direktur" <%= u.role === 'direktur' ? 'selected' : '' %>>Direktur</option>
-                <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Administrator</option>
+                <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>User (Manager ke bawah)</option>
+                <option value="direktur" <%= u.role === 'direktur' ? 'selected' : '' %>>Direktur / Komisaris</option>
+                <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Super Admin</option>
               </select>
               <% } else { %>
               <span class="profile-badge profile-badge-<%= u.role %>"><%= roleLabel %></span>

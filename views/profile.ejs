@@ -85,12 +85,19 @@
         </div>
         <div class="profile-form-row">
           <div class="form-group">
-            <label class="form-label">Instansi / Organisasi</label>
-            <input type="text" name="organization" class="form-control" value="<%= user.organization || '' %>" placeholder="Nama instansi atau perusahaan">
+            <label class="form-label">ENIK</label>
+            <input type="text" name="enik" class="form-control" value="<%= user.enik || '' %>" placeholder="cth: 260403">
+            <small class="form-hint">Nomor Induk Karyawan</small>
           </div>
           <div class="form-group">
             <label class="form-label">Jabatan</label>
-            <input type="text" name="jabatan" class="form-control" value="<%= user.jabatan || '' %>" placeholder="Misal: Kepala Seksi, Manajer HRD, Direktur Utama">
+            <input type="text" name="jabatan" class="form-control" value="<%= user.jabatan || '' %>" placeholder="Misal: Software Development Manager">
+          </div>
+        </div>
+        <div class="profile-form-row">
+          <div class="form-group">
+            <label class="form-label">Instansi / Organisasi</label>
+            <input type="text" name="organization" class="form-control" value="<%= user.organization || '' %>" placeholder="Nama instansi atau perusahaan">
           </div>
           <div class="form-group">
             <label class="form-label">Nomor Telepon</label>

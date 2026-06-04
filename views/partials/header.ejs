@@ -48,19 +48,25 @@
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Terkirim
       </a>
-      <a href="/draft" class="nav-item <%= active === 'draft' ? 'active' : '' %>">
-        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M4 4h12M4 8h8M4 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 13l1.5 1.5L18 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Draf
+      <a href="/compose" class="nav-item <%= active === 'compose' ? 'active' : '' %>">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M4 4h12a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M7 8h6M7 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 14l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Manajemen Dokumen
         <% if (draftCount > 0) { %><span class="badge badge-muted"><%= draftCount %></span><% } %>
       </a>
       <div class="nav-divider"></div>
+      <% if (user && (user.role === 'admin' || user.role === 'direktur')) { %>
       <a href="/agreements" class="nav-item <%= active === 'agreements' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M6 2h8l4 4v12H2V2h4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 2v4h4M6 9h8M6 13h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         MOU / PKS / Kontrak
       </a>
+      <% } %>
       <a href="/digsig" class="nav-item <%= active === 'digsig' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 3l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Digsig
+      </a>
+      <a href="/log-penomoran" class="nav-item <%= active === 'log-penomoran' ? 'active' : '' %>">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M4 4h12M4 8h8M4 12h8M4 16h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="14" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+        Log Penomoran
       </a>
       <a href="/shorturl" class="nav-item <%= active === 'shorturl' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M8 12l-4 4a5.657 5.657 0 000-8l4-4M12 8l4-4a5.657 5.657 0 010 8l-4 4M8.5 11.5l3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>

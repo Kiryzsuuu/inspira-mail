@@ -429,7 +429,8 @@ app.get('/draft/:id/edit', requireAuth, async (req, res) => {
 // Update draft content
 app.post('/draft/:id/update', requireAuth, async (req, res) => {
   try {
-    const { to, cc, subject, body, tag, berkas, sifat, jenis, externalRecipients, kodeDiv, kodeLay } = req.body;
+    const { to, cc, subject, body, tag, berkas, sifat, jenis, externalRecipients,
+            kodeDiv, kodeLay, kodeDir, pengirimResmi, sumberTemplate } = req.body;
     const email = await Email.findById(req.params.id);
     if (!email || email.from.userId?.toString() !== req.user._id.toString())
       return res.json({ ok: false });
@@ -443,25 +444,29 @@ app.post('/draft/:id/update', requireAuth, async (req, res) => {
     let extRecipients = [];
     try { extRecipients = JSON.parse(externalRecipients || '[]'); } catch {}
 
-    const div = (kodeDiv || email.kodeDiv || 'OPS').toUpperCase();
-    const lay = (kodeLay || email.kodeLay || 'INT').toUpperCase();
     const ROMAN_M = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
     const seqPart = (email.nomorSurat || '').split('/')[0] || '001';
     const datePart = email.createdAt || new Date();
-    const nomorSurat = `${seqPart}/${div}-${lay}/NIT/${ROMAN_M[datePart.getMonth()+1]}/${datePart.getFullYear()}`;
+    const kd = kodeDir || email.kodeDir || 'DIR';
+    const tipe = email.tipeSurat || 'Nota Dinas';
+    const nomorSurat = buildNomorSurat(parseInt(seqPart), tipe, kd, jenis || email.jenis || 'internal',
+      ROMAN_M[datePart.getMonth()+1], datePart.getFullYear());
 
     await Email.findByIdAndUpdate(email._id, {
-      to:         toUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
-      cc:         ccUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
-      toExternal: jenis === 'eksternal' ? extRecipients : [],
-      subject:    subject?.trim() || '(Tanpa Subjek)',
-      body:       body || '',
-      tag:        tag || 'Normal',
-      berkas:     berkas?.trim() || '',
-      sifat:      sifat || 'Biasa/Terbuka',
-      jenis:      jenis || 'internal',
-      kodeDiv:    div,
-      kodeLay:    lay,
+      to:             toUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
+      cc:             ccUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
+      toExternal:     jenis === 'eksternal' ? extRecipients : [],
+      subject:        subject?.trim() || '(Tanpa Subjek)',
+      body:           body || '',
+      tag:            tag || 'Normal',
+      berkas:         berkas?.trim() || '',
+      sifat:          sifat || 'Biasa/Terbuka',
+      jenis:          jenis || 'internal',
+      kodeDiv:        kodeDiv || email.kodeDiv || 'OPS',
+      kodeLay:        kodeLay || email.kodeLay || 'INT',
+      kodeDir:        kd,
+      pengirimResmi:  pengirimResmi?.trim() || email.pengirimResmi || '',
+      sumberTemplate: sumberTemplate || email.sumberTemplate || 'internal',
       nomorSurat
     });
     res.redirect(`/email/${email._id}/preview`);
@@ -500,19 +505,42 @@ app.post('/draft/bulk-delete', requireAuth, async (req, res) => {
   }
 });
 
+// Kode direktorat per spesifikasi
+const KODE_DIR_MAP = {
+  'KOM':'KOM','DIR':'DIR','PLAN':'PLAN','TECH':'TECH','MP':'MP'
+};
+// Dokumen khusus → nomor pakai tipe langsung
+const TIPE_KHUSUS = ['MoU','MoA','Contract','IA','PKS','SPK'];
+
+function buildNomorSurat(seq, tipeSurat, kodeDir, jenis, roman, year) {
+  const s = String(seq).padStart(3,'0');
+  if (TIPE_KHUSUS.includes(tipeSurat)) {
+    return `${s}/${tipeSurat}/NIT/${roman}/${year}`;
+  }
+  const kd = KODE_DIR_MAP[kodeDir] || kodeDir || 'DIR';
+  const ei = jenis === 'internal' ? 'I' : 'E';
+  return `${s}/${kd}-${ei}/NIT/${roman}/${year}`;
+}
+
 app.get('/compose', requireAuth, async (req, res) => {
   try {
-    const users = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization').sort('name');
+    const users = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization enik jabatan').sort('name');
     const counts = await getMailCounts(req.user._id);
-    res.render('compose', { active: 'compose', title: 'Tulis Surat', users, ...counts });
+    res.render('compose', { active: 'compose', title: 'Manajemen Dokumen', users, ...counts });
   } catch (err) {
-    res.render('compose', { active: 'compose', title: 'Tulis Surat', users: [], inboxCount: 0, draftCount: 0 });
+    res.render('compose', { active: 'compose', title: 'Manajemen Dokumen', users: [], inboxCount: 0, draftCount: 0 });
   }
 });
 
 app.post('/compose', requireAuth, async (req, res) => {
-  const { to, cc, subject, body, tag, berkas, action, sifat, jenis, externalRecipients, tipeSurat, suratData, kodeDiv, kodeLay } = req.body;
+  const { to, cc, subject, body, tag, berkas, action, sifat, jenis, externalRecipients,
+          tipeSurat, suratData, kodeDiv, kodeLay, sumberTemplate, pengirimResmi, kodeDir } = req.body;
   try {
+    // Dokumen khusus hanya untuk direktur+admin
+    if (TIPE_KHUSUS.includes(tipeSurat) && !['admin','direktur'].includes(req.user.role)) {
+      return res.redirect('/compose?error=access');
+    }
+
     const toIds = [].concat(to || []).filter(Boolean);
     const ccIds = [].concat(cc || []).filter(Boolean);
     const [toUsers, ccUsers] = await Promise.all([
@@ -530,28 +558,30 @@ app.post('/compose', requireAuth, async (req, res) => {
     const year = now.getFullYear();
     const ROMAN_M = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
     const seq  = await DocCounter.nextSeq('SURAT', year);
-    const div  = (kodeDiv || 'OPS').toUpperCase();
-    const lay  = (kodeLay || 'INT').toUpperCase();
-    const nomorSurat = `${String(seq).padStart(3,'0')}/${div}-${lay}/NIT/${ROMAN_M[now.getMonth()+1]}/${year}`;
+    const tipe = tipeSurat || 'Nota Dinas';
+    const nomorSurat = buildNomorSurat(seq, tipe, kodeDir || kodeDiv || 'DIR', jenis || 'internal', ROMAN_M[now.getMonth()+1], year);
 
     const isDraft = action === 'draft';
     const email = await Email.create({
-      from:       { userId: req.user._id, name: req.user.name, email: req.user.email },
-      to:         toUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
-      cc:         ccUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
-      toExternal: jenis === 'eksternal' ? extRecipients : [],
-      subject:    subject?.trim() || '(Tanpa Subjek)',
-      body:       body || '',
-      tag:        tag || 'Normal',
-      berkas:     berkas?.trim() || '',
-      sifat:      sifat || 'Biasa/Terbuka',
-      jenis:      jenis || 'internal',
-      tipeSurat:  tipeSurat || 'Surat',
-      suratData:  parsedSuratData,
+      from:           { userId: req.user._id, name: req.user.name, email: req.user.email },
+      to:             toUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
+      cc:             ccUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
+      toExternal:     jenis === 'eksternal' ? extRecipients : [],
+      subject:        subject?.trim() || '(Tanpa Subjek)',
+      body:           body || '',
+      tag:            tag || 'Normal',
+      berkas:         berkas?.trim() || '',
+      sifat:          sifat || 'Biasa/Terbuka',
+      jenis:          jenis || 'internal',
+      tipeSurat:      tipe,
+      sumberTemplate: sumberTemplate || 'internal',
+      pengirimResmi:  pengirimResmi?.trim() || req.user.name,
+      kodeDir:        kodeDir || kodeDiv || 'DIR',
+      kodeDiv:        kodeDiv || 'OPS',
+      kodeLay:        kodeLay || 'INT',
+      suratData:      parsedSuratData,
       nomorSurat,
-      kodeDiv:    div,
-      kodeLay:    lay,
-      status:     'draft'
+      status:         'draft'
     });
 
     await log(req, 'email_draft', 'email', `Surat dibuat: "${email.subject}"`, { emailId: email._id });
@@ -850,13 +880,14 @@ app.get('/profile', requireAuth, async (req, res) => {
 });
 
 app.post('/profile', requireAuth, async (req, res) => {
-  const { name, organization, jabatan, phone, bio } = req.body;
+  const { name, organization, jabatan, phone, bio, enik } = req.body;
   const counts = await getMailCounts(req.user._id);
   try {
     if (!name?.trim()) {
       return res.render('profile', { active: 'profile', title: 'Profil Saya', success: null, error: 'Nama tidak boleh kosong.', ...counts });
     }
     await User.findByIdAndUpdate(req.user._id, {
+      enik: enik?.trim() || '',
       name: name.trim(),
       organization: organization?.trim() || 'Inspira Tekno',
       jabatan: jabatan?.trim() || '',
@@ -1005,6 +1036,25 @@ app.get('/admin', requireAuth, requireAdmin, async (req, res) => {
 });
 
 // API: get more logs
+// Log Penomoran Surat
+app.get('/log-penomoran', requireAuth, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const q = req.query.q || '';
+    const filter = { nomorSurat: { $exists: true, $ne: '' } };
+    if (q) filter.$or = [
+      { nomorSurat: { $regex: q, $options: 'i' } },
+      { subject: { $regex: q, $options: 'i' } },
+      { tipeSurat: { $regex: q, $options: 'i' } }
+    ];
+    const docs = await Email.find(filter).sort({ createdAt: -1 }).limit(100).lean();
+    res.render('log-penomoran', { active: 'log-penomoran', title: 'Log Penomoran', docs, q, formatDate, ...counts });
+  } catch (err) {
+    console.error(err);
+    res.redirect('/inbox');
+  }
+});
+
 app.get('/admin/logs', requireAuth, requireAdmin, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -1070,6 +1120,21 @@ app.post('/admin/users/:id/role', requireAuth, requireAdmin, async (req, res) =>
   }
 });
 
+app.post('/admin/users/:id/enik', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { enik, jabatan } = req.body;
+    const target = await User.findById(req.params.id);
+    if (!target) return res.json({ ok: false, message: 'Pengguna tidak ditemukan.' });
+    await User.findByIdAndUpdate(req.params.id, {
+      enik: enik?.trim() || '',
+      jabatan: jabatan?.trim() || ''
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
 app.delete('/admin/users/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     if (req.params.id === req.user._id.toString()) {
@@ -1129,8 +1194,8 @@ function generateCode(len = 6) {
   return code;
 }
 
-// Redirect short URL (public, no auth needed)
-app.get('/s/:code', async (req, res) => {
+// Redirect short URL — format /inspira/:code (public)
+app.get('/inspira/:code', async (req, res) => {
   try {
     const su = await ShortUrl.findOneAndUpdate(
       { shortCode: req.params.code, isActive: true },
@@ -1143,6 +1208,8 @@ app.get('/s/:code', async (req, res) => {
     res.status(500).send('Terjadi kesalahan.');
   }
 });
+// Legacy redirect (backward compat)
+app.get('/s/:code', async (req, res) => res.redirect('/inspira/' + req.params.code));
 
 app.get('/shorturl', requireAuth, async (req, res) => {
   try {
@@ -1155,7 +1222,7 @@ app.get('/shorturl', requireAuth, async (req, res) => {
 });
 
 app.post('/shorturl', requireAuth, async (req, res) => {
-  const { originalUrl, title } = req.body;
+  const { originalUrl, title, customSlug } = req.body;
   const counts = await getMailCounts(req.user._id);
   const fail = async (msg) => {
     const urls = await ShortUrl.find({ userId: req.user._id }).sort({ createdAt: -1 });
@@ -1166,10 +1233,15 @@ app.post('/shorturl', requireAuth, async (req, res) => {
     let url = originalUrl.trim();
     if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
 
-    let shortCode, exists = true;
-    while (exists) {
-      shortCode = generateCode(6);
-      exists = await ShortUrl.findOne({ shortCode });
+    let shortCode;
+    if (customSlug?.trim()) {
+      shortCode = customSlug.trim().toLowerCase().replace(/[^a-z0-9\-_]/g, '-');
+      if (shortCode.length < 3) return fail('Custom nama minimal 3 karakter.');
+      const exists = await ShortUrl.findOne({ shortCode });
+      if (exists) return fail(`Nama "${shortCode}" sudah digunakan. Pilih nama lain.`);
+    } else {
+      let exists = true;
+      while (exists) { shortCode = generateCode(6); exists = await ShortUrl.findOne({ shortCode }); }
     }
 
     await ShortUrl.create({
@@ -1180,7 +1252,7 @@ app.post('/shorturl', requireAuth, async (req, res) => {
       title: title?.trim() || url
     });
 
-    await log(req, 'system', 'system', `Short URL dibuat: /${shortCode} -> ${url}`);
+    await log(req, 'system', 'system', `Short URL dibuat: /inspira/${shortCode} -> ${url}`);
     const urls = await ShortUrl.find({ userId: req.user._id }).sort({ createdAt: -1 });
     res.render('shorturl', { active: 'shorturl', title: 'Short URL', urls, error: null, success: `Short URL berhasil dibuat: /s/${shortCode}`, ...counts });
   } catch (err) {
@@ -1423,7 +1495,7 @@ function formatRupiah(n) {
   return 'Rp ' + Number(n).toLocaleString('id-ID');
 }
 
-app.get('/agreements', requireAuth, async (req, res) => {
+app.get('/agreements', requireAuth, requireDirektur, async (req, res) => {
   try {
     const { type, status, q } = req.query;
     const filter = {};
@@ -1455,7 +1527,7 @@ app.get('/agreements', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/agreements/new', requireAuth, async (req, res) => {
+app.get('/agreements/new', requireAuth, requireDirektur, async (req, res) => {
   const counts = await getMailCounts(req.user._id);
   res.render('agreement-form', {
     active: 'agreements', title: 'Buat Dokumen Baru',
@@ -1463,7 +1535,7 @@ app.get('/agreements/new', requireAuth, async (req, res) => {
   });
 });
 
-app.post('/agreements/new', requireAuth, async (req, res) => {
+app.post('/agreements/new', requireAuth, requireDirektur, async (req, res) => {
   const counts = await getMailCounts(req.user._id);
   const fail = (msg) => res.render('agreement-form', {
     active: 'agreements', title: 'Buat Dokumen Baru',
@@ -1515,7 +1587,7 @@ app.post('/agreements/new', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/agreements/:id', requireAuth, async (req, res) => {
+app.get('/agreements/:id', requireAuth, requireDirektur, async (req, res) => {
   try {
     const doc = await Agreement.findById(req.params.id);
     if (!doc) return res.redirect('/agreements');
@@ -1529,7 +1601,7 @@ app.get('/agreements/:id', requireAuth, async (req, res) => {
   }
 });
 
-app.post('/agreements/:id/status', requireAuth, async (req, res) => {
+app.post('/agreements/:id/status', requireAuth, requireDirektur, async (req, res) => {
   try {
     const { status, catatan } = req.body;
     const valid = ['draft','review','aktif','berakhir','dibatalkan'];
