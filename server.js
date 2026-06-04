@@ -345,8 +345,10 @@ app.get('/inbox', requireAuth, async (req, res) => {
       from: m.from.name,
       subject: m.subject,
       date: formatDate(m.createdAt),
+      dateISO: m.createdAt ? new Date(m.createdAt).toISOString().slice(0,10) : '',
       tag: m.tag,
       berkas: m.berkas,
+      jenis: m.jenis || 'internal',
       read: m.readBy.some(id => id.toString() === req.user._id.toString())
     }));
 
@@ -369,11 +371,13 @@ app.get('/sent', requireAuth, async (req, res) => {
     const formatted = mails.map(m => ({
       _id: m._id,
       id: m._id,
-      to: m.to.map(t => t.name).join(', ') || '-',
+      to: m.to.map(t => t.name).join(', ') || (m.toExternal||[]).map(r=>r.name||r.email).join(', ') || '-',
       subject: m.subject,
       date: formatDate(m.createdAt),
+      dateISO: m.createdAt ? new Date(m.createdAt).toISOString().slice(0,10) : '',
       tag: m.tag,
-      berkas: m.berkas
+      berkas: m.berkas,
+      jenis: m.jenis || 'internal'
     }));
 
     res.render('sent', { mails: formatted, active: 'sent', title: 'Terkirim', ...counts });
@@ -1027,7 +1031,8 @@ app.get('/direktur/overview', requireAuth, requireDirektur, async (req, res) => 
       ...m,
       fromName: m.from?.name || '-',
       toNames: (m.to || []).map(t => t.name).join(', ') || '-',
-      date: formatDate(m.createdAt)
+      date: formatDate(m.createdAt),
+      dateISO: m.createdAt ? new Date(m.createdAt).toISOString().slice(0,10) : ''
     }));
 
     res.render('direktur', {
@@ -1497,15 +1502,28 @@ const smUpload = multer({
 
 app.get('/surat-masuk', requireAuth, async (req, res) => {
   try {
-    const { status, klasifikasi, q } = req.query;
+    const { status, klasifikasi, q, dateFrom, dateTo, dateMonth, dateYear } = req.query;
     const filter = {};
-    if (status)     filter.status     = status;
+    if (status)      filter.status      = status;
     if (klasifikasi) filter.klasifikasi = klasifikasi;
     if (q) filter.$or = [
       { perihal:      { $regex: q, $options: 'i' } },
       { dariInstansi: { $regex: q, $options: 'i' } },
       { nomorSurat:   { $regex: q, $options: 'i' } }
     ];
+    if (dateFrom || dateTo) {
+      filter.tanggalTerima = {};
+      if (dateFrom) filter.tanggalTerima.$gte = new Date(dateFrom);
+      if (dateTo)   filter.tanggalTerima.$lte = new Date(dateTo + 'T23:59:59');
+    } else if (dateMonth || dateYear) {
+      const y = parseInt(dateYear) || new Date().getFullYear();
+      const m = parseInt(dateMonth);
+      if (m) {
+        filter.tanggalTerima = { $gte: new Date(y, m-1, 1), $lt: new Date(y, m, 1) };
+      } else {
+        filter.tanggalTerima = { $gte: new Date(y, 0, 1), $lt: new Date(y+1, 0, 1) };
+      }
+    }
 
     const [surats, counts] = await Promise.all([
       SuratMasuk.find(filter).sort({ tanggalTerima: -1 }),
@@ -1521,7 +1539,7 @@ app.get('/surat-masuk', requireAuth, async (req, res) => {
 
     res.render('surat-masuk', {
       active: 'surat-masuk', title: 'Surat Masuk',
-      surats, stats, filter: { status, klasifikasi, q },
+      surats, stats, filter: { status, klasifikasi, q, dateFrom, dateTo, dateMonth, dateYear },
       formatDate, ...counts
     });
   } catch (err) {

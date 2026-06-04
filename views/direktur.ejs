@@ -30,11 +30,48 @@
 </div>
 
 <div class="mail-list-wrap">
-  <div class="mail-list-header">
-    <span class="mail-list-title">Surat Terbaru Seluruh Organisasi</span>
-    <div class="filter-tabs">
-      <button class="filter-tab active" onclick="filterMails(this,'all')">Semua</button>
-      <button class="filter-tab" onclick="filterMails(this,'penting')">Penting</button>
+  <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
+    <span class="mail-list-title" id="listCount"><%= sentMails.length %> surat</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <input type="text" id="searchBox" class="search-input" placeholder="Cari subjek, pengirim..." style="width:200px;padding:7px 12px;" oninput="applyFilters()">
+      <div id="activeChips" class="filter-active-chips"></div>
+      <div class="filter-wrap">
+        <button class="filter-btn" id="filterBtn" onclick="toggleFilterDropdown()">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          Filter
+          <span class="filter-badge" id="filterBadge" style="display:none;">0</span>
+        </button>
+        <div class="filter-dropdown" id="filterDropdown">
+          <div class="filter-section">
+            <div class="filter-section-label">Prioritas</div>
+            <div class="filter-chips">
+              <button class="filter-chip active" data-group="tag" data-val="all" onclick="pickChip(this)">Semua</button>
+              <button class="filter-chip" data-group="tag" data-val="penting" onclick="pickChip(this)">Penting</button>
+              <button class="filter-chip" data-group="tag" data-val="urgent" onclick="pickChip(this)">Urgent</button>
+              <button class="filter-chip" data-group="tag" data-val="normal" onclick="pickChip(this)">Normal</button>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Tanggal</div>
+            <div class="filter-chips" style="margin-bottom:8px;">
+              <button class="filter-chip active" data-group="datemode" data-val="all" onclick="pickChip(this);toggleDateMode('all')">Semua</button>
+              <button class="filter-chip" data-group="datemode" data-val="single" onclick="pickChip(this);toggleDateMode('single')">Tanggal</button>
+              <button class="filter-chip" data-group="datemode" data-val="range" onclick="pickChip(this);toggleDateMode('range')">Rentang</button>
+              <button class="filter-chip" data-group="datemode" data-val="month" onclick="pickChip(this);toggleDateMode('month')">Bulan/Tahun</button>
+            </div>
+            <div id="dateInputSingle" style="display:none;"><div class="filter-date-row"><input type="date" id="dateSingle" oninput="applyFilters()"></div></div>
+            <div id="dateInputRange"  style="display:none;"><div class="filter-date-row"><input type="date" id="dateFrom" oninput="applyFilters()"><span class="filter-date-sep">s/d</span><input type="date" id="dateTo" oninput="applyFilters()"></div></div>
+            <div id="dateInputMonth"  style="display:none;"><div class="filter-date-row">
+              <select id="dateMonth" onchange="applyFilters()"><option value="">-- Bulan --</option><option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option><option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option><option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option></select>
+              <select id="dateYear" onchange="applyFilters()"><option value="">-- Tahun --</option><% for(let y=new Date().getFullYear();y>=2020;y--){%><option value="<%=y%>"><%=y%></option><%}%></select>
+            </div></div>
+          </div>
+          <div class="filter-actions">
+            <button class="btn btn-ghost" style="font-size:12.5px;padding:6px 14px;" onclick="resetAllFilters()">Reset</button>
+            <button class="btn btn-primary" style="font-size:12.5px;padding:6px 14px;" onclick="toggleFilterDropdown()">Tutup</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -51,7 +88,10 @@
     const avColors = ['av-green','av-teal','av-blue','av-amber','av-purple'];
     const avColor = avColors[i % avColors.length];
   %>
-  <div class="mail-item" data-tag="<%= (m.tag || 'normal').toLowerCase() %>">
+  <div class="mail-item"
+    data-tag="<%= (m.tag || 'normal').toLowerCase() %>"
+    data-date="<%= m.dateISO || '' %>"
+    data-search="<%= (m.subject + ' ' + m.fromName + ' ' + m.toNames).toLowerCase() %>">
     <div class="mail-avatar <%= avColor %>"><%= initials %></div>
     <div class="mail-body">
       <div class="mail-from">Dari: <%= m.fromName %> ke <%= m.toNames %></div>
@@ -66,4 +106,8 @@
   <% }); %>
 </div>
 
+<script>
+window._countSuffix = ' surat';
+<%- include('./partials/filter-script') %>
+</script>
 <%- include('./partials/footer') %>

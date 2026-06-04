@@ -239,6 +239,56 @@ body { font-family: var(--font); background: var(--gray-100); color: var(--gray-
 .filter-tab { padding: 5px 12px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 400; color: var(--gray-500); border: none; background: none; cursor: pointer; transition: all .15s; }
 .filter-tab.active, .filter-tab:hover { background: var(--brand-50); color: var(--brand-600); font-weight: 500; }
 
+/* ── Filter Dropdown ── */
+.filter-wrap { position: relative; }
+.filter-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 13px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+  color: var(--gray-600); border: 1px solid var(--gray-200); background: #fff;
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.filter-btn:hover { border-color: var(--brand-400); color: var(--brand-600); }
+.filter-btn.has-filter { border-color: var(--brand-500); color: var(--brand-600); background: var(--brand-50); }
+.filter-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 17px; height: 17px; border-radius: 50%; font-size: 10px; font-weight: 700;
+  background: var(--brand-600); color: #fff;
+}
+.filter-dropdown {
+  display: none; position: absolute; top: calc(100% + 6px); right: 0; z-index: 200;
+  background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius-md);
+  box-shadow: 0 8px 28px rgba(0,0,0,.12); padding: 16px; min-width: 300px;
+}
+.filter-dropdown.open { display: block; }
+.filter-section { margin-bottom: 14px; }
+.filter-section:last-child { margin-bottom: 0; }
+.filter-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); margin-bottom: 6px; }
+.filter-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.filter-chip {
+  padding: 4px 11px; border-radius: 99px; font-size: 12px; font-weight: 400;
+  color: var(--gray-500); border: 1px solid var(--gray-200); background: #fff;
+  cursor: pointer; transition: all .15s;
+}
+.filter-chip.active { background: var(--brand-600); color: #fff; border-color: var(--brand-600); font-weight: 500; }
+.filter-chip:hover:not(.active) { border-color: var(--brand-400); color: var(--brand-600); }
+.filter-date-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.filter-date-row input[type=date], .filter-date-row select {
+  flex: 1; min-width: 0; padding: 6px 10px; border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm); font-size: 12.5px; color: var(--gray-700);
+  background: #fff; outline: none;
+}
+.filter-date-row input[type=date]:focus, .filter-date-row select:focus { border-color: var(--brand-400); }
+.filter-date-sep { font-size: 12px; color: var(--gray-400); flex-shrink: 0; }
+.filter-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--gray-100); }
+.filter-active-chips { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.filter-active-chip {
+  display: flex; align-items: center; gap: 4px; padding: 3px 10px 3px 10px;
+  border-radius: 99px; font-size: 12px; font-weight: 500;
+  background: var(--brand-50); color: var(--brand-700); border: 1px solid var(--brand-200);
+}
+.filter-active-chip button { background: none; border: none; cursor: pointer; color: var(--brand-400); font-size: 13px; line-height: 1; padding: 0; display: flex; align-items: center; }
+.filter-active-chip button:hover { color: var(--brand-700); }
+
 .mail-item {
   display: flex;
   align-items: center;

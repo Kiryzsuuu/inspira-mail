@@ -45,17 +45,59 @@
   <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
     <span class="mail-list-title" id="listCount"><%= mails.length %> surat masuk</span>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <div style="display:flex;gap:6px;align-items:center;">
-        <input type="text" id="searchBox" class="search-input" placeholder="Cari subjek, pengirim..." style="width:240px;padding:7px 12px;" oninput="liveSearch(this.value)">
-        <button class="btn btn-ghost" style="padding:7px 10px;" onclick="document.getElementById('searchBox').value='';liveSearch('');" title="Reset">
-          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <input type="text" id="searchBox" class="search-input" placeholder="Cari subjek, pengirim..." style="width:220px;padding:7px 12px;" oninput="applyFilters()">
+      <div id="activeChips" class="filter-active-chips"></div>
+      <div class="filter-wrap">
+        <button class="filter-btn" id="filterBtn" onclick="toggleFilterDropdown()">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          Filter
+          <span class="filter-badge" id="filterBadge" style="display:none;">0</span>
         </button>
-      </div>
-      <div class="filter-tabs">
-        <button class="filter-tab active" onclick="filterMails(this,'all')">Semua</button>
-        <button class="filter-tab" onclick="filterMails(this,'unread')">Belum Dibaca</button>
-        <button class="filter-tab" onclick="filterMails(this,'penting')">Penting</button>
-        <button class="filter-tab" onclick="filterMails(this,'urgent')">Urgent</button>
+        <div class="filter-dropdown" id="filterDropdown">
+          <div class="filter-section">
+            <div class="filter-section-label">Status Baca</div>
+            <div class="filter-chips">
+              <button class="filter-chip active" data-group="read" data-val="all" onclick="pickChip(this)">Semua</button>
+              <button class="filter-chip" data-group="read" data-val="unread" onclick="pickChip(this)">Belum Dibaca</button>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Prioritas</div>
+            <div class="filter-chips">
+              <button class="filter-chip active" data-group="tag" data-val="all" onclick="pickChip(this)">Semua</button>
+              <button class="filter-chip" data-group="tag" data-val="penting" onclick="pickChip(this)">Penting</button>
+              <button class="filter-chip" data-group="tag" data-val="urgent" onclick="pickChip(this)">Urgent</button>
+              <button class="filter-chip" data-group="tag" data-val="normal" onclick="pickChip(this)">Normal</button>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Tipe Surat</div>
+            <div class="filter-chips">
+              <button class="filter-chip active" data-group="jenis" data-val="all" onclick="pickChip(this)">Semua</button>
+              <button class="filter-chip" data-group="jenis" data-val="internal" onclick="pickChip(this)">Internal</button>
+              <button class="filter-chip" data-group="jenis" data-val="eksternal" onclick="pickChip(this)">Eksternal</button>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Tanggal</div>
+            <div class="filter-chips" style="margin-bottom:8px;">
+              <button class="filter-chip active" data-group="datemode" data-val="all" onclick="pickChip(this);toggleDateMode('all')">Semua</button>
+              <button class="filter-chip" data-group="datemode" data-val="single" onclick="pickChip(this);toggleDateMode('single')">Tanggal</button>
+              <button class="filter-chip" data-group="datemode" data-val="range" onclick="pickChip(this);toggleDateMode('range')">Rentang</button>
+              <button class="filter-chip" data-group="datemode" data-val="month" onclick="pickChip(this);toggleDateMode('month')">Bulan/Tahun</button>
+            </div>
+            <div id="dateInputSingle" style="display:none;"><div class="filter-date-row"><input type="date" id="dateSingle" oninput="applyFilters()"></div></div>
+            <div id="dateInputRange" style="display:none;"><div class="filter-date-row"><input type="date" id="dateFrom" oninput="applyFilters()"><span class="filter-date-sep">s/d</span><input type="date" id="dateTo" oninput="applyFilters()"></div></div>
+            <div id="dateInputMonth" style="display:none;"><div class="filter-date-row">
+              <select id="dateMonth" onchange="applyFilters()"><option value="">-- Bulan --</option><option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option><option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option><option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option></select>
+              <select id="dateYear" onchange="applyFilters()"><option value="">-- Tahun --</option><% for(let y=new Date().getFullYear();y>=2020;y--){%><option value="<%=y%>"><%=y%></option><%}%></select>
+            </div></div>
+          </div>
+          <div class="filter-actions">
+            <button class="btn btn-ghost" style="font-size:12.5px;padding:6px 14px;" onclick="resetAllFilters()">Reset</button>
+            <button class="btn btn-primary" style="font-size:12.5px;padding:6px 14px;" onclick="toggleFilterDropdown()">Tutup</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -68,6 +110,8 @@
   %>
   <a href="/email/<%= m.id %>" class="mail-item <%= m.read ? '' : 'unread' %>"
      data-tag="<%= m.tag.toLowerCase() %>" data-read="<%= m.read %>"
+     data-jenis="<%= (m.jenis || 'internal').toLowerCase() %>"
+     data-date="<%= m.dateISO || '' %>"
      data-search="<%= (m.subject + ' ' + m.from).toLowerCase() %>">
     <div class="mail-avatar <%= avColor %>"><%= initials %></div>
     <div class="mail-body">
@@ -84,32 +128,8 @@
 </div>
 
 <script>
-let currentFilter = 'all';
-
-function liveSearch(q) {
-  const kw = q.toLowerCase().trim();
-  let visible = 0;
-  document.querySelectorAll('.mail-item').forEach(el => {
-    const s    = el.dataset.search || '';
-    const tag  = el.dataset.tag   || '';
-    const read = el.dataset.read;
-    const matchSearch = !kw || s.includes(kw);
-    const matchFilter = currentFilter === 'all'
-      || (currentFilter === 'unread' && read === 'false')
-      || tag === currentFilter;
-    const show = matchSearch && matchFilter;
-    el.style.display = show ? '' : 'none';
-    if (show) visible++;
-  });
-  document.getElementById('listCount').textContent = visible + ' surat masuk';
-}
-
-function filterMails(btn, tag) {
-  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  currentFilter = tag;
-  liveSearch(document.getElementById('searchBox').value);
-}
+window._countSuffix = ' surat masuk';
+<%- include('./partials/filter-script') %>
 </script>
 
 <%- include('./partials/footer') %>

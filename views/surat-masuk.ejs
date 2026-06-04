@@ -53,25 +53,86 @@
 <div class="mail-list-wrap">
   <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
     <span class="mail-list-title"><%= surats.length %> surat tercatat</span>
-    <form method="GET" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <select name="klasifikasi" class="admin-role-select" onchange="this.form.submit()" style="padding:7px 28px 7px 10px;">
-        <option value="">Semua Klasifikasi</option>
-        <% ['Urgent','Penting','Normal','Info'].forEach(k => { %>
-        <option value="<%= k %>" <%= (filter.klasifikasi === k) ? 'selected' : '' %>><%= k %></option>
-        <% }) %>
-      </select>
-      <select name="status" class="admin-role-select" onchange="this.form.submit()" style="padding:7px 28px 7px 10px;">
-        <option value="">Semua Status</option>
-        <% ['baru','dibaca','ditindaklanjuti','selesai'].forEach(s => { %>
-        <option value="<%= s %>" <%= (filter.status === s) ? 'selected' : '' %>><%= s.charAt(0).toUpperCase() + s.slice(1) %></option>
-        <% }) %>
-      </select>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <input type="text" name="q" class="search-input" placeholder="Cari perihal, instansi, nomor..." value="<%= filter.q || '' %>" style="width:220px;padding:7px 12px;">
-        <button type="submit" class="btn btn-secondary" style="padding:7px 14px;font-size:13px;white-space:nowrap;">Cari</button>
-        <% if (filter.status || filter.klasifikasi || filter.q) { %>
-        <a href="/surat-masuk" class="btn btn-ghost" style="padding:7px 12px;font-size:13px;white-space:nowrap;">Reset</a>
-        <% } %>
+    <form method="GET" id="smForm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <input type="text" name="q" class="search-input" placeholder="Cari perihal, instansi, nomor..." value="<%= filter.q || '' %>" style="width:220px;padding:7px 12px;">
+      <!-- hidden date fields, diisi dari dropdown -->
+      <input type="hidden" name="klasifikasi" id="hKlasifikasi" value="<%= filter.klasifikasi || '' %>">
+      <input type="hidden" name="status"      id="hStatus"      value="<%= filter.status || '' %>">
+      <input type="hidden" name="dateFrom"    id="hDateFrom"    value="<%= filter.dateFrom || '' %>">
+      <input type="hidden" name="dateTo"      id="hDateTo"      value="<%= filter.dateTo || '' %>">
+      <input type="hidden" name="dateMonth"   id="hDateMonth"   value="<%= filter.dateMonth || '' %>">
+      <input type="hidden" name="dateYear"    id="hDateYear"    value="<%= filter.dateYear || '' %>">
+
+      <% const hasFilter = filter.status || filter.klasifikasi || filter.q || filter.dateFrom || filter.dateTo || filter.dateMonth || filter.dateYear; %>
+      <div id="smActiveChips" class="filter-active-chips">
+        <% if (filter.klasifikasi) { %><div class="filter-active-chip"><%= filter.klasifikasi %><button type="button" onclick="clearField('hKlasifikasi','<%= filter.klasifikasi %>')">×</button></div><% } %>
+        <% if (filter.status) { %><div class="filter-active-chip"><%= filter.status.charAt(0).toUpperCase()+filter.status.slice(1) %><button type="button" onclick="clearField('hStatus','<%= filter.status %>')">×</button></div><% } %>
+        <% if (filter.dateFrom || filter.dateTo) { %><div class="filter-active-chip"><%= filter.dateFrom||'?' %> s/d <%= filter.dateTo||'?' %><button type="button" onclick="clearDate()">×</button></div><% } %>
+        <% if ((filter.dateMonth || filter.dateYear) && !filter.dateFrom && !filter.dateTo) { %><div class="filter-active-chip"><%= filter.dateMonth ? ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][parseInt(filter.dateMonth)]||'' : '' %> <%= filter.dateYear||'' %><button type="button" onclick="clearDate()">×</button></div><% } %>
+      </div>
+
+      <div class="filter-wrap">
+        <button type="button" class="filter-btn <%= hasFilter ? 'has-filter' : '' %>" id="filterBtn" onclick="toggleFilterDropdown()">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          Filter
+          <% let fc=0; if(filter.klasifikasi)fc++; if(filter.status)fc++; if(filter.dateFrom||filter.dateTo||filter.dateMonth||filter.dateYear)fc++; %>
+          <% if(fc>0){%><span class="filter-badge"><%=fc%></span><%}%>
+        </button>
+        <div class="filter-dropdown" id="filterDropdown">
+          <div class="filter-section">
+            <div class="filter-section-label">Klasifikasi</div>
+            <div class="filter-chips">
+              <button type="button" class="filter-chip <%= !filter.klasifikasi ? 'active':'' %>" onclick="setHidden('hKlasifikasi','')">Semua</button>
+              <% ['Urgent','Penting','Normal','Info'].forEach(k => { %>
+              <button type="button" class="filter-chip <%= filter.klasifikasi===k ? 'active':'' %>" onclick="setHidden('hKlasifikasi','<%= k %>')"><%= k %></button>
+              <% }) %>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Status</div>
+            <div class="filter-chips">
+              <button type="button" class="filter-chip <%= !filter.status ? 'active':'' %>" onclick="setHidden('hStatus','')">Semua</button>
+              <% ['baru','dibaca','ditindaklanjuti','selesai'].forEach(s => { %>
+              <button type="button" class="filter-chip <%= filter.status===s ? 'active':'' %>" onclick="setHidden('hStatus','<%= s %>')"><%= s.charAt(0).toUpperCase()+s.slice(1) %></button>
+              <% }) %>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Tanggal</div>
+            <div class="filter-chips" style="margin-bottom:8px;">
+              <button type="button" class="filter-chip <%= (!filter.dateFrom&&!filter.dateTo&&!filter.dateMonth&&!filter.dateYear)?'active':'' %>" onclick="pickDateMode(this,'all')">Semua</button>
+              <button type="button" class="filter-chip <%= (filter.dateFrom||filter.dateTo)?'active':'' %>" onclick="pickDateMode(this,'range')">Rentang</button>
+              <button type="button" class="filter-chip <%= (filter.dateMonth||filter.dateYear)?'active':'' %>" onclick="pickDateMode(this,'month')">Bulan/Tahun</button>
+            </div>
+            <div id="smDateRange" style="display:<%= (filter.dateFrom||filter.dateTo)?'':'none' %>;">
+              <div class="filter-date-row">
+                <input type="date" id="inDateFrom" value="<%= filter.dateFrom||'' %>" oninput="document.getElementById('hDateFrom').value=this.value">
+                <span class="filter-date-sep">s/d</span>
+                <input type="date" id="inDateTo"   value="<%= filter.dateTo||'' %>"   oninput="document.getElementById('hDateTo').value=this.value">
+              </div>
+            </div>
+            <div id="smDateMonth" style="display:<%= (filter.dateMonth||filter.dateYear)?'':'none' %>;">
+              <div class="filter-date-row">
+                <select id="inDateMonth" onchange="document.getElementById('hDateMonth').value=this.value">
+                  <option value="">-- Bulan --</option>
+                  <% [['01','Januari'],['02','Februari'],['03','Maret'],['04','April'],['05','Mei'],['06','Juni'],['07','Juli'],['08','Agustus'],['09','September'],['10','Oktober'],['11','November'],['12','Desember']].forEach(([v,l]) => { %>
+                  <option value="<%= v %>" <%= filter.dateMonth===v?'selected':'' %>><%= l %></option>
+                  <% }) %>
+                </select>
+                <select id="inDateYear" onchange="document.getElementById('hDateYear').value=this.value">
+                  <option value="">-- Tahun --</option>
+                  <% for(let y=new Date().getFullYear();y>=2020;y--){ %>
+                  <option value="<%= y %>" <%= filter.dateYear==y?'selected':'' %>><%= y %></option>
+                  <% } %>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="filter-actions">
+            <button type="button" class="btn btn-ghost" style="font-size:12.5px;padding:6px 14px;" onclick="window.location='/surat-masuk'">Reset</button>
+            <button type="submit" class="btn btn-primary" style="font-size:12.5px;padding:6px 14px;">Terapkan</button>
+          </div>
+        </div>
       </div>
     </form>
   </div>
@@ -187,6 +248,37 @@
 </div>
 
 <script>
+// ── FILTER DROPDOWN (server-side form) ──
+function toggleFilterDropdown() {
+  document.getElementById('filterDropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.filter-wrap');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('filterDropdown')?.classList.remove('open');
+});
+function setHidden(id, val) {
+  document.getElementById(id).value = val;
+  document.getElementById(id).closest('form').querySelector('.filter-chip.active')?.classList.remove('active');
+  event.currentTarget.classList.add('active');
+}
+function pickDateMode(btn, mode) {
+  btn.closest('.filter-chips').querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('smDateRange').style.display  = mode === 'range' ? '' : 'none';
+  document.getElementById('smDateMonth').style.display  = mode === 'month' ? '' : 'none';
+  if (mode === 'all') {
+    ['hDateFrom','hDateTo','hDateMonth','hDateYear'].forEach(id => document.getElementById(id).value = '');
+  }
+}
+function clearField(id, val) {
+  document.getElementById(id).value = '';
+  document.getElementById('smForm').submit();
+}
+function clearDate() {
+  ['hDateFrom','hDateTo','hDateMonth','hDateYear'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('smForm').submit();
+}
+
 function openModal() {
   document.getElementById('smModal').classList.add('open');
   document.body.style.overflow = 'hidden';
