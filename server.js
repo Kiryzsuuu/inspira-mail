@@ -463,10 +463,10 @@ app.get('/draft/:id/edit', requireAuth, async (req, res) => {
 });
 
 // Update draft content
-app.post('/draft/:id/update', requireAuth, async (req, res) => {
+app.post('/draft/:id/update', requireAuth, lampiranUpload.single('lampiran'), async (req, res) => {
   try {
     const { to, cc, subject, body, tag, berkas, sifat, jenis, externalRecipients,
-            kodeDiv, kodeLay, kodeDir, pengirimResmi, sumberTemplate, action } = req.body;
+            kodeDiv, kodeLay, kodeDir, pengirimResmi, sumberTemplate, action, hapusLampiran } = req.body;
     const email = await Email.findById(req.params.id);
     if (!email || email.from.userId?.toString() !== req.user._id.toString())
       return res.json({ ok: false });
@@ -495,6 +495,14 @@ app.post('/draft/:id/update', requireAuth, async (req, res) => {
     const nomorSurat = buildNomorSurat(parseInt(seqPart), tipe, kd, jenis || email.jenis || 'internal',
       ROMAN_M[datePart.getMonth()+1], datePart.getFullYear());
 
+    // Tentukan lampiran: file baru, hapus, atau tetap
+    let lampiranUpdate = {};
+    if (req.file) {
+      lampiranUpdate = { lampiran: '/uploads/' + req.file.filename, lampiranNama: req.file.originalname };
+    } else if (hapusLampiran === '1') {
+      lampiranUpdate = { lampiran: '', lampiranNama: '' };
+    }
+
     await Email.findByIdAndUpdate(email._id, {
       to:             toUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
       cc:             ccUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
@@ -510,7 +518,8 @@ app.post('/draft/:id/update', requireAuth, async (req, res) => {
       kodeDir:        kd,
       pengirimResmi:  pengirimResmi?.trim() || email.pengirimResmi || '',
       sumberTemplate: sumberTemplate || email.sumberTemplate || 'internal',
-      nomorSurat
+      nomorSurat,
+      ...lampiranUpdate
     });
     if (action === 'draft') {
       res.redirect('/compose');
@@ -1123,12 +1132,13 @@ app.post('/admin/site-settings', requireAuth, requireAdmin, ssUpload.single('log
 
 app.get('/admin', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const [totalUsers, totalSent, totalDraft, users, recentLogs] = await Promise.all([
+    const [totalUsers, totalSent, totalDraft, users, recentLogs, counters] = await Promise.all([
       User.countDocuments(),
       Email.countDocuments({ status: 'sent' }),
       Email.countDocuments({ status: 'draft' }),
       User.find().sort({ createdAt: -1 }).select('-password'),
-      ActivityLog.find().sort({ createdAt: -1 }).limit(50).lean()
+      ActivityLog.find().sort({ createdAt: -1 }).limit(50).lean(),
+      DocCounter.find().sort({ key: 1 }).lean()
     ]);
     const counts = await getMailCounts(req.user._id);
 
@@ -1141,7 +1151,7 @@ app.get('/admin', requireAuth, requireAdmin, async (req, res) => {
       active: 'admin',
       title: 'Admin Dashboard',
       stats: { totalUsers, totalSent, totalDraft, totalEmails: totalSent + totalDraft },
-      users,
+      users, counters,
       logs: logsFormatted,
       ROLE_LEVEL,
       ...counts
@@ -1308,6 +1318,47 @@ app.delete('/admin/users/:id', requireAuth, requireAdmin, async (req, res) => {
       `Admin ${req.user.name} menghapus akun ${target.name} (${target.email})`,
       { targetEmail: target.email, targetRole: target.role }
     );
+    res.json({ ok: true });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
+// ── PENOMORAN ROUTES ──
+app.get('/admin/counters', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const counters = await DocCounter.find().sort({ key: 1 }).lean();
+    res.json({ ok: true, counters });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
+app.post('/admin/counters/set', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { key, seq } = req.body;
+    if (!key) return res.json({ ok: false, message: 'Key wajib diisi.' });
+    const n = parseInt(seq);
+    if (isNaN(n) || n < 0) return res.json({ ok: false, message: 'Nomor tidak valid.' });
+    const counter = await DocCounter.findOneAndUpdate(
+      { key },
+      { seq: n },
+      { upsert: true, new: true }
+    );
+    await log(req, 'system', 'user_management',
+      `Admin ${req.user.name} mengatur counter "${key}" ke ${n}`, { key, seq: n });
+    res.json({ ok: true, counter });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
+app.delete('/admin/counters/:key', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const key = decodeURIComponent(req.params.key);
+    await DocCounter.findOneAndDelete({ key });
+    await log(req, 'system', 'user_management',
+      `Admin ${req.user.name} menghapus counter "${key}"`, { key });
     res.json({ ok: true });
   } catch (err) {
     res.json({ ok: false });

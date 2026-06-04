@@ -1126,23 +1126,8 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
             </button>
             <% } %>
           </div>
-          <!-- Jabatan selector -->
-          <div style="display:flex;flex-direction:column;gap:5px;">
-            <select id="jsel-<%= s._id %>" onchange="onJabatanSelect('<%= s._id %>',this)"
-              style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:5px;padding:5px 8px;font-size:11.5px;outline:none;width:100%;">
-              <option value="Direktur"      style="background:#1e293b;" <%= jabatanNow==='Direktur'?'selected':'' %>>Direktur</option>
-              <option value="Staff"         style="background:#1e293b;" <%= jabatanNow==='Staff'?'selected':'' %>>Staff</option>
-              <option value="Administrator" style="background:#1e293b;" <%= jabatanNow==='Administrator'?'selected':'' %>>Administrator</option>
-              <option value="__custom__"    style="background:#1e293b;" <%= isCustom?'selected':'' %>>Isi sendiri...</option>
-            </select>
-            <div id="jinput-<%= s._id %>" class="<%= isCustom ? '' : 'j-hidden' %>">
-              <input type="text" id="jtext-<%= s._id %>"
-                value="<%= isCustom ? jabatanNow : '' %>"
-                placeholder="Ketik jabatan..."
-                class="jabatan-input"
-                oninput="updateJabatanText('<%= s._id %>',this.value)">
-            </div>
-          </div>
+          <!-- Jabatan (dari profil, read-only) -->
+          <div style="font-size:11px;color:rgba(255,255,255,.35);padding:4px 0 0;">Jabatan: <span style="color:rgba(255,255,255,.6);font-weight:500;"><%= jabatanNow || '—' %></span></div>
           <!-- Display mode toggle -->
           <div>
             <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px;">Tampilan:</div>
@@ -1331,18 +1316,7 @@ function addSignerToPanel(s) {
         <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:5px;">
-      <select id="jsel-${s._id}" onchange="onJabatanSelect('${s._id}',this)"
-        style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:5px;padding:5px 8px;font-size:11.5px;outline:none;width:100%;">
-        <option value="Direktur" style="background:#1e293b;" ${jabatan==='Direktur'?'selected':''}>Direktur</option>
-        <option value="Staff" style="background:#1e293b;" ${jabatan==='Staff'?'selected':''}>Staff</option>
-        <option value="Administrator" style="background:#1e293b;" ${jabatan==='Administrator'?'selected':''}>Administrator</option>
-        <option value="__custom__" style="background:#1e293b;">Isi sendiri...</option>
-      </select>
-      <div id="jinput-${s._id}" class="j-hidden">
-        <input type="text" id="jtext-${s._id}" placeholder="Ketik jabatan..." class="jabatan-input" oninput="updateJabatanText('${s._id}',this.value)">
-      </div>
-    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.35);padding:4px 0 0;">Jabatan: <span style="color:rgba(255,255,255,.6);font-weight:500;">${jabatan || '—'}</span></div>
     <div>
       <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px;">Tampilan Tanda Tangan:</div>
       <div class="display-mode-row" id="dm-${s._id}">

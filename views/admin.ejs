@@ -58,6 +58,10 @@
     <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M4 4h12M4 8h12M4 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="15" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
     Log Aktivitas (<%= logs.length %><%= logs.length >= 50 ? '+' : '' %>)
   </button>
+  <button class="admin-tab" onclick="showTab(this,'tabPenomoran')" data-tab="penomoran">
+    <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 10h6M7 13h4M8 7h1v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    Penomoran (<%= counters.length %>)
+  </button>
 </div>
 
 <!-- Tab: Users -->
@@ -66,7 +70,7 @@
     <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
       <span class="mail-list-title">Daftar Pengguna</span>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <input id="userSearchInput" type="text" class="search-input" placeholder="Cari nama / ENIK..." style="max-width:200px;padding:7px 12px;" oninput="filterUsers(this.value)">
+        <input id="userSearchInput" type="text" class="search-input" placeholder="Cari nama / ENIK..." style="max-width:200px;padding:7px 12px;" oninput="filterUsers(this.value)" autocomplete="off">
         <select id="userRoleFilter" class="admin-role-select" onchange="filterByRole(this.value)" style="padding:7px 28px 7px 10px;">
           <option value="">Semua Role</option>
           <option value="admin">Super Admin</option>
@@ -293,11 +297,133 @@
   </div>
 </div>
 
+<!-- Tab: Penomoran -->
+<div id="tabPenomoran" class="admin-tab-panel" style="display:none;">
+  <div class="mail-list-wrap">
+    <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
+      <span class="mail-list-title">Pengaturan Penomoran Surat</span>
+      <button class="btn btn-primary" style="padding:7px 14px;font-size:13px;" onclick="openAddCounterModal()">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Tambah / Atur Counter
+      </button>
+    </div>
+
+    <div style="padding:14px 18px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;margin:0 0 16px;font-size:13px;color:#92400e;display:flex;align-items:flex-start;gap:10px;">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="flex-shrink:0;margin-top:1px;"><path d="M10 2l8.66 15H1.34L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 8v4M10 14v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span>Mengubah nomor counter akan mempengaruhi penomoran surat berikutnya. Format key: <strong>SURAT-{TAHUN}</strong> (contoh: <strong>SURAT-2026</strong>). Nomor yang diset adalah nomor <em>terakhir terpakai</em> — surat berikutnya akan memakai nomor ini +1.</span>
+    </div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="countersTable">
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Kategori</th>
+            <th>Tahun</th>
+            <th style="text-align:center;">Nomor Terakhir</th>
+            <th style="text-align:center;">Surat Berikutnya</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="countersBody">
+          <% if (counters.length === 0) { %>
+          <tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:32px;font-size:13px;">Belum ada counter. Nomor pertama akan dibuat otomatis saat surat pertama dikirim.</td></tr>
+          <% } %>
+          <% counters.forEach(function(c) {
+            const parts = c.key.split('-');
+            const tahun = parts[parts.length - 1];
+            const kategori = parts.slice(0, -1).join('-');
+          %>
+          <tr id="crow-<%= c.key.replace(/[^a-zA-Z0-9]/g,'-') %>">
+            <td style="font-family:monospace;font-weight:700;font-size:13px;color:var(--brand-700);"><%= c.key %></td>
+            <td style="font-size:13px;color:var(--gray-700);"><%= kategori %></td>
+            <td style="font-size:13px;color:var(--gray-500);"><%= tahun %></td>
+            <td style="text-align:center;">
+              <span class="counter-seq" style="font-size:18px;font-weight:700;color:var(--gray-800);font-family:monospace;"><%= String(c.seq).padStart(3,'0') %></span>
+            </td>
+            <td style="text-align:center;">
+              <span style="font-size:14px;font-weight:600;color:var(--brand-600);font-family:monospace;"><%= String(c.seq + 1).padStart(3,'0') %></span>
+            </td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <button class="admin-btn" style="color:var(--brand-600);" onclick="openEditCounterModal('<%= c.key %>',<%= c.seq %>)">
+                  <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M14 3l3 3L7 16H4v-3L14 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                  Atur Nomor
+                </button>
+                <button class="admin-btn" style="color:var(--amber-600);" onclick="resetCounter('<%= c.key %>')">
+                  <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 106-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M4 6v4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Reset ke 0
+                </button>
+                <button class="admin-btn admin-btn-delete" onclick="deleteCounter('<%= c.key %>')">
+                  <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M6 4h8M4 6h12M7 6v10h6V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="admin-toast" id="adminToast"></div>
 
 <!-- ── MODAL OVERLAY ── -->
 <div id="modalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;">
+
+  <!-- Edit Counter Modal -->
+  <div id="modalEditCounter" class="admin-modal" style="display:none;background:#fff;border-radius:12px;padding:28px 32px;width:420px;max-width:95vw;position:relative;">
+    <div style="font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:6px;">Atur Nomor Counter</div>
+    <div id="editCounterKeyLabel" style="font-size:13px;color:var(--gray-500);margin-bottom:18px;font-family:monospace;"></div>
+    <input type="hidden" id="editCounterKey">
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Nomor Terakhir Terpakai</label>
+      <input id="editCounterSeq" type="number" min="0" class="form-control" placeholder="0" style="font-size:22px;font-weight:700;font-family:monospace;text-align:center;" autocomplete="off">
+      <div style="font-size:11.5px;color:var(--gray-400);margin-top:5px;">Surat berikutnya akan bernomor <strong id="editCounterNext">001</strong></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Batal</button>
+      <button class="btn btn-primary" onclick="saveCounterEdit()">Simpan</button>
+    </div>
+  </div>
+
+  <!-- Add Counter Modal -->
+  <div id="modalAddCounter" class="admin-modal" style="display:none;background:#fff;border-radius:12px;padding:28px 32px;width:440px;max-width:95vw;position:relative;">
+    <div style="font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:20px;">Tambah / Atur Counter Baru</div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Kategori</label>
+      <select id="addCounterKategori" class="form-control form-select" style="font-size:13px;" onchange="updateAddCounterKey()">
+        <option value="SURAT">SURAT (semua dokumen)</option>
+        <option value="MOU">MOU</option>
+        <option value="PKS">PKS</option>
+        <option value="SPK">SPK</option>
+        <option value="CUSTOM">Custom...</option>
+      </select>
+    </div>
+    <div id="addCounterCustomWrap" style="display:none;margin-bottom:12px;">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Nama Kategori Custom</label>
+      <input id="addCounterCustomName" type="text" class="form-control" placeholder="Contoh: NOTA" style="font-size:13px;" autocomplete="off" oninput="updateAddCounterKey()">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Tahun</label>
+      <input id="addCounterTahun" type="number" class="form-control" value="<%= new Date().getFullYear() %>" min="2020" max="2099" style="font-size:13px;" autocomplete="off" oninput="updateAddCounterKey()">
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Nomor Awal (mulai dari)</label>
+      <input id="addCounterSeq" type="number" min="0" class="form-control" value="0" placeholder="0 = mulai dari 001" style="font-size:13px;" autocomplete="off">
+      <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;">Set ke 0 agar surat pertama bernomor 001</div>
+    </div>
+    <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:10px 14px;margin-bottom:18px;">
+      <div style="font-size:11px;color:var(--gray-500);font-weight:600;margin-bottom:2px;">KEY YANG AKAN DIBUAT</div>
+      <div id="addCounterKeyPreview" style="font-family:monospace;font-size:15px;font-weight:700;color:var(--brand-700);">SURAT-<%= new Date().getFullYear() %></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Batal</button>
+      <button class="btn btn-primary" onclick="saveAddCounter()">Simpan</button>
+    </div>
+  </div>
 
   <!-- Edit User Modal -->
   <div id="modalEdit" class="admin-modal" style="display:none;background:#fff;border-radius:12px;padding:28px 32px;width:480px;max-width:95vw;position:relative;">
@@ -306,15 +432,15 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">ENIK</label>
-        <input id="editEnik" type="text" class="form-control" placeholder="Kode ENIK" style="font-size:13px;">
+        <input id="editEnik" type="text" class="form-control" placeholder="Kode ENIK" style="font-size:13px;" autocomplete="off">
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Jabatan</label>
-        <input id="editJabatan" type="text" class="form-control" placeholder="Jabatan / posisi" style="font-size:13px;">
+        <input id="editJabatan" type="text" class="form-control" placeholder="Jabatan / posisi" style="font-size:13px;" autocomplete="off">
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Organisasi / Divisi</label>
-        <input id="editOrganization" type="text" class="form-control" placeholder="Nama organisasi" style="font-size:13px;">
+        <input id="editOrganization" type="text" class="form-control" placeholder="Nama organisasi" style="font-size:13px;" autocomplete="off">
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Kode Direktorat</label>
@@ -345,11 +471,11 @@
     <input type="hidden" id="resetUserId">
     <div>
       <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Kata Sandi Baru</label>
-      <input id="resetPassword" type="password" class="form-control" placeholder="Minimal 8 karakter" style="font-size:13px;">
+      <input id="resetPassword" type="password" class="form-control" placeholder="Minimal 8 karakter" style="font-size:13px;" autocomplete="new-password">
     </div>
     <div style="margin-top:10px;">
       <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Konfirmasi Kata Sandi</label>
-      <input id="resetPassword2" type="password" class="form-control" placeholder="Ulangi kata sandi" style="font-size:13px;">
+      <input id="resetPassword2" type="password" class="form-control" placeholder="Ulangi kata sandi" style="font-size:13px;" autocomplete="new-password">
     </div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;">
       <button class="btn btn-ghost" onclick="closeAllModals()">Batal</button>
@@ -363,23 +489,23 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div style="grid-column:1/-1;">
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Nama Lengkap <span style="color:var(--red-500);">*</span></label>
-        <input id="addName" type="text" class="form-control" placeholder="Nama lengkap" style="font-size:13px;">
+        <input id="addName" type="text" class="form-control" placeholder="Nama lengkap" style="font-size:13px;" autocomplete="off">
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Email <span style="color:var(--red-500);">*</span></label>
-        <input id="addEmail" type="email" class="form-control" placeholder="email@domain.com" style="font-size:13px;">
+        <input id="addEmail" type="email" class="form-control" placeholder="email@domain.com" style="font-size:13px;" autocomplete="off">
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">ENIK</label>
-        <input id="addEnik" type="text" class="form-control" placeholder="Kode ENIK" style="font-size:13px;">
+        <input id="addEnik" type="text" class="form-control" placeholder="Kode ENIK" style="font-size:13px;" autocomplete="off">
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Jabatan</label>
-        <input id="addJabatan" type="text" class="form-control" placeholder="Jabatan / posisi" style="font-size:13px;">
+        <input id="addJabatan" type="text" class="form-control" placeholder="Jabatan / posisi" style="font-size:13px;" autocomplete="off">
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Organisasi / Divisi</label>
-        <input id="addOrganization" type="text" class="form-control" placeholder="Inspira Tekno" style="font-size:13px;">
+        <input id="addOrganization" type="text" class="form-control" placeholder="Inspira Tekno" style="font-size:13px;" autocomplete="off">
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Role</label>
@@ -402,11 +528,11 @@
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Kata Sandi <span style="color:var(--red-500);">*</span></label>
-        <input id="addPassword" type="password" class="form-control" placeholder="Min. 8 karakter" style="font-size:13px;">
+        <input id="addPassword" type="password" class="form-control" placeholder="Min. 8 karakter" style="font-size:13px;" autocomplete="new-password">
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Konfirmasi Kata Sandi <span style="color:var(--red-500);">*</span></label>
-        <input id="addPassword2" type="password" class="form-control" placeholder="Ulangi kata sandi" style="font-size:13px;">
+        <input id="addPassword2" type="password" class="form-control" placeholder="Ulangi kata sandi" style="font-size:13px;" autocomplete="new-password">
       </div>
     </div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;">
@@ -657,6 +783,115 @@ async function deleteUser(id, name, btn) {
   } catch (e) {
     showToast('Terjadi kesalahan.', false);
   }
+}
+
+// ── PENOMORAN ──
+function updateAddCounterKey() {
+  const kat  = document.getElementById('addCounterKategori').value;
+  const wrap = document.getElementById('addCounterCustomWrap');
+  wrap.style.display = kat === 'CUSTOM' ? '' : 'none';
+  const nama  = kat === 'CUSTOM' ? (document.getElementById('addCounterCustomName').value.trim().toUpperCase() || 'CUSTOM') : kat;
+  const tahun = document.getElementById('addCounterTahun').value || new Date().getFullYear();
+  document.getElementById('addCounterKeyPreview').textContent = `${nama}-${tahun}`;
+}
+
+function openAddCounterModal() {
+  document.getElementById('addCounterKategori').value = 'SURAT';
+  document.getElementById('addCounterTahun').value = new Date().getFullYear();
+  document.getElementById('addCounterSeq').value = '0';
+  document.getElementById('addCounterCustomWrap').style.display = 'none';
+  updateAddCounterKey();
+  openModal('modalAddCounter');
+}
+
+async function saveAddCounter() {
+  const key = document.getElementById('addCounterKeyPreview').textContent.trim();
+  const seq = parseInt(document.getElementById('addCounterSeq').value) || 0;
+  if (!key) { showToast('Key tidak valid.', false); return; }
+  try {
+    const res  = await fetch('/admin/counters/set', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, seq })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      closeAllModals();
+      showToast(`Counter "${key}" berhasil diatur ke ${String(seq).padStart(3,'0')}.`, true);
+      setTimeout(() => location.reload(), 1200);
+    } else showToast(data.message || 'Gagal menyimpan.', false);
+  } catch(e) { showToast('Terjadi kesalahan.', false); }
+}
+
+function openEditCounterModal(key, seq) {
+  document.getElementById('editCounterKey').value = key;
+  document.getElementById('editCounterKeyLabel').textContent = key;
+  document.getElementById('editCounterSeq').value = seq;
+  document.getElementById('editCounterNext').textContent = String(seq + 1).padStart(3,'0');
+  openModal('modalEditCounter');
+}
+
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'editCounterSeq') {
+    const n = parseInt(e.target.value) || 0;
+    document.getElementById('editCounterNext').textContent = String(n + 1).padStart(3,'0');
+  }
+});
+
+async function saveCounterEdit() {
+  const key = document.getElementById('editCounterKey').value;
+  const seq = parseInt(document.getElementById('editCounterSeq').value);
+  if (isNaN(seq) || seq < 0) { showToast('Nomor tidak valid.', false); return; }
+  try {
+    const res  = await fetch('/admin/counters/set', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, seq })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      // Update baris di tabel
+      const rowId = 'crow-' + key.replace(/[^a-zA-Z0-9]/g, '-');
+      const row = document.getElementById(rowId);
+      if (row) {
+        row.querySelector('.counter-seq').textContent = String(seq).padStart(3,'0');
+        row.querySelectorAll('td')[4].querySelector('span').textContent = String(seq + 1).padStart(3,'0');
+      }
+      closeAllModals();
+      showToast(`Counter "${key}" diperbarui ke ${String(seq).padStart(3,'0')}.`, true);
+    } else showToast(data.message || 'Gagal.', false);
+  } catch(e) { showToast('Terjadi kesalahan.', false); }
+}
+
+async function resetCounter(key) {
+  if (!await showConfirm(`Reset counter "<b>${key}</b>" ke 0? Surat berikutnya akan bernomor 001.`, { title:'Reset Penomoran', type:'danger', confirmLabel:'Reset' })) return;
+  try {
+    const res  = await fetch('/admin/counters/set', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, seq: 0 })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      const rowId = 'crow-' + key.replace(/[^a-zA-Z0-9]/g, '-');
+      const row = document.getElementById(rowId);
+      if (row) {
+        row.querySelector('.counter-seq').textContent = '000';
+        row.querySelectorAll('td')[4].querySelector('span').textContent = '001';
+      }
+      showToast(`Counter "${key}" berhasil direset ke 0.`, true);
+    } else showToast('Gagal reset.', false);
+  } catch(e) { showToast('Terjadi kesalahan.', false); }
+}
+
+async function deleteCounter(key) {
+  if (!await showConfirm(`Hapus counter "<b>${key}</b>"? Counter baru akan dibuat otomatis saat surat pertama dikirim.`, { title:'Hapus Counter', type:'danger', confirmLabel:'Hapus' })) return;
+  try {
+    const res  = await fetch('/admin/counters/' + encodeURIComponent(key), { method: 'DELETE' });
+    const data = await res.json();
+    if (data.ok) {
+      const rowId = 'crow-' + key.replace(/[^a-zA-Z0-9]/g, '-');
+      document.getElementById(rowId)?.remove();
+      showToast(`Counter "${key}" dihapus.`, true);
+    } else showToast('Gagal menghapus.', false);
+  } catch(e) { showToast('Terjadi kesalahan.', false); }
 }
 </script>
 

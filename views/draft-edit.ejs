@@ -32,7 +32,7 @@
   </div>
 </div>
 
-<form action="/draft/<%= email._id %>/update" method="POST" id="editForm">
+<form action="/draft/<%= email._id %>/update" method="POST" id="editForm" enctype="multipart/form-data">
   <input type="hidden" name="body" id="bodyHidden">
   <input type="hidden" name="action" id="draftAction" value="preview">
   <input type="hidden" name="jenis" id="jenisHidden" value="<%= email.jenis || 'internal' %>">
@@ -192,6 +192,21 @@
       <div class="form-group">
         <label class="form-label">Isi Surat</label>
         <div id="quillEditor"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Lampiran <span style="font-size:11px;color:var(--gray-400);font-weight:400;">(opsional — PDF, Word, Gambar, maks. 10MB)</span></label>
+        <% if (email.lampiran) { %>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:8px 12px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:7px;font-size:13px;">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 3h7l4 4v10a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M12 3v4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span style="flex:1;color:var(--gray-700);"><%= email.lampiranNama || 'Lampiran tersimpan' %></span>
+          <a href="<%= email.lampiran %>" target="_blank" style="font-size:12px;color:var(--brand-600);">Lihat</a>
+          <label style="font-size:12px;color:var(--amber-600);cursor:pointer;">
+            <input type="checkbox" name="hapusLampiran" value="1" style="margin-right:4px;"> Hapus
+          </label>
+        </div>
+        <% } %>
+        <input type="file" name="lampiran" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" style="padding:6px 10px;font-size:13px;">
       </div>
 
       <div class="compose-actions">
