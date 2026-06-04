@@ -110,7 +110,7 @@
               <div class="selected-tags" id="tertujuTags">
                 <% (email.to||[]).forEach(r => { %>
                 <span class="selected-tag" data-value="<%= r.userId %>">
-                  <%= r.name.length>20 ? r.name.substring(0,18)+'…' : r.name %>
+                  <%= (r.name||'').length>20 ? (r.name||'').substring(0,18)+'…' : (r.name||'') %>
                   <button type="button" onclick="event.stopPropagation();this.parentElement.remove();document.querySelector('[name=to][value=\'<%= r.userId %>\']').checked=false;updatePh('tertuju');">×</button>
                 </span>
                 <% }) %>
@@ -124,7 +124,7 @@
               <div class="dropdown-group-label">Pengguna Terdaftar</div>
               <% users.forEach(u => { const isSel = (email.to||[]).some(r => r.userId?.toString()===u._id.toString()); %>
               <label class="dropdown-opt" data-search="<%= u.name.toLowerCase() %> <%= u.email.toLowerCase() %>">
-                <input type="checkbox" name="to" value="<%= u._id %>" <%= isSel?'checked':'' %> onchange="toggleTag('tertuju',this,'<%= u.name %>')">
+                <input type="checkbox" name="to" value="<%= u._id %>" data-name="<%= u.name %>" <%= isSel?'checked':'' %> onchange="toggleTag('tertuju',this,this.dataset.name)">
                 <div>
                   <div style="font-size:13.5px;color:var(--gray-800);"><%= u.name %></div>
                   <div style="font-size:11.5px;color:var(--gray-400);"><%= u.email %></div>

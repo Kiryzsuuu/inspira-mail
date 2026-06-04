@@ -716,7 +716,7 @@
               <div class="dropdown-group-label">Pengguna Terdaftar</div>
               <% users.forEach(u => { %>
               <label class="dropdown-opt" data-search="<%= u.name.toLowerCase() %> <%= u.email.toLowerCase() %>">
-                <input type="checkbox" name="to" value="<%= u._id %>" onchange="toggleTag('tertuju',this,'<%= u.name %>')">
+                <input type="checkbox" name="to" value="<%= u._id %>" data-name="<%= u.name %>" onchange="toggleTag('tertuju',this,this.dataset.name)">
                 <div>
                   <div style="font-size:13.5px;color:var(--gray-800);"><%= u.name %></div>
                   <div style="font-size:11.5px;color:var(--gray-400);"><%= u.email %> · <%= u.organization %></div>
@@ -745,7 +745,7 @@
               <div class="dropdown-group-label">Pengguna Terdaftar</div>
               <% users.forEach(u => { %>
               <label class="dropdown-opt" data-search="<%= u.name.toLowerCase() %> <%= u.email.toLowerCase() %>">
-                <input type="checkbox" name="cc" value="<%= u._id %>" onchange="toggleTag('tembusan',this,'<%= u.name %>')">
+                <input type="checkbox" name="cc" value="<%= u._id %>" data-name="<%= u.name %>" onchange="toggleTag('tembusan',this,this.dataset.name)">
                 <div>
                   <div style="font-size:13.5px;color:var(--gray-800);"><%= u.name %></div>
                   <div style="font-size:11.5px;color:var(--gray-400);"><%= u.email %> · <%= u.organization %></div>

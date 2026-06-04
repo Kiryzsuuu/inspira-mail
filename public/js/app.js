@@ -62,7 +62,7 @@ function toggleDropdown(id) {
   }
 }
 
-function toggleTag(id, checkbox) {
+function toggleTag(id, checkbox, name) {
   const tagsEl = document.getElementById(id + 'Tags');
   const placeholder = document.getElementById(id + 'Placeholder');
   if (!tagsEl) return;
@@ -70,8 +70,9 @@ function toggleTag(id, checkbox) {
     const tag = document.createElement('span');
     tag.className = 'selected-tag';
     tag.dataset.value = checkbox.value;
-    const label = checkbox.value.length > 30 ? checkbox.value.substring(0, 28) + '…' : checkbox.value;
-    tag.innerHTML = label;
+    const displayText = name || checkbox.dataset.name || '';
+    const label = displayText.length > 20 ? displayText.substring(0, 18) + '…' : displayText;
+    tag.textContent = label;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.innerHTML = '×';
