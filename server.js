@@ -429,7 +429,7 @@ app.get('/draft/:id/edit', requireAuth, async (req, res) => {
 // Update draft content
 app.post('/draft/:id/update', requireAuth, async (req, res) => {
   try {
-    const { to, cc, subject, body, tag, berkas, sifat, jenis, externalRecipients } = req.body;
+    const { to, cc, subject, body, tag, berkas, sifat, jenis, externalRecipients, kodeDiv, kodeLay } = req.body;
     const email = await Email.findById(req.params.id);
     if (!email || email.from.userId?.toString() !== req.user._id.toString())
       return res.json({ ok: false });
@@ -443,6 +443,13 @@ app.post('/draft/:id/update', requireAuth, async (req, res) => {
     let extRecipients = [];
     try { extRecipients = JSON.parse(externalRecipients || '[]'); } catch {}
 
+    const div = (kodeDiv || email.kodeDiv || 'OPS').toUpperCase();
+    const lay = (kodeLay || email.kodeLay || 'INT').toUpperCase();
+    const ROMAN_M = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+    const seqPart = (email.nomorSurat || '').split('/')[0] || '001';
+    const datePart = email.createdAt || new Date();
+    const nomorSurat = `${seqPart}/${div}-${lay}/NIT/${ROMAN_M[datePart.getMonth()+1]}/${datePart.getFullYear()}`;
+
     await Email.findByIdAndUpdate(email._id, {
       to:         toUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
       cc:         ccUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
@@ -452,7 +459,10 @@ app.post('/draft/:id/update', requireAuth, async (req, res) => {
       tag:        tag || 'Normal',
       berkas:     berkas?.trim() || '',
       sifat:      sifat || 'Biasa/Terbuka',
-      jenis:      jenis || 'internal'
+      jenis:      jenis || 'internal',
+      kodeDiv:    div,
+      kodeLay:    lay,
+      nomorSurat
     });
     res.redirect(`/email/${email._id}/preview`);
   } catch (err) {
@@ -501,7 +511,7 @@ app.get('/compose', requireAuth, async (req, res) => {
 });
 
 app.post('/compose', requireAuth, async (req, res) => {
-  const { to, cc, subject, body, tag, berkas, action, sifat, jenis, externalRecipients, tipeSurat, suratData } = req.body;
+  const { to, cc, subject, body, tag, berkas, action, sifat, jenis, externalRecipients, tipeSurat, suratData, kodeDiv, kodeLay } = req.body;
   try {
     const toIds = [].concat(to || []).filter(Boolean);
     const ccIds = [].concat(cc || []).filter(Boolean);
@@ -520,8 +530,9 @@ app.post('/compose', requireAuth, async (req, res) => {
     const year = now.getFullYear();
     const ROMAN_M = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
     const seq  = await DocCounter.nextSeq('SURAT', year);
-    const _ss = await SiteSettings.getSettings();
-    const nomorSurat = `${String(seq).padStart(3,'0')}/${_ss.orgCode || process.env.ORG_CODE || 'INSPIRA'}/${ROMAN_M[now.getMonth()+1]}/${year}`;
+    const div  = (kodeDiv || 'OPS').toUpperCase();
+    const lay  = (kodeLay || 'INT').toUpperCase();
+    const nomorSurat = `${String(seq).padStart(3,'0')}/${div}-${lay}/NIT/${ROMAN_M[now.getMonth()+1]}/${year}`;
 
     const isDraft = action === 'draft';
     const email = await Email.create({
@@ -538,6 +549,8 @@ app.post('/compose', requireAuth, async (req, res) => {
       tipeSurat:  tipeSurat || 'Surat',
       suratData:  parsedSuratData,
       nomorSurat,
+      kodeDiv:    div,
+      kodeLay:    lay,
       status:     'draft'
     });
 

@@ -21,6 +21,8 @@ const emailSchema = new mongoose.Schema({
   tag:         { type: String, enum: ['Urgent','Penting','Info','Normal','Draft'], default: 'Normal' },
   berkas:      { type: String, default: '' },
   nomorSurat:  { type: String, default: '' },
+  kodeDiv:     { type: String, default: 'OPS' },
+  kodeLay:     { type: String, default: 'INT' },
   sifat:       { type: String, enum: ['Biasa/Terbuka','Rahasia','Terbatas','Segera'], default: 'Biasa/Terbuka' },
   jenis:       { type: String, enum: ['internal','eksternal'], default: 'internal' },
   tipeSurat:   { type: String, default: 'Surat' },

@@ -74,6 +74,44 @@
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
         <div class="form-group">
+          <label class="form-label">Kode Divisi <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select name="kodeDiv" class="form-control form-select">
+              <option value="OPS" <%= (email.kodeDiv||'OPS')==='OPS'?'selected':'' %>>OPS — Operasional</option>
+              <option value="TEK" <%= email.kodeDiv==='TEK'?'selected':'' %>>TEK — Teknologi</option>
+              <option value="BIS" <%= email.kodeDiv==='BIS'?'selected':'' %>>BIS — Bisnis &amp; Keuangan</option>
+              <option value="DIR" <%= email.kodeDiv==='DIR'?'selected':'' %>>DIR — Direktorat / Pimpinan</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kode Jenis Surat <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select name="kodeLay" class="form-control form-select">
+              <optgroup label="— Lini Layanan —">
+                <option value="LPT" <%= email.kodeLay==='LPT'?'selected':'' %>>LPT — Learning Programs &amp; Training</option>
+                <option value="ARD" <%= email.kodeLay==='ARD'?'selected':'' %>>ARD — Academic &amp; Research Development</option>
+                <option value="LMS" <%= email.kodeLay==='LMS'?'selected':'' %>>LMS — Digital Learning Platform</option>
+                <option value="PSD" <%= email.kodeLay==='PSD'?'selected':'' %>>PSD — Professional Skill Development</option>
+              </optgroup>
+              <optgroup label="— Administrasi Umum —">
+                <option value="INT" <%= (!email.kodeLay||email.kodeLay==='INT')?'selected':'' %>>INT — Internal / Memo</option>
+                <option value="SK"  <%= email.kodeLay==='SK'?'selected':'' %>>SK — Surat Keputusan</option>
+                <option value="SPK" <%= email.kodeLay==='SPK'?'selected':'' %>>SPK — Surat Perjanjian / Kontrak</option>
+                <option value="PKS" <%= email.kodeLay==='PKS'?'selected':'' %>>PKS — Perjanjian Kerja Sama</option>
+                <option value="INV" <%= email.kodeLay==='INV'?'selected':'' %>>INV — Invoice / Tagihan</option>
+                <option value="ST"  <%= email.kodeLay==='ST'?'selected':'' %>>ST — Surat Tugas</option>
+                <option value="SRT" <%= email.kodeLay==='SRT'?'selected':'' %>>SRT — Surat Keterangan</option>
+                <option value="EXT" <%= email.kodeLay==='EXT'?'selected':'' %>>EXT — Eksternal / PR</option>
+                <option value="KEU" <%= email.kodeLay==='KEU'?'selected':'' %>>KEU — Keuangan / Anggaran</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
           <label class="form-label">Klasifikasi / Berkas</label>
           <div class="select-wrap">
             <select name="berkas" class="form-control form-select">

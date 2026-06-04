@@ -449,21 +449,42 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 
       <% } else if (tipe === 'Surat Tugas') { %>
       <!-- ── SURAT TUGAS ── -->
+      <%
+        const tugasPelaksana = sd.pelaksana && sd.pelaksana.length > 0
+          ? sd.pelaksana
+          : (sd.namaPelaksana ? [{ nama: sd.namaPelaksana, jabatan: sd.jabatanPelaksana }] : []);
+      %>
       <div class="doc-body">
         <div class="doc-title">SURAT TUGAS</div>
         <div class="doc-nomor-center">Nomor: <%= email.nomorSurat %></div>
         <p class="doc-para">Yang bertanda tangan di bawah ini:</p>
         <table class="surat-field-table">
-          <tr><td>Nama</td><td>:</td><td><strong><%= email.from.name %></strong></td></tr>
+          <tr><td>Nama</td><td>:</td><td><strong><%= sd.namaPemberiTugas || email.from.name %></strong></td></tr>
           <tr><td>Jabatan</td><td>:</td><td><%= sd.jabatanPemberiTugas || 'Direktur Utama' %></td></tr>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
         <p class="doc-para" style="margin-top:10px;">Dengan ini menugaskan kepada:</p>
+        <% if (tugasPelaksana.length === 1) { %>
         <table class="surat-field-table">
-          <tr><td>Nama</td><td>:</td><td><strong><%= sd.namaPelaksana || '—' %></strong></td></tr>
-          <tr><td>Jabatan</td><td>:</td><td><%= sd.jabatanPelaksana || '—' %></td></tr>
+          <tr><td>Nama</td><td>:</td><td><strong><%= tugasPelaksana[0].nama %></strong></td></tr>
+          <tr><td>Jabatan</td><td>:</td><td><%= tugasPelaksana[0].jabatan || '—' %></td></tr>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
+        <% } else if (tugasPelaksana.length > 1) { %>
+        <table class="sppd-table" style="margin-bottom:10px;">
+          <thead><tr><th style="width:36px;">No.</th><th>Nama</th><th>Jabatan</th></tr></thead>
+          <tbody>
+          <% tugasPelaksana.forEach((p, i) => { %>
+          <tr><td style="text-align:center;"><%= i+1 %></td><td><strong><%= p.nama %></strong></td><td><%= p.jabatan || '—' %></td></tr>
+          <% }) %>
+          </tbody>
+        </table>
+        <% } else { %>
+        <table class="surat-field-table">
+          <tr><td>Nama</td><td>:</td><td><strong>—</strong></td></tr>
+          <tr><td>Jabatan</td><td>:</td><td>—</td></tr>
+        </table>
+        <% } %>
         <p class="doc-para" style="margin-top:10px;">Untuk melaksanakan tugas dengan rincian sebagai berikut:</p>
         <table class="surat-field-table">
           <tr><td>Jenis Tugas</td><td>:</td><td><strong><%= sd.jenisTugas || email.subject || '—' %></strong></td></tr>
@@ -868,6 +889,88 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         <br><p>Dengan hormat,</p><br>
         <% if (hasBody) { %><div class="doc-para"><%- email.body %></div><% } %>
         <p style="text-align:center;font-weight:bold;font-size:10pt;margin-top:20px;">[ Dokumen ini bersifat KONFIDENSIAL — Harap dijaga dengan ketat ]</p>
+      </div>
+
+      <% } else if (tipe === 'Invoice') { %>
+      <!-- ── INVOICE ── -->
+      <%
+        const invItems  = sd.invItems || [];
+        const invPajak  = sd.invPajak || 0;
+        const invDiskon = sd.invDiskon || 0;
+        const invSubtotal = invItems.reduce((s, it) => s + (it.qty * it.harga), 0);
+        const invPajakAmt = invSubtotal * invPajak / 100;
+        const invTotal    = invSubtotal + invPajakAmt - invDiskon;
+        const fmtRpPrev = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+      %>
+      <div class="doc-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;">
+          <div>
+            <div style="font-size:22pt;font-weight:800;color:#071840;letter-spacing:-0.5px;">INVOICE</div>
+            <div style="font-size:10pt;color:#555;margin-top:2px;">No: <strong><%= email.nomorSurat %></strong></div>
+            <div style="font-size:10pt;color:#555;">Tanggal: <strong><%= fmtDate(email.createdAt) %></strong></div>
+            <% if (sd.invJatuhTempo) { %><div style="font-size:10pt;color:#c00;">Jatuh Tempo: <strong><%= fmtDateSimple(sd.invJatuhTempo) %></strong></div><% } %>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:700;font-size:11pt;">PT Nusa Inspira Teknologi</div>
+            <div style="font-size:9pt;color:#555;"><%= email.from.email %></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;background:#f8f9fb;border-radius:6px;padding:12px 14px;">
+          <div>
+            <div style="font-size:9pt;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Dari</div>
+            <div style="font-weight:600;font-size:11pt;"><%= email.from.name %></div>
+            <div style="font-size:9.5pt;color:#555;">PT Nusa Inspira Teknologi</div>
+          </div>
+          <div>
+            <div style="font-size:9pt;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Tagihan Kepada</div>
+            <div style="font-weight:600;font-size:11pt;"><%= sd.invKepada || '—' %></div>
+            <% if (sd.invAlamat) { %><div style="font-size:9.5pt;color:#555;"><%= sd.invAlamat %></div><% } %>
+          </div>
+        </div>
+        <% if (invItems.length > 0) { %>
+        <table style="width:100%;border-collapse:collapse;font-size:10pt;margin-bottom:0;">
+          <thead>
+            <tr style="background:#071840;color:#fff;">
+              <th style="padding:8px 10px;text-align:left;width:36px;">No.</th>
+              <th style="padding:8px 10px;text-align:left;">Deskripsi</th>
+              <th style="padding:8px 10px;text-align:center;width:60px;">Qty</th>
+              <th style="padding:8px 10px;text-align:left;width:70px;">Satuan</th>
+              <th style="padding:8px 10px;text-align:right;width:130px;">Harga Satuan</th>
+              <th style="padding:8px 10px;text-align:right;width:130px;">Jumlah</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% invItems.forEach((it, i) => { %>
+          <tr style="border-bottom:1px solid #e5e7eb;<%= i%2===1?'background:#f9fafb;':'' %>">
+            <td style="padding:7px 10px;text-align:center;color:#888;"><%= i+1 %></td>
+            <td style="padding:7px 10px;"><%= it.deskripsi %></td>
+            <td style="padding:7px 10px;text-align:center;"><%= it.qty %></td>
+            <td style="padding:7px 10px;"><%= it.satuan || '—' %></td>
+            <td style="padding:7px 10px;text-align:right;"><%= fmtRpPrev(it.harga) %></td>
+            <td style="padding:7px 10px;text-align:right;font-weight:500;"><%= fmtRpPrev(it.qty * it.harga) %></td>
+          </tr>
+          <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+          <table style="font-size:10pt;border-collapse:collapse;min-width:260px;">
+            <tr><td style="padding:4px 16px 4px 0;color:#555;">Subtotal</td><td style="text-align:right;"><%= fmtRpPrev(invSubtotal) %></td></tr>
+            <% if (invPajak > 0) { %><tr><td style="padding:4px 16px 4px 0;color:#555;">Pajak (<%= invPajak %>%)</td><td style="text-align:right;"><%= fmtRpPrev(invPajakAmt) %></td></tr><% } %>
+            <% if (invDiskon > 0) { %><tr><td style="padding:4px 16px 4px 0;color:#555;">Diskon</td><td style="text-align:right;color:#c00;">- <%= fmtRpPrev(invDiskon) %></td></tr><% } %>
+            <tr style="border-top:2px solid #071840;">
+              <td style="padding:8px 16px 4px 0;font-weight:700;font-size:12pt;">TOTAL</td>
+              <td style="padding:8px 0 4px 0;font-weight:700;font-size:12pt;text-align:right;color:#071840;"><%= fmtRpPrev(invTotal < 0 ? 0 : invTotal) %></td>
+            </tr>
+          </table>
+        </div>
+        <% if (sd.invMetode) { %>
+        <div style="margin-top:14px;padding:10px 14px;background:#f0f4ff;border-radius:6px;font-size:9.5pt;">
+          <strong>Metode Pembayaran:</strong> <%= sd.invMetode %>
+        </div>
+        <% } %>
+        <% if (sd.invCatatan) { %><p class="doc-para" style="margin-top:10px;font-size:9.5pt;color:#555;"><%= sd.invCatatan %></p><% } %>
+        <% if (hasBody) { %><div class="doc-para" style="margin-top:12px;"><%- email.body %></div><% } %>
       </div>
 
       <% } else { %>

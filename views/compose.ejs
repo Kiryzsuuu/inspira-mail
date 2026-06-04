@@ -150,6 +150,9 @@
               <option value="Kontrak">Surat Kontrak</option>
               <option value="SPK">SPK (Surat Perintah Kerja)</option>
             </optgroup>
+            <optgroup label="— Dokumen Keuangan —">
+              <option value="Invoice">Invoice / Tagihan</option>
+            </optgroup>
           </select>
         </div>
       </div>
@@ -158,6 +161,44 @@
       <div class="form-group">
         <label class="form-label" id="subjectLabel">Subjek / Perihal <span class="req">*</span></label>
         <input type="text" name="subject" id="subjectInput" class="form-control" placeholder="Perihal surat..." required>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Kode Divisi <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select name="kodeDiv" id="kodeDivSel" class="form-control form-select">
+              <option value="OPS">OPS — Operasional</option>
+              <option value="TEK">TEK — Teknologi</option>
+              <option value="BIS">BIS — Bisnis &amp; Keuangan</option>
+              <option value="DIR">DIR — Direktorat / Pimpinan</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kode Jenis Surat <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select name="kodeLay" id="kodeLaySel" class="form-control form-select">
+              <optgroup label="— Lini Layanan —">
+                <option value="LPT">LPT — Learning Programs &amp; Training</option>
+                <option value="ARD">ARD — Academic &amp; Research Development</option>
+                <option value="LMS">LMS — Digital Learning Platform</option>
+                <option value="PSD">PSD — Professional Skill Development</option>
+              </optgroup>
+              <optgroup label="— Administrasi Umum —">
+                <option value="INT" selected>INT — Internal / Memo</option>
+                <option value="SK">SK — Surat Keputusan</option>
+                <option value="SPK">SPK — Surat Perjanjian / Kontrak</option>
+                <option value="PKS">PKS — Perjanjian Kerja Sama</option>
+                <option value="INV">INV — Invoice / Tagihan</option>
+                <option value="ST">ST — Surat Tugas</option>
+                <option value="SRT">SRT — Surat Keterangan</option>
+                <option value="EXT">EXT — Eksternal / PR</option>
+                <option value="KEU">KEU — Keuangan / Anggaran</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
@@ -284,12 +325,12 @@
       </div>
 
       <!-- ═══════════════════════════════════════════════════════ -->
-      <!-- SECTION: SURAT TUGAS (PERORANGAN)                      -->
+      <!-- SECTION: SURAT TUGAS (PERORANGAN / TIM)               -->
       <!-- ═══════════════════════════════════════════════════════ -->
       <div id="sec-tugas" style="display:none;">
         <div class="sec-header">
           <span class="sec-badge">SURAT TUGAS</span>
-          Data Pelaksana & Tugas
+          Data Pemberi & Pelaksana Tugas
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
           <div class="form-group">
@@ -310,15 +351,22 @@
             <input type="text" id="tugas_pemberi_nama" class="form-control" placeholder="Nama lengkap pemberi tugas...">
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-          <div class="form-group">
-            <label class="form-label">Nama Yang Ditugaskan</label>
-            <input type="text" id="tugas_nama" class="form-control" placeholder="Nama lengkap pelaksana">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Jabatan</label>
-            <input type="text" id="tugas_jabatan" class="form-control" placeholder="Jabatan pelaksana">
-          </div>
+
+        <label class="form-label">Pelaksana Tugas <span style="font-size:11px;color:var(--gray-400);font-weight:400;">(bisa lebih dari satu orang)</span></label>
+        <table class="dyn-table" id="tugasTable" style="margin-bottom:8px;">
+          <thead>
+            <tr>
+              <th style="width:36px;">No.</th>
+              <th>Nama Lengkap</th>
+              <th style="width:200px;">Jabatan</th>
+              <th style="width:36px;"></th>
+            </tr>
+          </thead>
+          <tbody id="tugasBody"></tbody>
+        </table>
+        <button type="button" class="btn-add-row" onclick="addTugasRow()">+ Tambah Pelaksana</button>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
           <div class="form-group">
             <label class="form-label">Jenis Tugas</label>
             <input type="text" id="tugas_jenis" class="form-control" placeholder="cth: Audit & Investigasi Internal">
@@ -680,6 +728,78 @@
       </div>
 
       <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION: INVOICE / TAGIHAN                             -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div id="sec-invoice" style="display:none;">
+        <div class="sec-header">
+          <span class="sec-badge">INVOICE</span>
+          Detail Tagihan
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Tagihan Kepada (Nama Klien / Instansi)</label>
+            <input type="text" id="inv_kepada" class="form-control" placeholder="cth: PT Maju Bersama">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Alamat Klien</label>
+            <input type="text" id="inv_alamat" class="form-control" placeholder="cth: Jl. Sudirman No. 1, Jakarta">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Jatuh Tempo</label>
+            <input type="date" id="inv_jatuh_tempo" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Metode Pembayaran</label>
+            <input type="text" id="inv_metode" class="form-control" placeholder="cth: Transfer Bank BCA a.n. PT NIT">
+          </div>
+        </div>
+        <label class="form-label" style="margin-top:4px;">Rincian Item</label>
+        <table class="dyn-table" id="invTable">
+          <thead>
+            <tr>
+              <th style="width:36px;">No.</th>
+              <th>Deskripsi</th>
+              <th style="width:70px;">Qty</th>
+              <th style="width:90px;">Satuan</th>
+              <th style="width:140px;">Harga Satuan (Rp)</th>
+              <th style="width:140px;">Jumlah (Rp)</th>
+              <th style="width:36px;"></th>
+            </tr>
+          </thead>
+          <tbody id="invBody"></tbody>
+        </table>
+        <button type="button" class="btn-add-row" onclick="addInvRow()">+ Tambah Item</button>
+        <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+          <table style="font-size:13px;border-collapse:collapse;min-width:280px;">
+            <tr>
+              <td style="padding:4px 12px 4px 0;color:var(--gray-500);">Subtotal</td>
+              <td style="padding:4px 0;font-weight:500;text-align:right;" id="inv_subtotal_display">Rp 0</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 12px 4px 0;color:var(--gray-500);">
+                Pajak (%) <input type="number" id="inv_pajak" class="form-control" style="display:inline-block;width:60px;padding:2px 6px;font-size:12px;" placeholder="0" min="0" max="100" oninput="recalcInv()">
+              </td>
+              <td style="padding:4px 0;font-weight:500;text-align:right;" id="inv_pajak_display">Rp 0</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 12px 4px 0;color:var(--gray-500);">
+                Diskon (Rp) <input type="text" id="inv_diskon" class="form-control" style="display:inline-block;width:100px;padding:2px 6px;font-size:12px;" placeholder="0" oninput="recalcInv()">
+              </td>
+              <td style="padding:4px 0;font-weight:500;text-align:right;" id="inv_diskon_display">Rp 0</td>
+            </tr>
+            <tr style="border-top:2px solid var(--gray-300);">
+              <td style="padding:8px 12px 4px 0;font-weight:700;font-size:14px;">TOTAL</td>
+              <td style="padding:8px 0 4px 0;font-weight:700;font-size:14px;text-align:right;color:var(--brand-700);" id="inv_total_display">Rp 0</td>
+            </tr>
+          </table>
+        </div>
+        <div class="form-group" style="margin-top:12px;">
+          <label class="form-label">Catatan / Keterangan Pembayaran</label>
+          <input type="text" id="inv_catatan" class="form-control" placeholder="cth: Mohon melakukan pembayaran sebelum tanggal jatuh tempo">
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
       <!-- JENIS SURAT (Internal / Eksternal)                     -->
       <!-- ═══════════════════════════════════════════════════════ -->
       <div class="form-group">
@@ -855,10 +975,10 @@ const quill = new Quill('#quillEditor', {
         [{ list: 'ordered' }, { list: 'bullet' }],
         [{ indent: '-1' }, { indent: '+1' }],
         [{ align: [] }],
-        ['link','image'],
+        ['link','image','table'],
         ['clean']
       ],
-      handlers: { image: imageHandler }
+      handlers: { image: imageHandler, table: tablePickerHandler }
     }
   }
 });
@@ -873,12 +993,79 @@ function imageHandler() {
   };
 }
 
+// ── QUILL TABLE PICKER ──
+(function() {
+  const style = document.createElement('style');
+  style.textContent = `
+  .ql-table::before { content: '⊞'; font-size: 15px; line-height: 1; }
+  .tbl-picker { position:fixed; z-index:9999; background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:8px; box-shadow:0 4px 20px rgba(0,0,0,.15); }
+  .tbl-picker-grid { display:grid; grid-template-columns:repeat(8,22px); gap:3px; }
+  .tbl-picker-cell { width:22px; height:22px; border:1px solid var(--gray-300); border-radius:3px; cursor:pointer; background:#f9fafb; transition:background .1s,border-color .1s; }
+  .tbl-picker-cell.hover { background:#dbeafe; border-color:#3b82f6; }
+  .tbl-picker-label { text-align:center; font-size:11px; color:var(--gray-500); margin-top:5px; }
+  `;
+  document.head.appendChild(style);
+})();
+
+let _tblPicker = null;
+function tablePickerHandler() {
+  if (_tblPicker) { _tblPicker.remove(); _tblPicker = null; return; }
+  const btn = document.querySelector('.ql-table');
+  if (!btn) return;
+  const rect = btn.getBoundingClientRect();
+  const picker = document.createElement('div');
+  picker.className = 'tbl-picker';
+  picker.style.top  = (rect.bottom + 6 + window.scrollY) + 'px';
+  picker.style.left = rect.left + 'px';
+  const grid = document.createElement('div'); grid.className = 'tbl-picker-grid';
+  const label = document.createElement('div'); label.className = 'tbl-picker-label'; label.textContent = '1 × 1';
+  const ROWS = 6, COLS = 8;
+  const cells = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div'); cell.className = 'tbl-picker-cell';
+      cell.dataset.r = r; cell.dataset.c = c;
+      cell.addEventListener('mouseover', () => {
+        const cr = +cell.dataset.r, cc = +cell.dataset.c;
+        label.textContent = `${cr+1} × ${cc+1}`;
+        cells.forEach(x => {
+          x.classList.toggle('hover', +x.dataset.r <= cr && +x.dataset.c <= cc);
+        });
+      });
+      cell.addEventListener('click', () => {
+        insertTable(+cell.dataset.r + 1, +cell.dataset.c + 1);
+        picker.remove(); _tblPicker = null;
+      });
+      cells.push(cell); grid.appendChild(cell);
+    }
+  }
+  picker.appendChild(grid); picker.appendChild(label);
+  document.body.appendChild(picker); _tblPicker = picker;
+  setTimeout(() => document.addEventListener('click', function _close(e) {
+    if (!picker.contains(e.target) && !btn.contains(e.target)) { picker.remove(); _tblPicker = null; document.removeEventListener('click', _close); }
+  }), 0);
+}
+function insertTable(rows, cols) {
+  const cellStyle = 'border:1px solid #ccc;padding:6px 10px;min-width:60px;';
+  let html = `<table style="border-collapse:collapse;width:100%;margin:8px 0;"><tbody>`;
+  for (let r = 0; r < rows; r++) {
+    html += '<tr>';
+    for (let c = 0; c < cols; c++) {
+      html += `<td style="${cellStyle}">&nbsp;</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table><p><br></p>';
+  const range = quill.getSelection(true);
+  quill.clipboard.dangerouslyPasteHTML(range ? range.index : quill.getLength(), html);
+}
+
 // ── SIFAT ──
 function updateSifat(sel) { document.getElementById('infoSifat').textContent = sel.value; }
 
 // ── TIPE SURAT ──
 let currentTipe = 'Surat';
-const ALL_SECS = ['sec-memo','sec-sppd','sec-tugas','sec-delegasi','sec-keterangan','sec-pernyataan','sec-kuasa','sec-pengantar','sec-keputusan','sec-undangan','sec-statuta','sec-surat-ext','sec-pihak-kedua','sec-spk'];
+const ALL_SECS = ['sec-memo','sec-sppd','sec-tugas','sec-delegasi','sec-keterangan','sec-pernyataan','sec-kuasa','sec-pengantar','sec-keputusan','sec-undangan','sec-statuta','sec-surat-ext','sec-pihak-kedua','sec-spk','sec-invoice'];
 const TIPE_SECS = {
   'Surat':['sec-surat-ext'],  'Surat Resmi':['sec-surat-ext'],  'Surat Formal':['sec-surat-ext'],
   'Surat Instruksi':['sec-surat-ext'],  'Surat Edaran':[],
@@ -898,6 +1085,7 @@ const TIPE_SECS = {
   'PKS':['sec-pihak-kedua'],
   'Kontrak':['sec-pihak-kedua'],
   'SPK':['sec-spk'],
+  'Invoice':['sec-invoice'],
 };
 const BODY_PLACEHOLDER = {
   'Surat': 'Tulis isi surat di sini...',
@@ -923,6 +1111,7 @@ const BODY_PLACEHOLDER = {
   'PKS': 'Tulis pasal-pasal PKS (Pasal 1, Pasal 2, dst.) di sini...',
   'Kontrak': 'Tulis pasal-pasal kontrak (Pasal 1, Pasal 2, dst.) di sini...',
   'SPK': 'Keterangan tambahan SPK (opsional)...',
+  'Invoice': 'Catatan atau keterangan tambahan invoice (opsional)...',
 };
 function onTipeChange(val) {
   currentTipe = val;
@@ -998,11 +1187,13 @@ function delRow(rowId, type, id) {
   if (type === 'budget') budgetRows = budgetRows.filter(r => r !== id);
   else if (type === 'pengantar') pengantarRows = pengantarRows.filter(r => r !== id);
   else if (type === 'staAnggota') staAnggotaRows = staAnggotaRows.filter(r => r !== id);
+  else if (type === 'invoice') { invRows = invRows.filter(r => r !== id); recalcInv(); }
+  else if (type === 'tugas') { tugasRows = tugasRows.filter(r => r !== id); }
   renumberRows(type);
 }
 function renumberRows(type) {
-  const bodyId = type === 'budget' ? 'budgetBody' : type === 'pengantar' ? 'pengantarBody' : 'staAnggotaBody';
-  const body = document.getElementById(bodyId);
+  const bodyMap = { budget:'budgetBody', pengantar:'pengantarBody', staAnggota:'staAnggotaBody', invoice:'invBody', tugas:'tugasBody' };
+  const body = document.getElementById(bodyMap[type]);
   if (!body) return;
   Array.from(body.querySelectorAll('tr')).forEach((r, i) => { const numCell = r.querySelector('td:first-child'); if(numCell) numCell.textContent = i+1; });
 }
@@ -1075,6 +1266,63 @@ function addSpkRow() {
   document.getElementById('spkBody').appendChild(tr);
 }
 
+// Tugas rows (pelaksana)
+let tugasRows = [];
+function addTugasRow() {
+  const id = 'tgs_' + Date.now();
+  tugasRows.push(id);
+  const idx = tugasRows.length;
+  const tr = document.createElement('tr');
+  tr.id = 'tugasrow_' + id;
+  tr.innerHTML = `
+    <td style="text-align:center;padding:6px 4px;">${idx}</td>
+    <td><input type="text" id="tgs_nama_${id}" class="form-control" placeholder="Nama lengkap..."></td>
+    <td><input type="text" id="tgs_jabatan_${id}" class="form-control" placeholder="Jabatan..."></td>
+    <td><button type="button" class="btn-del-row" onclick="delRow('tugasrow_${id}','tugas','${id}')">×</button></td>`;
+  document.getElementById('tugasBody').appendChild(tr);
+  document.getElementById('tgs_nama_' + id).focus();
+}
+
+// Invoice rows
+let invRows = [];
+function addInvRow() {
+  const id = 'inv_' + Date.now();
+  invRows.push(id);
+  const idx = invRows.length;
+  const tr = document.createElement('tr');
+  tr.id = 'invrow_' + id;
+  tr.innerHTML = `
+    <td style="text-align:center;padding:6px 4px;">${idx}</td>
+    <td><input type="text" id="inv_desc_${id}" class="form-control" placeholder="Nama layanan / item..."></td>
+    <td><input type="number" id="inv_qty_${id}" class="form-control" placeholder="1" min="0" step="any" oninput="recalcInv()"></td>
+    <td><input type="text" id="inv_sat_${id}" class="form-control" placeholder="unit"></td>
+    <td><input type="text" id="inv_harga_${id}" class="form-control" placeholder="0" oninput="recalcInv()"></td>
+    <td id="inv_jml_${id}" style="padding:6px 8px;font-weight:500;font-size:13px;white-space:nowrap;">Rp 0</td>
+    <td><button type="button" class="btn-del-row" onclick="delRow('invrow_${id}','invoice','${id}')">×</button></td>`;
+  document.getElementById('invBody').appendChild(tr);
+}
+function parseRp(s) { return parseFloat(String(s).replace(/[^0-9.]/g,'')) || 0; }
+function fmtRp(n) { return 'Rp ' + Math.round(n).toLocaleString('id-ID'); }
+function recalcInv() {
+  let subtotal = 0;
+  invRows.forEach(id => {
+    const qty   = parseFloat(document.getElementById('inv_qty_'+id)?.value) || 0;
+    const harga = parseRp(document.getElementById('inv_harga_'+id)?.value);
+    const jml   = qty * harga;
+    const jmlEl = document.getElementById('inv_jml_'+id);
+    if (jmlEl) jmlEl.textContent = fmtRp(jml);
+    subtotal += jml;
+  });
+  const pajak   = parseFloat(document.getElementById('inv_pajak')?.value) || 0;
+  const diskon  = parseRp(document.getElementById('inv_diskon')?.value);
+  const pajakAmt = subtotal * pajak / 100;
+  const total   = subtotal + pajakAmt - diskon;
+  document.getElementById('inv_subtotal_display').textContent = fmtRp(subtotal);
+  document.getElementById('inv_pajak_display').textContent    = fmtRp(pajakAmt);
+  document.getElementById('inv_diskon_display').textContent   = fmtRp(diskon);
+  document.getElementById('inv_total_display').textContent    = fmtRp(total < 0 ? 0 : total);
+}
+
 // ── COLLECT SURAT DATA ──
 function collectSuratData() {
   const sd = {};
@@ -1099,13 +1347,17 @@ function collectSuratData() {
   }
   else if (t === 'Surat Tugas') {
     const _pJabatan = v('tugas_pemberi_preset') === 'lainnya' ? v('tugas_pemberi_jabatan_custom') : v('tugas_pemberi_preset');
-    const _pNama = v('tugas_pemberi_nama');
-    sd.pemberiTugas = [_pNama, _pJabatan].filter(Boolean).join(' — ');
     sd.jabatanPemberiTugas = _pJabatan;
-    sd.namaPelaksana = v('tugas_nama'); sd.jabatanPelaksana = v('tugas_jabatan');
-    sd.jenisTugas = v('tugas_jenis'); sd.tujuanTugas = v('tugas_tujuan');
-    sd.lokasiTugas = v('tugas_lokasi'); sd.tanggalTugas = v('tugas_tanggal');
-    sd.waktuTugas = v('tugas_waktu');
+    sd.namaPemberiTugas = v('tugas_pemberi_nama');
+    sd.pelaksana = tugasRows.map(id => ({
+      nama    : v('tgs_nama_' + id),
+      jabatan : v('tgs_jabatan_' + id)
+    })).filter(r => r.nama);
+    sd.jenisTugas  = v('tugas_jenis');
+    sd.tujuanTugas = v('tugas_tujuan');
+    sd.lokasiTugas = v('tugas_lokasi');
+    sd.tanggalTugas = v('tugas_tanggal');
+    sd.waktuTugas  = v('tugas_waktu');
   }
   else if (t === 'Surat Tugas Pendelegasian') {
     sd.namaPenerima = v('del_nama'); sd.jabatanPenerima = v('del_jabatan');
@@ -1172,6 +1424,21 @@ function collectSuratData() {
     sd.jabatanPenerima = v('std_jabatan');
     sd.instansiPenerima = v('std_instansi');
     sd.alamatPenerima = v('std_alamat');
+  }
+  else if (t === 'Invoice') {
+    sd.invKepada    = v('inv_kepada');
+    sd.invAlamat    = v('inv_alamat');
+    sd.invJatuhTempo = v('inv_jatuh_tempo');
+    sd.invMetode    = v('inv_metode');
+    sd.invCatatan   = v('inv_catatan');
+    sd.invPajak     = parseFloat(document.getElementById('inv_pajak')?.value) || 0;
+    sd.invDiskon    = parseRp(document.getElementById('inv_diskon')?.value);
+    sd.invItems     = invRows.map(id => ({
+      deskripsi : v('inv_desc_'+id),
+      qty       : parseFloat(document.getElementById('inv_qty_'+id)?.value) || 0,
+      satuan    : v('inv_sat_'+id),
+      harga     : parseRp(document.getElementById('inv_harga_'+id)?.value)
+    })).filter(r => r.deskripsi);
   }
   return sd;
 }
