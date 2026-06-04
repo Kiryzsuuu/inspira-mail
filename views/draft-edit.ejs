@@ -23,12 +23,12 @@
 
 <div class="page-header">
   <div class="page-title-group">
-    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / <a href="/draft">Draf</a> / Edit</div>
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / <a href="/compose">Manajemen Dokumen</a> / Edit</div>
     <h1 class="page-title">Edit Draf</h1>
     <p class="page-subtitle">No. <%= email.nomorSurat %></p>
   </div>
   <div class="page-actions">
-    <a href="/draft" class="btn btn-secondary">Kembali</a>
+    <a href="/compose" class="btn btn-secondary">Kembali</a>
   </div>
 </div>
 
@@ -74,13 +74,14 @@
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
         <div class="form-group">
-          <label class="form-label">Kode Divisi <span class="req">*</span></label>
+          <label class="form-label">Kode Direktorat <span class="req">*</span></label>
           <div class="select-wrap">
-            <select name="kodeDiv" class="form-control form-select">
-              <option value="OPS" <%= (email.kodeDiv||'OPS')==='OPS'?'selected':'' %>>OPS — Operasional</option>
-              <option value="TEK" <%= email.kodeDiv==='TEK'?'selected':'' %>>TEK — Teknologi</option>
-              <option value="BIS" <%= email.kodeDiv==='BIS'?'selected':'' %>>BIS — Bisnis &amp; Keuangan</option>
-              <option value="DIR" <%= email.kodeDiv==='DIR'?'selected':'' %>>DIR — Direktorat / Pimpinan</option>
+            <select name="kodeDir" class="form-control form-select">
+              <option value="KOM"  <%= (email.kodeDir||'KOM')==='KOM'?'selected':'' %>>KOM — Dewan Komisaris</option>
+              <option value="DIR"  <%= email.kodeDir==='DIR'?'selected':'' %>>DIR — Direktur Utama</option>
+              <option value="PLAN" <%= email.kodeDir==='PLAN'?'selected':'' %>>PLAN — Business Strategy &amp; Finance</option>
+              <option value="TECH" <%= email.kodeDir==='TECH'?'selected':'' %>>TECH — Technical &amp; Operations</option>
+              <option value="MP"   <%= email.kodeDir==='MP'?'selected':'' %>>MP — Marketing &amp; Partnership</option>
             </select>
           </div>
         </div>
@@ -213,7 +214,7 @@
       </div>
 
       <div class="compose-actions">
-        <a href="/draft" class="btn btn-ghost">Batal</a>
+        <a href="/compose" class="btn btn-ghost">Batal</a>
         <button type="submit" class="btn btn-primary">
           <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Simpan &amp; Lanjut ke Preview

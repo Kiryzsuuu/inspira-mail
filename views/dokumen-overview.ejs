@@ -28,10 +28,16 @@
     <h1 class="page-title">Manajemen Dokumen</h1>
     <p class="page-subtitle">Nota Dinas, Surat Dinas<% if(user && (user.role==='admin'||user.role==='direktur')){ %>, MoU, MoA, PKS, SPK, dan dokumen resmi lainnya<% } %></p>
   </div>
-  <a href="/compose/new" class="btn btn-primary" style="margin-top:4px;">
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    Buat Dokumen
-  </a>
+  <div style="display:flex;gap:10px;margin-top:4px;">
+    <a href="/draft" class="btn btn-secondary">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 4h12M4 8h8M4 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 13l1.5 1.5L18 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Draf
+    </a>
+    <a href="/compose/new" class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Buat Dokumen
+    </a>
+  </div>
 </div>
 
 <!-- STATS -->
@@ -103,7 +109,7 @@
 
   <div style="padding:12px 14px 4px;">
   <% docs.forEach(d => { %>
-  <a href="/email/<%= d._id %>" class="dok-item">
+  <a href="<%= d.status === 'draft' ? '/draft/' + d._id + '/edit' : '/email/' + d._id %>" class="dok-item">
     <span class="dok-tipe-badge dok-tipe-<%= d.tipeSurat || 'default' %>"><%= d.tipeSurat || '—' %></span>
     <div style="flex:1;min-width:0;">
       <div style="font-weight:600;font-size:13.5px;color:var(--gray-800);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= d.subject %></div>
@@ -113,9 +119,6 @@
       <span class="dok-status-badge dok-status-<%= d.status %>"><%= d.status === 'sent' ? 'Terkirim' : 'Draf' %></span>
       <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;"><%= formatDate(d.createdAt) %></div>
     </div>
-    <% if (d.status === 'draft') { %>
-    <a href="/draft/<%= d._id %>/edit" onclick="event.stopPropagation();" style="flex-shrink:0;padding:5px 12px;font-size:12px;font-weight:500;color:var(--brand-600);border:1px solid var(--brand-200);border-radius:6px;background:#fff;text-decoration:none;white-space:nowrap;line-height:1.5;">Edit</a>
-    <% } %>
   </a>
   <% }) %>
   </div>
