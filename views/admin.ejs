@@ -66,8 +66,8 @@
     <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
       <span class="mail-list-title">Daftar Pengguna</span>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <input type="text" class="search-input" placeholder="Cari nama / ENIK..." style="max-width:200px;padding:7px 12px;" oninput="filterUsers(this.value)">
-        <select class="admin-role-select" onchange="filterByRole(this.value)" style="padding:7px 28px 7px 10px;">
+        <input id="userSearchInput" type="text" class="search-input" placeholder="Cari nama / ENIK..." style="max-width:200px;padding:7px 12px;" oninput="filterUsers(this.value)">
+        <select id="userRoleFilter" class="admin-role-select" onchange="filterByRole(this.value)" style="padding:7px 28px 7px 10px;">
           <option value="">Semua Role</option>
           <option value="admin">Super Admin</option>
           <option value="direktur">Direktur / Komisaris</option>
@@ -448,8 +448,8 @@ function filterByRole(role) {
   applyUserFilters();
 }
 function applyUserFilters() {
-  const q = document.querySelector('#tabUsers input[type=text]').value.toLowerCase();
-  const role = document.querySelector('#tabUsers select').value;
+  const q = (document.getElementById('userSearchInput')?.value || '').toLowerCase();
+  const role = (document.getElementById('userRoleFilter')?.value || '');
   document.querySelectorAll('.admin-user-row').forEach(row => {
     const matchQ = !q || (row.dataset.name || '').includes(q) || (row.dataset.email || '').includes(q);
     const matchRole = !role || row.dataset.role === role;
