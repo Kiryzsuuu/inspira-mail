@@ -102,6 +102,22 @@ app.use(async (req, res, next) => {
   next();
 });
 
+// ── PUBLIC REDIRECT — harus sebelum semua route lain ──
+app.get('/inspira/:code', async (req, res) => {
+  try {
+    const su = await ShortUrl.findOneAndUpdate(
+      { shortCode: req.params.code, isActive: true },
+      { $inc: { clicks: 1 } },
+      { new: true }
+    );
+    if (!su) return res.status(404).send('URL tidak ditemukan atau sudah tidak aktif.');
+    res.redirect(su.originalUrl);
+  } catch (err) {
+    res.status(500).send('Terjadi kesalahan.');
+  }
+});
+app.get('/s/:code', (req, res) => res.redirect('/inspira/' + req.params.code));
+
 function requireAuth(req, res, next) {
   if (!req.user) {
     req.session.returnTo = req.originalUrl;
@@ -1235,22 +1251,6 @@ function generateCode(len = 6) {
   return code;
 }
 
-// Redirect short URL — format /inspira/:code (public)
-app.get('/inspira/:code', async (req, res) => {
-  try {
-    const su = await ShortUrl.findOneAndUpdate(
-      { shortCode: req.params.code, isActive: true },
-      { $inc: { clicks: 1 } },
-      { new: true }
-    );
-    if (!su) return res.status(404).send('URL tidak ditemukan atau sudah tidak aktif.');
-    res.redirect(su.originalUrl);
-  } catch (err) {
-    res.status(500).send('Terjadi kesalahan.');
-  }
-});
-// Legacy redirect (backward compat)
-app.get('/s/:code', async (req, res) => res.redirect('/inspira/' + req.params.code));
 
 app.get('/shorturl', requireAuth, async (req, res) => {
   try {
