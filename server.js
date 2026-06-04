@@ -26,6 +26,11 @@ const QRCode = require('qrcode');
 
 const app = express();
 
+// Pastikan folder uploads tersedia saat server mulai
+['uploads', 'uploads/suratmasuk'].forEach(dir => {
+  fs.mkdirSync(path.join(__dirname, dir), { recursive: true });
+});
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -1002,7 +1007,7 @@ app.post('/email/:id/read', requireAuth, async (req, res) => {
 
 app.get('/profile', requireAuth, async (req, res) => {
   const counts = await getMailCounts(req.user._id);
-  res.render('profile', { active: 'profile', title: 'Profil Saya', success: null, error: null, ...counts });
+  res.render('profile', { active: 'profile', title: 'Profil Saya', success: null, error: null, emailSuccess: null, emailError: null, ...counts });
 });
 
 app.post('/profile', requireAuth, async (req, res) => {
@@ -1024,9 +1029,9 @@ app.post('/profile', requireAuth, async (req, res) => {
     const updated = await User.findById(req.user._id).select('-password');
     req.user = updated;
     res.locals.user = updated;
-    res.render('profile', { active: 'profile', title: 'Profil Saya', success: 'Profil berhasil diperbarui.', error: null, ...counts });
+    res.render('profile', { active: 'profile', title: 'Profil Saya', success: 'Profil berhasil diperbarui.', error: null, emailSuccess: null, emailError: null, ...counts });
   } catch (err) {
-    res.render('profile', { active: 'profile', title: 'Profil Saya', success: null, error: 'Gagal memperbarui profil.', ...counts });
+    res.render('profile', { active: 'profile', title: 'Profil Saya', success: null, error: 'Gagal memperbarui profil.', emailSuccess: null, emailError: null, ...counts });
   }
 });
 
@@ -1048,6 +1053,41 @@ app.post('/profile/password', requireAuth, async (req, res) => {
     res.render('profile', { active: 'profile', title: 'Profil Saya', success: 'Kata sandi berhasil diubah.', error: null, ...counts });
   } catch (err) {
     fail('Terjadi kesalahan.');
+  }
+});
+
+app.post('/profile/email', requireAuth, async (req, res) => {
+  const counts = await getMailCounts(req.user._id);
+  const fail = (msg) => res.render('profile', {
+    active: 'profile', title: 'Profil Saya',
+    success: null, error: null, emailError: msg, emailSuccess: null, ...counts
+  });
+  try {
+    const { newEmail, confirmEmail, password } = req.body;
+    if (!newEmail?.trim() || !confirmEmail?.trim() || !password)
+      return fail('Semua field wajib diisi.');
+    if (newEmail.trim().toLowerCase() !== confirmEmail.trim().toLowerCase())
+      return fail('Konfirmasi email tidak cocok.');
+    const emailLower = newEmail.trim().toLowerCase();
+    if (emailLower === req.user.email)
+      return fail('Email baru sama dengan email saat ini.');
+    const exists = await User.findOne({ email: emailLower, _id: { $ne: req.user._id } });
+    if (exists) return fail('Email sudah digunakan akun lain.');
+    const user = await User.findById(req.user._id);
+    const valid = await user.matchPassword(password);
+    if (!valid) return fail('Kata sandi salah.');
+    await User.findByIdAndUpdate(req.user._id, { email: emailLower });
+    await log(req, 'profile_update', 'profile', `${req.user.name} mengubah email ke ${emailLower}`);
+    req.user.email = emailLower;
+    res.render('profile', {
+      active: 'profile', title: 'Profil Saya',
+      success: null, error: null,
+      emailSuccess: 'Email berhasil diubah menjadi ' + emailLower,
+      emailError: null, ...counts
+    });
+  } catch (err) {
+    console.error(err);
+    fail('Gagal mengubah email. Coba lagi.');
   }
 });
 
