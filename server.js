@@ -928,11 +928,13 @@ app.post('/admin/site-settings', requireAuth, requireAdmin, ssUpload.single('log
   try {
     const ss = await SiteSettings.getSettings();
     const counts = await getMailCounts(req.user._id);
-    const { siteName, siteSub, orgCode, smtpHost, smtpPort, smtpUser, smtpPass } = req.body;
+    const { siteName, siteSub, siteTagline, siteDesc, orgCode, smtpHost, smtpPort, smtpUser, smtpPass } = req.body;
 
-    ss.siteName = siteName?.trim() || ss.siteName;
-    ss.siteSub  = siteSub?.trim()  || ss.siteSub;
-    ss.orgCode  = orgCode?.trim()  || ss.orgCode;
+    ss.siteName    = siteName?.trim()    || ss.siteName;
+    ss.siteSub     = siteSub?.trim()     || ss.siteSub;
+    ss.siteTagline = siteTagline?.trim() !== undefined ? siteTagline.trim() : ss.siteTagline;
+    ss.siteDesc    = siteDesc?.trim()    !== undefined ? siteDesc.trim()    : ss.siteDesc;
+    ss.orgCode     = orgCode?.trim()     || ss.orgCode;
     ss.smtpHost = smtpHost?.trim() || ss.smtpHost;
     ss.smtpPort = parseInt(smtpPort) || ss.smtpPort;
     ss.smtpUser = smtpUser?.trim() || ss.smtpUser;

@@ -62,6 +62,18 @@
         </div>
 
         <div class="form-group">
+          <label class="form-label">Tagline</label>
+          <input type="text" name="siteTagline" class="form-control" value="<%= ss.siteTagline %>" placeholder="Sistem Surat Dinas Digital">
+          <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;">Teks di bawah nama pada halaman login</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Deskripsi</label>
+          <textarea name="siteDesc" class="form-control" rows="3" placeholder="Deskripsi singkat sistem..."><%= ss.siteDesc %></textarea>
+          <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;">Teks panel kanan halaman login</div>
+        </div>
+
+        <div class="form-group">
           <label class="form-label">Kode Organisasi</label>
           <input type="text" name="orgCode" class="form-control" value="<%= ss.orgCode %>" placeholder="INSPIRA">
           <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;">Digunakan di nomor surat (misal: 001/INSPIRA/I/2026)</div>

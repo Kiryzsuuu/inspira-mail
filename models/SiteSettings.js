@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const SiteSettingsSchema = new mongoose.Schema({
   siteName:    { type: String, default: 'Inspira' },
   siteSub:     { type: String, default: 'Mailer' },
+  siteTagline: { type: String, default: 'Sistem Surat Dinas Digital' },
+  siteDesc:    { type: String, default: 'Platform surat dinas digital yang aman, cepat, dan terintegrasi untuk kebutuhan korespondensi organisasi Anda.' },
   logoBase64:  { type: String, default: '' },
   orgCode:     { type: String, default: 'INSPIRA' },
   smtpHost:    { type: String, default: 'smtp.gmail.com' },

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Masuk — Inspira Mailer</title>
-<link rel="icon" type="image/png" href="/img/Group 1597880519.png">
+<title>Masuk — <%= siteSettings && siteSettings.siteName ? siteSettings.siteName + ' ' + siteSettings.siteSub : 'Inspira Mailer' %></title>
+<link rel="icon" type="image/png" href="<%= siteSettings && siteSettings.logoBase64 ? siteSettings.logoBase64 : '/img/Group 1597880519.png' %>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
@@ -15,10 +15,10 @@
 <div class="auth-wrap">
   <div class="auth-panel">
     <div class="auth-brand">
-      <img src="/img/Group 1597880519.png" alt="Inspira Logo" class="auth-logo">
+      <img src="<%= siteSettings && siteSettings.logoBase64 ? siteSettings.logoBase64 : '/img/Group 1597880519.png' %>" alt="Logo" class="auth-logo">
       <div>
-        <div class="auth-brand-name">Inspira Mailer</div>
-        <div class="auth-brand-sub">Sistem Surat Dinas Digital</div>
+        <div class="auth-brand-name"><%= siteSettings && siteSettings.siteName ? siteSettings.siteName + ' ' + siteSettings.siteSub : 'Inspira Mailer' %></div>
+        <div class="auth-brand-sub"><%= siteSettings && siteSettings.siteTagline ? siteSettings.siteTagline : 'Sistem Surat Dinas Digital' %></div>
       </div>
     </div>
 
@@ -78,9 +78,9 @@
 
   <div class="auth-deco" aria-hidden="true">
     <div class="auth-deco-content">
-      <img src="/img/Group 1597880519.png" alt="" class="auth-deco-logo">
-      <h2 class="auth-deco-title">Inspira Mailer</h2>
-      <p class="auth-deco-sub">Platform surat dinas digital yang aman, cepat, dan terintegrasi untuk kebutuhan korespondensi organisasi Anda.</p>
+      <img src="<%= siteSettings && siteSettings.logoBase64 ? siteSettings.logoBase64 : '/img/Group 1597880519.png' %>" alt="" class="auth-deco-logo">
+      <h2 class="auth-deco-title"><%= siteSettings && siteSettings.siteName ? siteSettings.siteName + ' ' + siteSettings.siteSub : 'Inspira Mailer' %></h2>
+      <p class="auth-deco-sub"><%= siteSettings && siteSettings.siteDesc ? siteSettings.siteDesc : 'Platform surat dinas digital yang aman, cepat, dan terintegrasi untuk kebutuhan korespondensi organisasi Anda.' %></p>
       <div class="auth-deco-features">
         <div class="auth-deco-feat">
           <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
