@@ -990,7 +990,8 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         <% if (tipe === 'Surat Edaran') { %><p>di Tempat</p><% } %>
         <br>
         <% if (tipe !== 'Surat Edaran') { %>
-        <% if (email.subject) { %><table class="surat-field-table"><tr><td>Perihal</td><td>:</td><td><strong><%= email.subject %></strong></td></tr><% if(email.berkas){%><tr><td>Lampiran</td><td>:</td><td><%= email.berkas %></td></tr><%}%></table><% } %>
+        <% if (email.subject) { %><table class="surat-field-table"><tr><td>Perihal</td><td>:</td><td><strong><%= email.subject %></strong></td></tr><% if(email.berkas){%><tr><td>Klasifikasi</td><td>:</td><td><%= email.berkas %></td></tr><%}%>
+<%if(email.lampiran&&email.lampiranNama){%><tr><td>Lampiran</td><td>:</td><td><a href="<%= email.lampiran %>" target="_blank" style="color:inherit;"><%= email.lampiranNama %></a></td></tr><%}%></table><% } %>
         <br><p>Dengan hormat,</p><br>
         <% } %>
         <% if (hasBody) { %><div class="doc-para"><%- email.body %></div><% } %>
