@@ -89,8 +89,8 @@
   <div class="url-item" id="url-<%= u._id %>">
     <div class="url-item-main">
       <div class="url-item-code">
-        <span class="url-short-code">inspira/<%= u.shortCode %></span>
-        <button class="url-copy-btn" onclick="copyUrl('/inspira/<%= u.shortCode %>')" title="Salin URL">
+        <span class="url-short-code" id="shortcode-<%= u._id %>"><span id="shortdomain-<%= u._id %>"></span>inspira/<%= u.shortCode %></span>
+        <button class="url-copy-btn" onclick="copyFull('<%= u._id %>','<%= u.shortCode %>')" title="Salin URL lengkap">
           <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="8" y="8" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 8V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v5.5A1.5 1.5 0 005 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
       </div>
@@ -123,11 +123,26 @@
 <script>
 const BASE = window.location.origin;
 
+// Tampilkan domain di setiap shortcode saat halaman load
+document.querySelectorAll('[id^="shortdomain-"]').forEach(el => {
+  el.textContent = BASE + '/';
+  el.style.cssText = 'color:var(--gray-400);font-weight:400;';
+});
+
 function showToast(msg, ok) {
   const t = document.getElementById('urlToast');
   t.textContent = msg;
   t.className = 'admin-toast admin-toast-' + (ok ? 'success' : 'error') + ' admin-toast-show';
   setTimeout(() => t.className = 'admin-toast', 3000);
+}
+
+function copyFull(id, code) {
+  const fullUrl = BASE + '/inspira/' + code;
+  navigator.clipboard.writeText(fullUrl).then(() => {
+    showToast('URL disalin: ' + fullUrl, true);
+  }).catch(() => {
+    showToast('Gagal menyalin URL.', false);
+  });
 }
 
 function copyUrl(path) {
