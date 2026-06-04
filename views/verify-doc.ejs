@@ -156,7 +156,9 @@ const fdt = dt => `${dt.getDate()} ${M[dt.getMonth()]} ${dt.getFullYear()}, ${p(
 <% if (valid && signer) {
   const inits = signer.userName.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
   const roleLabels = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
-  const roleText = signer.userRole ? (roleLabels[signer.userRole] || signer.userRole) : (signer.userOrg || '');
+  const roleText = signer.jabatanDisplay?.trim()
+    ? signer.jabatanDisplay
+    : (signer.userRole ? (roleLabels[signer.userRole] || signer.userRole) : (signer.userOrg || ''));
 %>
 
   <div class="header-valid">

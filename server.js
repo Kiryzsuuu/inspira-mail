@@ -632,6 +632,7 @@ app.post('/email/:id/sign/add-self', requireAuth, async (req, res) => {
     docSig.signers.push({
       userId: req.user._id, userName: req.user.name,
       userRole: req.user.role || '', userOrg: req.user.organization || '',
+      jabatanDisplay: req.user.jabatan || '',
       token, qrDataUrl, status: 'signed', signedAt: new Date(),
       position: { x: 60 + n * 140, y: 640, width: 120, height: 185 }
     });
@@ -661,6 +662,7 @@ app.post('/email/:id/sign/invite-cosigner', requireAuth, async (req, res) => {
     docSig.signers.push({
       userId: targetUser._id, userName: targetUser.name,
       userRole: targetUser.role || '', userOrg: targetUser.organization || '',
+      jabatanDisplay: targetUser.jabatan || '',
       token: '', qrDataUrl: '', status: 'pending',
       position: { x: 60 + n * 140, y: 640, width: 120, height: 185 }
     });
@@ -835,7 +837,7 @@ app.get('/profile', requireAuth, async (req, res) => {
 });
 
 app.post('/profile', requireAuth, async (req, res) => {
-  const { name, organization, phone, bio } = req.body;
+  const { name, organization, jabatan, phone, bio } = req.body;
   const counts = await getMailCounts(req.user._id);
   try {
     if (!name?.trim()) {
@@ -844,6 +846,7 @@ app.post('/profile', requireAuth, async (req, res) => {
     await User.findByIdAndUpdate(req.user._id, {
       name: name.trim(),
       organization: organization?.trim() || 'Inspira Tekno',
+      jabatan: jabatan?.trim() || '',
       phone: phone?.trim() || '',
       bio: bio?.trim() || ''
     });
@@ -1789,6 +1792,7 @@ app.post('/surat-masuk/:id/pdf/add-signer', requireAuth, async (req, res) => {
       userName: targetUser.name,
       userRole: targetUser.role || '',
       userOrg: targetUser.organization || '',
+      jabatanDisplay: targetUser.jabatan || '',
       token,
       qrDataUrl,
       position: {
