@@ -4,7 +4,7 @@
   <div class="page-title-group">
     <div class="page-breadcrumb"><a href="/admin">Admin</a> / Pengaturan Situs</div>
     <h1 class="page-title">Pengaturan Situs</h1>
-    <p class="page-subtitle">Konfigurasi tampilan, identitas, dan SMTP sistem</p>
+    <p class="page-subtitle">Konfigurasi identitas, tampilan, dan SMTP sistem</p>
   </div>
 </div>
 
@@ -21,25 +21,56 @@
 </div>
 <% } %>
 
+<!-- Tab Nav -->
+<div style="display:flex;gap:0;border-bottom:2px solid var(--gray-200);margin-bottom:24px;">
+  <button class="ss-tab active" onclick="switchTab('identitas',this)">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 18c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Identitas
+  </button>
+  <button class="ss-tab" onclick="switchTab('login',this)">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 10h6M10 7v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Halaman Login
+  </button>
+  <button class="ss-tab" onclick="switchTab('smtp',this)">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    SMTP Email
+  </button>
+</div>
+
+<style>
+.ss-tab {
+  display:flex; align-items:center; gap:7px;
+  padding:10px 18px; border:none; background:none; cursor:pointer;
+  font-size:13.5px; font-weight:500; color:var(--gray-500);
+  border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .15s;
+}
+.ss-tab.active { color:var(--brand-600); border-bottom-color:var(--brand-600); }
+.ss-tab:hover:not(.active) { color:var(--gray-700); }
+.ss-panel { display:none; max-width:560px; }
+.ss-panel.active { display:block; }
+.ss-card { background:#fff; border:1px solid var(--gray-200); border-radius:var(--radius-md); padding:24px; margin-bottom:16px; }
+.ss-card-title { font-size:13px; font-weight:700; color:var(--gray-700); margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--gray-100); }
+.ss-field { margin-bottom:16px; }
+.ss-field:last-child { margin-bottom:0; }
+.ss-label { font-size:12px; font-weight:600; color:var(--gray-600); margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:.4px; }
+.ss-hint { font-size:11.5px; color:var(--gray-400); margin-top:4px; }
+</style>
+
 <form method="POST" action="/admin/site-settings" enctype="multipart/form-data">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px;">
 
-    <!-- Identitas Situs -->
-    <div class="compose-card">
-      <div class="compose-card-header"><span class="compose-card-title">Identitas Situs</span></div>
-      <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+  <!-- TAB: IDENTITAS -->
+  <div class="ss-panel active" id="tab-identitas">
+    <div class="ss-card">
+      <div class="ss-card-title">Logo & Nama</div>
 
-        <!-- Preview Logo -->
-        <div style="display:flex;align-items:center;gap:16px;padding:14px;background:var(--gray-50);border-radius:8px;border:1px solid var(--gray-200);">
-          <div id="logoPreviewWrap" style="width:56px;height:56px;border-radius:10px;overflow:hidden;background:#071840;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <% if (ss.logoBase64) { %>
-            <img id="logoPreview" src="<%= ss.logoBase64 %>" style="width:100%;height:100%;object-fit:contain;">
-            <% } else { %>
-            <img id="logoPreview" src="/img/Group 1597880519.png" style="width:80%;height:80%;object-fit:contain;">
-            <% } %>
+      <!-- Logo -->
+      <div class="ss-field">
+        <label class="ss-label">Logo</label>
+        <div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--gray-50);border-radius:8px;border:1px solid var(--gray-200);">
+          <div style="width:52px;height:52px;border-radius:10px;overflow:hidden;background:#071840;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <img id="logoPreview" src="<%= ss.logoBase64 || '/img/Group 1597880519.png' %>" style="width:90%;height:90%;object-fit:contain;">
           </div>
           <div>
-            <div style="font-size:13px;font-weight:600;color:var(--gray-700);">Logo Situs</div>
             <div style="font-size:12px;color:var(--gray-400);margin-bottom:8px;">PNG/JPG, maks 2MB</div>
             <label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--gray-200);border-radius:6px;font-size:12.5px;color:var(--gray-600);background:#fff;">
               <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M4 16l4-4 3 3 4-6 5 7H4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -48,94 +79,113 @@
             </label>
           </div>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label">Nama Situs</label>
-          <input type="text" name="siteName" class="form-control" value="<%= ss.siteName %>" placeholder="Inspira" required>
-          <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;">Teks utama di sidebar (misal: Inspira)</div>
-        </div>
+      <!-- Nama -->
+      <div class="ss-field">
+        <label class="ss-label">Nama Situs</label>
+        <input type="text" name="siteName" class="form-control" value="<%= ss.siteName %>" placeholder="Inspira" required oninput="updatePreview()">
+        <div class="ss-hint">Nama utama yang tampil di sidebar dan tab browser</div>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label">Sub Nama</label>
-          <input type="text" name="siteSub" class="form-control" value="<%= ss.siteSub %>" placeholder="Mailer">
-          <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;">Teks kecil di bawah nama (misal: Mailer)</div>
-        </div>
+      <!-- Sub -->
+      <div class="ss-field">
+        <label class="ss-label">Sub Nama <span style="font-weight:400;color:var(--gray-400);">(singkat)</span></label>
+        <input type="text" name="siteSub" class="form-control" value="<%= ss.siteSub %>" placeholder="Mailer" oninput="updatePreview()">
+        <div class="ss-hint">Teks kecil di bawah nama — sebaiknya singkat (maks ~20 karakter)</div>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label">Tagline</label>
-          <input type="text" name="siteTagline" class="form-control" value="<%= ss.siteTagline %>" placeholder="Sistem Surat Dinas Digital">
-          <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;">Teks di bawah nama pada halaman login</div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Deskripsi</label>
-          <textarea name="siteDesc" class="form-control" rows="3" placeholder="Deskripsi singkat sistem..."><%= ss.siteDesc %></textarea>
-          <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;">Teks panel kanan halaman login</div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Kode Organisasi</label>
-          <input type="text" name="orgCode" class="form-control" value="<%= ss.orgCode %>" placeholder="INSPIRA">
-          <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;">Digunakan di nomor surat (misal: 001/INSPIRA/I/2026)</div>
-        </div>
+      <!-- Kode Org -->
+      <div class="ss-field">
+        <label class="ss-label">Kode Organisasi</label>
+        <input type="text" name="orgCode" class="form-control" value="<%= ss.orgCode %>" placeholder="INSPIRA">
+        <div class="ss-hint">Digunakan di nomor surat: 001/<strong><%= ss.orgCode %></strong>/I/2026</div>
       </div>
     </div>
 
-    <!-- Konfigurasi SMTP -->
-    <div class="compose-card">
-      <div class="compose-card-header"><span class="compose-card-title">Konfigurasi SMTP</span></div>
-      <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
-
-        <div style="padding:10px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:12.5px;color:#92400e;">
-          SMTP digunakan untuk kirim notifikasi email dan fitur lupa kata sandi.
+    <!-- Preview -->
+    <div class="ss-card">
+      <div class="ss-card-title">Preview Sidebar</div>
+      <div style="background:#071840;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <img id="previewLogoSmall" src="<%= ss.logoBase64 || '/img/Group 1597880519.png' %>" style="width:90%;height:90%;object-fit:contain;">
         </div>
-
-        <div class="form-group">
-          <label class="form-label">SMTP Host</label>
-          <input type="text" name="smtpHost" class="form-control" value="<%= ss.smtpHost %>" placeholder="smtp.gmail.com">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">SMTP Port</label>
-          <input type="number" name="smtpPort" class="form-control" value="<%= ss.smtpPort %>" placeholder="587">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Email Pengirim</label>
-          <input type="email" name="smtpUser" class="form-control" value="<%= ss.smtpUser %>" placeholder="email@gmail.com">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">App Password</label>
-          <div style="position:relative;">
-            <input type="password" name="smtpPass" id="smtpPassInput" class="form-control" placeholder="Kosongkan jika tidak ingin mengubah" style="padding-right:40px;">
-            <button type="button" onclick="togglePass()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
-            </button>
-          </div>
-          <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;">Untuk Gmail, gunakan App Password (bukan password biasa)</div>
-        </div>
-
-        <!-- Preview brand -->
-        <div style="margin-top:8px;padding:14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:8px;">Preview Sidebar</div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;background:#071840;display:flex;align-items:center;justify-content:center;">
-              <img id="previewLogoSmall" src="<%= ss.logoBase64 || '/img/Group 1597880519.png' %>" style="width:80%;height:80%;object-fit:contain;">
-            </div>
-            <div>
-              <div style="font-size:14px;font-weight:700;color:#fff;background:#071840;padding:6px 12px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;">
-                <span id="previewName"><%= ss.siteName %></span>
-                <span id="previewSub" style="font-weight:400;opacity:.7;font-size:12px;"><%= ss.siteSub %></span>
-              </div>
-            </div>
-          </div>
+        <div style="min-width:0;overflow:hidden;">
+          <div id="previewName" style="font-size:15px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= ss.siteName %></div>
+          <div id="previewSub" style="font-size:10px;font-weight:400;color:#f5a623;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;"><%= ss.siteSub %></div>
         </div>
       </div>
     </div>
   </div>
 
-  <div style="margin-top:16px;max-width:900px;display:flex;justify-content:flex-end;gap:10px;">
+  <!-- TAB: HALAMAN LOGIN -->
+  <div class="ss-panel" id="tab-login">
+    <div class="ss-card">
+      <div class="ss-card-title">Teks Halaman Login</div>
+
+      <div class="ss-field">
+        <label class="ss-label">Tagline</label>
+        <input type="text" name="siteTagline" class="form-control" value="<%= ss.siteTagline %>" placeholder="Sistem Surat Dinas Digital">
+        <div class="ss-hint">Teks kecil di bawah nama pada panel kiri login</div>
+      </div>
+
+      <div class="ss-field">
+        <label class="ss-label">Deskripsi</label>
+        <textarea name="siteDesc" class="form-control" rows="4" placeholder="Deskripsi singkat sistem..."><%= ss.siteDesc %></textarea>
+        <div class="ss-hint">Teks pada panel kanan (dekorasi) halaman login</div>
+      </div>
+    </div>
+
+    <!-- Preview Login -->
+    <div class="ss-card">
+      <div class="ss-card-title">Preview Panel Login</div>
+      <div style="background:#071840;border-radius:10px;padding:20px;color:#fff;">
+        <img src="<%= ss.logoBase64 || '/img/Group 1597880519.png' %>" style="width:40px;height:40px;object-fit:contain;margin-bottom:12px;display:block;">
+        <div style="font-size:18px;font-weight:700;margin-bottom:6px;"><%= ss.siteName %> <%= ss.siteSub %></div>
+        <div style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;"><%= ss.siteDesc %></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: SMTP -->
+  <div class="ss-panel" id="tab-smtp">
+    <div class="ss-card">
+      <div class="ss-card-title">Konfigurasi SMTP</div>
+
+      <div style="padding:10px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:12.5px;color:#92400e;margin-bottom:16px;">
+        SMTP digunakan untuk kirim notifikasi email dan fitur lupa kata sandi. Untuk Gmail, aktifkan <strong>App Password</strong>.
+      </div>
+
+      <div class="ss-field">
+        <label class="ss-label">SMTP Host</label>
+        <input type="text" name="smtpHost" class="form-control" value="<%= ss.smtpHost %>" placeholder="smtp.gmail.com">
+      </div>
+
+      <div class="ss-field">
+        <label class="ss-label">SMTP Port</label>
+        <input type="number" name="smtpPort" class="form-control" value="<%= ss.smtpPort %>" placeholder="587">
+      </div>
+
+      <div class="ss-field">
+        <label class="ss-label">Email Pengirim</label>
+        <input type="email" name="smtpUser" class="form-control" value="<%= ss.smtpUser %>" placeholder="email@gmail.com">
+      </div>
+
+      <div class="ss-field">
+        <label class="ss-label">App Password</label>
+        <div style="position:relative;">
+          <input type="password" name="smtpPass" id="smtpPassInput" class="form-control" placeholder="Kosongkan jika tidak ingin mengubah" style="padding-right:40px;">
+          <button type="button" onclick="togglePass()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button>
+        </div>
+        <div class="ss-hint">Kosongkan jika tidak ingin mengubah password</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:4px;max-width:560px;">
     <a href="/admin" class="btn btn-secondary">Batal</a>
     <button type="submit" class="btn btn-primary">
       <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -145,6 +195,12 @@
 </form>
 
 <script>
+function switchTab(name, btn) {
+  document.querySelectorAll('.ss-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ss-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
 function previewLogo(input) {
   if (!input.files[0]) return;
   const reader = new FileReader();
@@ -154,17 +210,16 @@ function previewLogo(input) {
   };
   reader.readAsDataURL(input.files[0]);
 }
+function updatePreview() {
+  const name = document.querySelector('[name=siteName]').value || 'Nama';
+  const sub  = document.querySelector('[name=siteSub]').value  || '';
+  document.getElementById('previewName').textContent = name;
+  document.getElementById('previewSub').textContent  = sub;
+}
 function togglePass() {
   const el = document.getElementById('smtpPassInput');
   el.type = el.type === 'password' ? 'text' : 'password';
 }
-// Live preview nama
-document.querySelector('[name=siteName]').addEventListener('input', e => {
-  document.getElementById('previewName').textContent = e.target.value || 'Nama';
-});
-document.querySelector('[name=siteSub]').addEventListener('input', e => {
-  document.getElementById('previewSub').textContent = e.target.value || '';
-});
 </script>
 
 <%- include('./partials/footer') %>

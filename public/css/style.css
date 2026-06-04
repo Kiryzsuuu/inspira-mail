@@ -100,9 +100,9 @@ body { font-family: var(--font); background: var(--gray-100); color: var(--gray-
   object-fit: contain;
   flex-shrink: 0;
 }
-.brand-text { display: flex; flex-direction: column; line-height: 1.1; }
-.brand-name { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -.2px; }
-.brand-sub { font-size: 10px; font-weight: 400; color: var(--brand-accent); letter-spacing: .5px; text-transform: uppercase; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.1; min-width: 0; overflow: hidden; }
+.brand-name { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-sub { font-size: 10px; font-weight: 400; color: var(--brand-accent); letter-spacing: .3px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
 
 .sidebar-close { display: none; background: none; border: none; color: rgba(255,255,255,.5); cursor: pointer; padding: 4px; border-radius: 6px; transition: color .15s, background .15s; }
 .sidebar-close:hover { color: #fff; background: rgba(255,255,255,.08); }
