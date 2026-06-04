@@ -430,7 +430,7 @@ app.get('/draft/:id/edit', requireAuth, async (req, res) => {
 app.post('/draft/:id/update', requireAuth, async (req, res) => {
   try {
     const { to, cc, subject, body, tag, berkas, sifat, jenis, externalRecipients,
-            kodeDiv, kodeLay, kodeDir, pengirimResmi, sumberTemplate } = req.body;
+            kodeDiv, kodeLay, kodeDir, pengirimResmi, sumberTemplate, action } = req.body;
     const email = await Email.findById(req.params.id);
     if (!email || email.from.userId?.toString() !== req.user._id.toString())
       return res.json({ ok: false });
@@ -469,7 +469,11 @@ app.post('/draft/:id/update', requireAuth, async (req, res) => {
       sumberTemplate: sumberTemplate || email.sumberTemplate || 'internal',
       nomorSurat
     });
-    res.redirect(`/email/${email._id}/preview`);
+    if (action === 'draft') {
+      res.redirect('/compose');
+    } else {
+      res.redirect(`/email/${email._id}/preview`);
+    }
   } catch (err) {
     console.error(err);
     res.redirect('/compose');

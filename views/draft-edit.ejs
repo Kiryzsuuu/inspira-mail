@@ -34,6 +34,7 @@
 
 <form action="/draft/<%= email._id %>/update" method="POST" id="editForm">
   <input type="hidden" name="body" id="bodyHidden">
+  <input type="hidden" name="action" id="draftAction" value="preview">
   <input type="hidden" name="jenis" id="jenisHidden" value="<%= email.jenis || 'internal' %>">
   <input type="hidden" name="externalRecipients" id="externalRecipientsHidden" value="[]">
 
@@ -196,7 +197,11 @@
 
       <div class="compose-actions">
         <a href="/compose" class="btn btn-ghost">Batal</a>
-        <button type="submit" class="btn btn-primary">
+        <button type="button" class="btn btn-secondary" onclick="submitDraft('draft')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h10v10H2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M4 5h6M4 7h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Simpan Draf
+        </button>
+        <button type="button" class="btn btn-primary" onclick="submitDraft('preview')">
           <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Simpan &amp; Lanjut ke Preview
         </button>
@@ -267,10 +272,12 @@ const quill = new Quill('#quillEditor', {
 quill.root.innerHTML = `<%- email.body || '' %>`;
 
 // Submit
-document.getElementById('editForm').addEventListener('submit', function(e) {
+function submitDraft(action) {
   document.getElementById('bodyHidden').value = quill.root.innerHTML;
   document.getElementById('externalRecipientsHidden').value = JSON.stringify(extList);
-});
+  document.getElementById('draftAction').value = action;
+  document.getElementById('editForm').submit();
+}
 
 function updateSifat(s) { document.getElementById('infoSifat').textContent = s.value; }
 
