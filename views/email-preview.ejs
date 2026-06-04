@@ -454,7 +454,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         <p class="doc-para">Yang bertanda tangan di bawah ini:</p>
         <table class="surat-field-table">
           <tr><td>Nama</td><td>:</td><td><strong><%= email.from.name %></strong></td></tr>
-          <tr><td>Jabatan</td><td>:</td><td>Direktur Utama</td></tr>
+          <tr><td>Jabatan</td><td>:</td><td><%= sd.jabatanPemberiTugas || 'Direktur Utama' %></td></tr>
           <tr><td>Instansi</td><td>:</td><td>PT Nusa Inspira Teknologi</td></tr>
         </table>
         <p class="doc-para" style="margin-top:10px;">Dengan ini menugaskan kepada:</p>

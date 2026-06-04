@@ -1087,6 +1087,7 @@ function collectSuratData() {
     const _pJabatan = v('tugas_pemberi_preset') === 'lainnya' ? v('tugas_pemberi_jabatan_custom') : v('tugas_pemberi_preset');
     const _pNama = v('tugas_pemberi_nama');
     sd.pemberiTugas = [_pNama, _pJabatan].filter(Boolean).join(' — ');
+    sd.jabatanPemberiTugas = _pJabatan;
     sd.namaPelaksana = v('tugas_nama'); sd.jabatanPelaksana = v('tugas_jabatan');
     sd.jenisTugas = v('tugas_jenis'); sd.tujuanTugas = v('tugas_tujuan');
     sd.lokasiTugas = v('tugas_lokasi'); sd.tanggalTugas = v('tugas_tanggal');
