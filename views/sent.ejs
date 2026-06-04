@@ -80,6 +80,13 @@
               <select id="dateYear" onchange="applyFilters()"><option value="">-- Tahun --</option><% for(let y=new Date().getFullYear();y>=2020;y--){%><option value="<%=y%>"><%=y%></option><%}%></select>
             </div></div>
           </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Urutan</div>
+            <div class="filter-chips">
+              <button class="filter-chip active" data-group="sort" data-val="newest" onclick="pickChip(this)">Terbaru</button>
+              <button class="filter-chip" data-group="sort" data-val="oldest" onclick="pickChip(this)">Terlama</button>
+            </div>
+          </div>
           <div class="filter-actions">
             <button class="btn btn-ghost" style="font-size:12.5px;padding:6px 14px;" onclick="resetAllFilters()">Reset</button>
             <button class="btn btn-primary" style="font-size:12.5px;padding:6px 14px;" onclick="toggleFilterDropdown()">Tutup</button>

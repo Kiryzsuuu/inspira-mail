@@ -1502,7 +1502,7 @@ const smUpload = multer({
 
 app.get('/surat-masuk', requireAuth, async (req, res) => {
   try {
-    const { status, klasifikasi, q, dateFrom, dateTo, dateMonth, dateYear } = req.query;
+    const { status, klasifikasi, q, dateFrom, dateTo, dateMonth, dateYear, sort } = req.query;
     const filter = {};
     if (status)      filter.status      = status;
     if (klasifikasi) filter.klasifikasi = klasifikasi;
@@ -1526,7 +1526,7 @@ app.get('/surat-masuk', requireAuth, async (req, res) => {
     }
 
     const [surats, counts] = await Promise.all([
-      SuratMasuk.find(filter).sort({ tanggalTerima: -1 }),
+      SuratMasuk.find(filter).sort({ tanggalTerima: sort === 'oldest' ? 1 : -1 }),
       getMailCounts(req.user._id)
     ]);
 
@@ -1539,7 +1539,7 @@ app.get('/surat-masuk', requireAuth, async (req, res) => {
 
     res.render('surat-masuk', {
       active: 'surat-masuk', title: 'Surat Masuk',
-      surats, stats, filter: { status, klasifikasi, q, dateFrom, dateTo, dateMonth, dateYear },
+      surats, stats, filter: { status, klasifikasi, q, dateFrom, dateTo, dateMonth, dateYear, sort },
       formatDate, ...counts
     });
   } catch (err) {

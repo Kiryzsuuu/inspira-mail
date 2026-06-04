@@ -62,6 +62,8 @@
       <input type="hidden" name="dateTo"      id="hDateTo"      value="<%= filter.dateTo || '' %>">
       <input type="hidden" name="dateMonth"   id="hDateMonth"   value="<%= filter.dateMonth || '' %>">
       <input type="hidden" name="dateYear"    id="hDateYear"    value="<%= filter.dateYear || '' %>">
+      <input type="hidden" name="sort"        id="hSort"        value="<%= filter.sort || 'newest' %>">
+      <input type="hidden" name="dateYear"    id="hDateYear"    value="<%= filter.dateYear || '' %>">
 
       <% const hasFilter = filter.status || filter.klasifikasi || filter.q || filter.dateFrom || filter.dateTo || filter.dateMonth || filter.dateYear; %>
       <div id="smActiveChips" class="filter-active-chips">
@@ -126,6 +128,13 @@
                   <% } %>
                 </select>
               </div>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Urutan</div>
+            <div class="filter-chips">
+              <button type="button" class="filter-chip <%= (filter.sort||'newest')==='newest' ? 'active':'' %>" onclick="setHidden('hSort','newest');this.closest('.filter-chips').querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));this.classList.add('active')">Terbaru</button>
+              <button type="button" class="filter-chip <%= filter.sort==='oldest' ? 'active':'' %>" onclick="setHidden('hSort','oldest');this.closest('.filter-chips').querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));this.classList.add('active')">Terlama</button>
             </div>
           </div>
           <div class="filter-actions">

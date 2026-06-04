@@ -1,7 +1,5 @@
 <%# Shared filter dropdown JS — include inside <script> block on any mail-list page %>
-<%# Requires: #searchBox, #filterBtn, #filterBadge, #filterDropdown, #activeChips %>
-<%# Requires: data-tag, data-jenis, data-date, data-read on .mail-item / .draft-item %>
-const AF = { tag:'all', jenis:'all', datemode:'all', read:'all' };
+const AF = { tag:'all', jenis:'all', datemode:'all', read:'all', sort:'newest' };
 const ITEM_SEL = '.draft-item, .mail-item';
 const COUNT_EL = document.getElementById('draftCount') || document.getElementById('listCount');
 const COUNT_SUFFIX = COUNT_EL ? (COUNT_EL.id === 'draftCount' ? ' draf' : (window._countSuffix||' surat')) : '';
@@ -23,16 +21,19 @@ function toggleDateMode(mode) {
 }
 
 function applyFilters() {
-  const kw    = (document.getElementById('searchBox').value||'').toLowerCase().trim();
-  const dmode = AF.datemode;
+  const kw     = (document.getElementById('searchBox').value||'').toLowerCase().trim();
+  const dmode  = AF.datemode;
   const dSingle = (document.getElementById('dateSingle')||{}).value||'';
   const dFrom   = (document.getElementById('dateFrom')||{}).value||'';
   const dTo     = (document.getElementById('dateTo')||{}).value||'';
   const dMonth  = (document.getElementById('dateMonth')||{}).value||'';
   const dYear   = (document.getElementById('dateYear')||{}).value||'';
 
+  const container = document.querySelector('.mail-list-wrap');
+  const items = [...document.querySelectorAll(ITEM_SEL)];
+
   let n = 0;
-  document.querySelectorAll(ITEM_SEL).forEach(el => {
+  items.forEach(el => {
     const d = el.dataset.date || '';
     let matchDate = true;
     if (dmode === 'single' && dSingle) matchDate = d === dSingle;
@@ -45,7 +46,6 @@ function applyFilters() {
       else if (dYear)      matchDate = d.startsWith(dYear + '-');
       else if (dMonth)     matchDate = d.slice(5,7) === dMonth;
     }
-
     const matchSearch = !kw || (el.dataset.search||'').includes(kw);
     const matchTag    = AF.tag   === 'all' || (el.dataset.tag||'')   === AF.tag;
     const matchJenis  = AF.jenis === 'all' || (el.dataset.jenis||'') === AF.jenis;
@@ -54,6 +54,15 @@ function applyFilters() {
     el.style.display = show ? '' : 'none';
     if (show) n++;
   });
+
+  // Sort visible items by date
+  const visible = items.filter(el => el.style.display !== 'none');
+  visible.sort((a, b) => {
+    const da = a.dataset.date || '', db = b.dataset.date || '';
+    return AF.sort === 'oldest' ? da.localeCompare(db) : db.localeCompare(da);
+  });
+  visible.forEach(el => el.parentNode.appendChild(el));
+
   if (COUNT_EL) COUNT_EL.textContent = n + COUNT_SUFFIX;
   updateFilterBadge();
   renderActiveChips();
@@ -61,10 +70,11 @@ function applyFilters() {
 
 function updateFilterBadge() {
   let count = 0;
-  if (AF.tag !== 'all') count++;
-  if (AF.jenis !== 'all') count++;
+  if (AF.tag !== 'all')      count++;
+  if (AF.jenis !== 'all')    count++;
   if (AF.datemode !== 'all') count++;
-  if (AF.read !== 'all') count++;
+  if (AF.read !== 'all')     count++;
+  if (AF.sort !== 'newest')  count++;
   const badge = document.getElementById('filterBadge');
   const btn   = document.getElementById('filterBtn');
   if (badge) { badge.textContent = count; badge.style.display = count ? '' : 'none'; }
@@ -78,7 +88,8 @@ function renderActiveChips() {
   const labels = {
     tag:  { penting:'Penting', urgent:'Urgent', normal:'Normal', info:'Info' },
     jenis:{ internal:'Internal', eksternal:'Eksternal' },
-    read: { unread:'Belum Dibaca' }
+    read: { unread:'Belum Dibaca' },
+    sort: { oldest:'Terlama' }
   };
   const removeChip = (group, def) => {
     AF[group] = def;
@@ -96,9 +107,16 @@ function renderActiveChips() {
       wrap.appendChild(chip);
     }
   });
+  if (AF.sort !== 'newest') {
+    const chip = document.createElement('div');
+    chip.className = 'filter-active-chip';
+    chip.innerHTML = `${labels.sort[AF.sort]||AF.sort}<button onclick="removeChip_sort()">×</button>`;
+    wrap.appendChild(chip);
+  }
   window.removeChip_tag   = () => removeChip('tag','all');
   window.removeChip_jenis = () => removeChip('jenis','all');
   window.removeChip_read  = () => removeChip('read','all');
+  window.removeChip_sort  = () => removeChip('sort','newest');
 
   if (AF.datemode !== 'all') {
     const chip = document.createElement('div');
@@ -123,10 +141,10 @@ function resetDate() {
 }
 
 function resetAllFilters() {
-  AF.tag='all'; AF.jenis='all'; AF.datemode='all'; AF.read='all';
+  AF.tag='all'; AF.jenis='all'; AF.datemode='all'; AF.read='all'; AF.sort='newest';
   document.getElementById('searchBox').value='';
   document.querySelectorAll('.filter-chip').forEach(c=>{
-    c.classList.toggle('active', c.dataset.val==='all');
+    c.classList.toggle('active', c.dataset.val==='all' || c.dataset.val==='newest');
   });
   toggleDateMode('all');
   applyFilters();
