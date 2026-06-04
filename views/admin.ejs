@@ -687,13 +687,21 @@ async function saveEdit() {
     });
     const data = await res.json();
     if (data.ok) {
-      // Update row display
-      const row = document.querySelector(`tr[data-name]`);
+      const email = document.getElementById('editEmail').value;
       document.querySelectorAll('.admin-user-row').forEach(r => {
-        if (r.querySelector(`button[onclick*="${id}"]`)) {
+        const editBtn = r.querySelector(`button[onclick*="${id}"]`);
+        if (editBtn) {
+          // Update tampilan tabel
           r.querySelector('td:nth-child(3) div:first-child').textContent = payload.jabatan || '-';
           r.querySelector('td:nth-child(3) div:last-child').textContent = payload.organization || '';
           r.querySelector('td:first-child').textContent = payload.enik || '—';
+          // Update onclick agar klik Edit berikutnya baca nilai terbaru
+          const nameMatch = editBtn.getAttribute('onclick').match(/openEditModal\('[^']+','((?:[^'\\]|\\.)*)'/);
+          const uname = nameMatch ? nameMatch[1] : '';
+          const esc = v => v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+          editBtn.setAttribute('onclick',
+            `openEditModal('${id}','${uname}','${esc(payload.enik)}','${esc(payload.jabatan)}','${esc(payload.organization)}','${esc(email)}','${esc(payload.kodeDir)}')`
+          );
         }
       });
       closeAllModals();
