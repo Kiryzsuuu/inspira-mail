@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   jabatan:  { type: String, trim: true },
   phone: { type: String, trim: true },
   bio: { type: String, trim: true },
+  kodeDir: { type: String, enum: ['','KOM','DIR','PLAN','TECH','MP'], default: '' },
   avatar: String,
   resetToken: String,
   resetTokenExpiry: Date,

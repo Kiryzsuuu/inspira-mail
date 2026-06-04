@@ -141,7 +141,7 @@
             </td>
             <td>
               <div class="admin-actions" style="gap:6px;">
-                <button class="admin-btn" style="color:var(--brand-600);" onclick="openEditModal('<%= u._id %>','<%= u.name.replace(/'/g,`\\'`) %>','<%= u.enik||'' %>','<%= u.jabatan||'' %>','<%= u.organization||'' %>','<%= u.email %>')" title="Edit">
+                <button class="admin-btn" style="color:var(--brand-600);" onclick="openEditModal('<%= u._id %>','<%= u.name.replace(/'/g,`\\'`) %>','<%= u.enik||'' %>','<%= u.jabatan||'' %>','<%= u.organization||'' %>','<%= u.email %>','<%= u.kodeDir||'' %>')" title="Edit">
                   <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M14 3l3 3L7 16H4v-3L14 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
                   Edit
                 </button>
@@ -296,6 +296,132 @@
 <!-- Toast -->
 <div class="admin-toast" id="adminToast"></div>
 
+<!-- ── MODAL OVERLAY ── -->
+<div id="modalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;" onclick="closeAllModals(event)">
+
+  <!-- Edit User Modal -->
+  <div id="modalEdit" class="admin-modal" style="display:none;background:#fff;border-radius:12px;padding:28px 32px;width:480px;max-width:95vw;position:relative;">
+    <div style="font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:20px;">Edit Pengguna</div>
+    <input type="hidden" id="editUserId">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">ENIK</label>
+        <input id="editEnik" type="text" class="form-control" placeholder="Kode ENIK" style="font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Jabatan</label>
+        <input id="editJabatan" type="text" class="form-control" placeholder="Jabatan / posisi" style="font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Organisasi / Divisi</label>
+        <input id="editOrganization" type="text" class="form-control" placeholder="Nama organisasi" style="font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Kode Direktorat</label>
+        <select id="editKodeDir" class="form-control form-select" style="font-size:13px;">
+          <option value="">— Belum ditugaskan —</option>
+          <option value="KOM">KOM — Dewan Komisaris</option>
+          <option value="DIR">DIR — Direktur Utama</option>
+          <option value="PLAN">PLAN — Business Strategy & Finance</option>
+          <option value="TECH">TECH — Technical & Operations</option>
+          <option value="MP">MP — Marketing & Partnership</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:8px;">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Email</label>
+      <input id="editEmail" type="text" class="form-control" disabled style="font-size:13px;background:var(--gray-50);color:var(--gray-500);">
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Batal</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Simpan</button>
+    </div>
+  </div>
+
+  <!-- Reset Password Modal -->
+  <div id="modalReset" class="admin-modal" style="display:none;background:#fff;border-radius:12px;padding:28px 32px;width:400px;max-width:95vw;position:relative;">
+    <div style="font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:6px;">Reset Kata Sandi</div>
+    <div id="resetUserName" style="font-size:13px;color:var(--gray-500);margin-bottom:18px;"></div>
+    <input type="hidden" id="resetUserId">
+    <div>
+      <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Kata Sandi Baru</label>
+      <input id="resetPassword" type="password" class="form-control" placeholder="Minimal 8 karakter" style="font-size:13px;">
+    </div>
+    <div style="margin-top:10px;">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Konfirmasi Kata Sandi</label>
+      <input id="resetPassword2" type="password" class="form-control" placeholder="Ulangi kata sandi" style="font-size:13px;">
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Batal</button>
+      <button class="btn btn-primary" onclick="saveReset()">Simpan</button>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div id="modalAdd" class="admin-modal" style="display:none;background:#fff;border-radius:12px;padding:28px 32px;width:520px;max-width:95vw;position:relative;max-height:90vh;overflow-y:auto;">
+    <div style="font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:20px;">Tambah Pengguna Baru</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="grid-column:1/-1;">
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Nama Lengkap <span style="color:var(--red-500);">*</span></label>
+        <input id="addName" type="text" class="form-control" placeholder="Nama lengkap" style="font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Email <span style="color:var(--red-500);">*</span></label>
+        <input id="addEmail" type="email" class="form-control" placeholder="email@domain.com" style="font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">ENIK</label>
+        <input id="addEnik" type="text" class="form-control" placeholder="Kode ENIK" style="font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Jabatan</label>
+        <input id="addJabatan" type="text" class="form-control" placeholder="Jabatan / posisi" style="font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Organisasi / Divisi</label>
+        <input id="addOrganization" type="text" class="form-control" placeholder="Inspira Tekno" style="font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Role</label>
+        <select id="addRole" class="form-control form-select" style="font-size:13px;">
+          <option value="user">Pengguna</option>
+          <option value="direktur">Direktur / Komisaris</option>
+          <option value="admin">Super Admin</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Kode Direktorat</label>
+        <select id="addKodeDir" class="form-control form-select" style="font-size:13px;">
+          <option value="">— Belum ditugaskan —</option>
+          <option value="KOM">KOM — Dewan Komisaris</option>
+          <option value="DIR">DIR — Direktur Utama</option>
+          <option value="PLAN">PLAN — Business Strategy & Finance</option>
+          <option value="TECH">TECH — Technical & Operations</option>
+          <option value="MP">MP — Marketing & Partnership</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Kata Sandi <span style="color:var(--red-500);">*</span></label>
+        <input id="addPassword" type="password" class="form-control" placeholder="Min. 8 karakter" style="font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Konfirmasi Kata Sandi <span style="color:var(--red-500);">*</span></label>
+        <input id="addPassword2" type="password" class="form-control" placeholder="Ulangi kata sandi" style="font-size:13px;">
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Batal</button>
+      <button class="btn btn-primary" onclick="saveAddUser()">Tambah Pengguna</button>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.admin-modal { box-shadow: 0 20px 60px rgba(0,0,0,.18); }
+#modalOverlay.show { display:flex !important; }
+</style>
+
 <script>
 // Tab switching
 function showTab(btn, panelId) {
@@ -392,6 +518,133 @@ async function toggleUser(id, btn) {
   } catch (e) {
     showToast('Terjadi kesalahan.', false);
   }
+}
+
+// ── MODAL HELPERS ──
+function openModal(id) {
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('modalOverlay').style.display = 'flex';
+  document.getElementById(id).style.display = '';
+}
+function closeAllModals(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').style.display = 'none';
+  document.getElementById('modalOverlay').classList.remove('show');
+  ['modalEdit','modalReset','modalAdd'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+}
+function closeAllModals() {
+  document.getElementById('modalOverlay').style.display = 'none';
+  ['modalEdit','modalReset','modalAdd'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+}
+
+// ── EDIT USER ──
+function openEditModal(id, name, enik, jabatan, org, email, kodeDir) {
+  document.getElementById('editUserId').value = id;
+  document.getElementById('editEnik').value = enik || '';
+  document.getElementById('editJabatan').value = jabatan || '';
+  document.getElementById('editOrganization').value = org || '';
+  document.getElementById('editEmail').value = email || '';
+  document.getElementById('editKodeDir').value = kodeDir || '';
+  openModal('modalEdit');
+}
+async function saveEdit() {
+  const id  = document.getElementById('editUserId').value;
+  const payload = {
+    enik:         document.getElementById('editEnik').value.trim(),
+    jabatan:      document.getElementById('editJabatan').value.trim(),
+    organization: document.getElementById('editOrganization').value.trim(),
+    kodeDir:      document.getElementById('editKodeDir').value
+  };
+  try {
+    const res  = await fetch(`/admin/users/${id}/enik`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.ok) {
+      // Update row display
+      const row = document.querySelector(`tr[data-name]`);
+      document.querySelectorAll('.admin-user-row').forEach(r => {
+        if (r.querySelector(`button[onclick*="${id}"]`)) {
+          r.querySelector('td:nth-child(3) div:first-child').textContent = payload.jabatan || '-';
+          r.querySelector('td:nth-child(3) div:last-child').textContent = payload.organization || '';
+          r.querySelector('td:first-child').textContent = payload.enik || '—';
+        }
+      });
+      closeAllModals();
+      showToast('Data pengguna berhasil disimpan.', true);
+    } else {
+      showToast(data.message || 'Gagal menyimpan.', false);
+    }
+  } catch(e) { showToast('Terjadi kesalahan.', false); }
+}
+
+// ── RESET PASSWORD ──
+function resetPwd(id, name) {
+  document.getElementById('resetUserId').value = id;
+  document.getElementById('resetUserName').textContent = 'Pengguna: ' + name;
+  document.getElementById('resetPassword').value = '';
+  document.getElementById('resetPassword2').value = '';
+  openModal('modalReset');
+}
+async function saveReset() {
+  const id  = document.getElementById('resetUserId').value;
+  const pw  = document.getElementById('resetPassword').value;
+  const pw2 = document.getElementById('resetPassword2').value;
+  if (!pw || pw.length < 8) { showToast('Kata sandi minimal 8 karakter.', false); return; }
+  if (pw !== pw2) { showToast('Konfirmasi kata sandi tidak cocok.', false); return; }
+  try {
+    const res  = await fetch(`/admin/users/${id}/reset-password`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    });
+    const data = await res.json();
+    if (data.ok) { closeAllModals(); showToast('Kata sandi berhasil direset.', true); }
+    else showToast(data.message || 'Gagal reset.', false);
+  } catch(e) { showToast('Terjadi kesalahan.', false); }
+}
+
+// ── ADD USER ──
+function openAddUserModal() {
+  ['addName','addEmail','addEnik','addJabatan','addOrganization','addPassword','addPassword2'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('addRole').value = 'user';
+  document.getElementById('addKodeDir').value = '';
+  openModal('modalAdd');
+}
+async function saveAddUser() {
+  const name  = document.getElementById('addName').value.trim();
+  const email = document.getElementById('addEmail').value.trim();
+  const pw    = document.getElementById('addPassword').value;
+  const pw2   = document.getElementById('addPassword2').value;
+  if (!name || !email || !pw) { showToast('Nama, email, dan kata sandi wajib diisi.', false); return; }
+  if (pw.length < 8) { showToast('Kata sandi minimal 8 karakter.', false); return; }
+  if (pw !== pw2) { showToast('Konfirmasi kata sandi tidak cocok.', false); return; }
+  const payload = {
+    name, email, password: pw,
+    role:         document.getElementById('addRole').value,
+    enik:         document.getElementById('addEnik').value.trim(),
+    jabatan:      document.getElementById('addJabatan').value.trim(),
+    organization: document.getElementById('addOrganization').value.trim(),
+    kodeDir:      document.getElementById('addKodeDir').value
+  };
+  try {
+    const res  = await fetch('/admin/users', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.ok) {
+      closeAllModals();
+      showToast(`Pengguna "${name}" berhasil ditambahkan.`, true);
+      setTimeout(() => location.reload(), 1200);
+    } else showToast(data.message || 'Gagal menambahkan.', false);
+  } catch(e) { showToast('Terjadi kesalahan.', false); }
 }
 
 // Delete user

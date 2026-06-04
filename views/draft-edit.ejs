@@ -45,10 +45,10 @@
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:12px;color:var(--gray-400);">Sifat:</span>
         <select name="sifat" id="sifatSelect" class="admin-role-select" style="padding:5px 24px 5px 10px;font-size:12.5px;" onchange="updateSifat(this)">
-          <option value="Biasa/Terbuka" <%= email.sifat==='Biasa/Terbuka'?'selected':'' %>>Biasa / Terbuka</option>
-          <option value="Terbatas"      <%= email.sifat==='Terbatas'?'selected':'' %>>Terbatas</option>
-          <option value="Rahasia"       <%= email.sifat==='Rahasia'?'selected':'' %>>Rahasia</option>
-          <option value="Segera"        <%= email.sifat==='Segera'?'selected':'' %>>Segera</option>
+          <% if(allowedSifat.includes('Biasa/Terbuka')){ %><option value="Biasa/Terbuka" <%= email.sifat==='Biasa/Terbuka'?'selected':'' %>>Biasa / Terbuka</option><% } %>
+          <% if(allowedSifat.includes('Segera')){ %><option value="Segera" <%= email.sifat==='Segera'?'selected':'' %>>Segera</option><% } %>
+          <% if(allowedSifat.includes('Terbatas')){ %><option value="Terbatas" <%= email.sifat==='Terbatas'?'selected':'' %>>Terbatas</option><% } %>
+          <% if(allowedSifat.includes('Rahasia')){ %><option value="Rahasia" <%= email.sifat==='Rahasia'?'selected':'' %>>Rahasia</option><% } %>
         </select>
       </div>
     </div>
@@ -78,11 +78,10 @@
           <label class="form-label">Kode Direktorat <span class="req">*</span></label>
           <div class="select-wrap">
             <select name="kodeDir" class="form-control form-select">
-              <option value="KOM"  <%= (email.kodeDir||'KOM')==='KOM'?'selected':'' %>>KOM — Dewan Komisaris</option>
-              <option value="DIR"  <%= email.kodeDir==='DIR'?'selected':'' %>>DIR — Direktur Utama</option>
-              <option value="PLAN" <%= email.kodeDir==='PLAN'?'selected':'' %>>PLAN — Business Strategy &amp; Finance</option>
-              <option value="TECH" <%= email.kodeDir==='TECH'?'selected':'' %>>TECH — Technical &amp; Operations</option>
-              <option value="MP"   <%= email.kodeDir==='MP'?'selected':'' %>>MP — Marketing &amp; Partnership</option>
+              <% const kdOpts=[{v:'KOM',l:'KOM — Dewan Komisaris'},{v:'DIR',l:'DIR — Direktur Utama'},{v:'PLAN',l:'PLAN — Business Strategy &amp; Finance'},{v:'TECH',l:'TECH — Technical &amp; Operations'},{v:'MP',l:'MP — Marketing &amp; Partnership'}]; %>
+              <% kdOpts.forEach(function(o){ if(allowedKodeDir.includes(o.v)){ %>
+              <option value="<%= o.v %>" <%= (email.kodeDir===o.v)?'selected':'' %>><%- o.l %></option>
+              <% }}); %>
             </select>
           </div>
         </div>

@@ -451,9 +451,11 @@ app.get('/draft/:id/edit', requireAuth, async (req, res) => {
     const email = await Email.findById(req.params.id);
     if (!email || email.from.userId?.toString() !== req.user._id.toString())
       return res.redirect('/draft');
-    const users  = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization').sort('name');
+    const users  = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization enik jabatan').sort('name');
     const counts = await getMailCounts(req.user._id);
-    res.render('draft-edit', { active: 'draft', title: 'Edit Draf', email, users, formatDate, ...counts });
+    const allowedKodeDir = getAllowedKodeDir(req.user);
+    const allowedSifat   = getAllowedSifat(req.user);
+    res.render('draft-edit', { active: 'draft', title: 'Edit Draf', email, users, formatDate, allowedKodeDir, allowedSifat, ...counts });
   } catch (err) {
     console.error(err);
     res.redirect('/draft');
@@ -468,6 +470,13 @@ app.post('/draft/:id/update', requireAuth, async (req, res) => {
     const email = await Email.findById(req.params.id);
     if (!email || email.from.userId?.toString() !== req.user._id.toString())
       return res.json({ ok: false });
+
+    // Validasi hierarki kodeDir & sifat
+    const allowedKDir2 = getAllowedKodeDir(req.user);
+    const submittedKd2 = kodeDir || kodeDiv || email.kodeDir || 'DIR';
+    if (!allowedKDir2.includes(submittedKd2)) return res.redirect(`/draft/${req.params.id}/edit?error=kodeDir`);
+    const allowedSft2 = getAllowedSifat(req.user);
+    if (sifat && !allowedSft2.includes(sifat)) return res.redirect(`/draft/${req.params.id}/edit?error=sifat`);
 
     const toIds = [].concat(to || []).filter(Boolean);
     const ccIds = [].concat(cc || []).filter(Boolean);
@@ -547,6 +556,18 @@ app.post('/draft/bulk-delete', requireAuth, async (req, res) => {
 const KODE_DIR_MAP = {
   'KOM':'KOM','DIR':'DIR','PLAN':'PLAN','TECH':'TECH','MP':'MP'
 };
+// Hierarki akses kodeDir berdasarkan role & kodeDir user
+function getAllowedKodeDir(user) {
+  if (user.role === 'admin') return ['KOM','DIR','PLAN','TECH','MP'];
+  if (user.role === 'direktur') return ['KOM','DIR'];
+  // role user: hanya kodeDir yang ditugaskan, fallback ke kode non-pimpinan
+  return user.kodeDir ? [user.kodeDir] : ['PLAN','TECH','MP'];
+}
+// Sifat surat yang diizinkan per role
+function getAllowedSifat(user) {
+  if (['admin','direktur'].includes(user.role)) return ['Biasa/Terbuka','Segera','Terbatas','Rahasia'];
+  return ['Biasa/Terbuka','Segera'];
+}
 // Dokumen khusus → nomor pakai tipe langsung
 const TIPE_KHUSUS = ['MoU','MoA','Contract','IA','PKS','SPK'];
 
@@ -607,9 +628,11 @@ app.get('/compose/new', requireAuth, async (req, res) => {
   try {
     const users = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization enik jabatan').sort('name');
     const counts = await getMailCounts(req.user._id);
-    res.render('compose', { active: 'compose', title: 'Buat Dokumen Baru', users, ...counts });
+    const allowedKodeDir = getAllowedKodeDir(req.user);
+    const allowedSifat   = getAllowedSifat(req.user);
+    res.render('compose', { active: 'compose', title: 'Buat Dokumen Baru', users, allowedKodeDir, allowedSifat, ...counts });
   } catch (err) {
-    res.render('compose', { active: 'compose', title: 'Buat Dokumen Baru', users: [], inboxCount: 0, draftCount: 0 });
+    res.render('compose', { active: 'compose', title: 'Buat Dokumen Baru', users: [], allowedKodeDir: ['PLAN','TECH','MP'], allowedSifat: ['Biasa/Terbuka','Segera'], inboxCount: 0, draftCount: 0 });
   }
 });
 
@@ -620,6 +643,17 @@ app.post('/compose', requireAuth, lampiranUpload.single('lampiran'), async (req,
     // Dokumen khusus hanya untuk direktur+admin
     if (TIPE_KHUSUS.includes(tipeSurat) && !['admin','direktur'].includes(req.user.role)) {
       return res.redirect('/compose?error=access');
+    }
+    // Validasi kodeDir sesuai hierarki role
+    const allowedKDir = getAllowedKodeDir(req.user);
+    const submittedKodeDir = kodeDir || kodeDiv || 'DIR';
+    if (!allowedKDir.includes(submittedKodeDir)) {
+      return res.redirect('/compose/new?error=kodeDir');
+    }
+    // Validasi sifat sesuai role
+    const allowedSft = getAllowedSifat(req.user);
+    if (sifat && !allowedSft.includes(sifat)) {
+      return res.redirect('/compose/new?error=sifat');
     }
 
     const toIds = [].concat(to || []).filter(Boolean);
@@ -1205,16 +1239,61 @@ app.post('/admin/users/:id/role', requireAuth, requireAdmin, async (req, res) =>
 
 app.post('/admin/users/:id/enik', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { enik, jabatan } = req.body;
+    const { enik, jabatan, organization, kodeDir } = req.body;
     const target = await User.findById(req.params.id);
     if (!target) return res.json({ ok: false, message: 'Pengguna tidak ditemukan.' });
     await User.findByIdAndUpdate(req.params.id, {
-      enik: enik?.trim() || '',
-      jabatan: jabatan?.trim() || ''
+      enik:         enik?.trim() || '',
+      jabatan:      jabatan?.trim() || '',
+      organization: organization?.trim() || target.organization || '',
+      kodeDir:      kodeDir?.trim() || ''
     });
+    await log(req, 'user_updated', 'user_management', `Admin ${req.user.name} mengupdate profil ${target.name}`, { targetId: target._id });
     res.json({ ok: true });
   } catch (err) {
     res.json({ ok: false });
+  }
+});
+
+app.post('/admin/users/:id/reset-password', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password || password.length < 8) return res.json({ ok: false, message: 'Kata sandi minimal 8 karakter.' });
+    const target = await User.findById(req.params.id);
+    if (!target) return res.json({ ok: false, message: 'Pengguna tidak ditemukan.' });
+    const hashed = await bcrypt.hash(password, 12);
+    await User.findByIdAndUpdate(req.params.id, { password: hashed });
+    await log(req, 'password_reset', 'user_management', `Admin ${req.user.name} mereset password ${target.name}`, { targetId: target._id });
+    res.json({ ok: true });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
+app.post('/admin/users', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { name, email, password, role, organization, jabatan, enik, kodeDir } = req.body;
+    if (!name || !email || !password) return res.json({ ok: false, message: 'Nama, email, dan kata sandi wajib diisi.' });
+    if (password.length < 8) return res.json({ ok: false, message: 'Kata sandi minimal 8 karakter.' });
+    const exists = await User.findOne({ email: email.toLowerCase().trim() });
+    if (exists) return res.json({ ok: false, message: 'Email sudah terdaftar.' });
+    if (!['user','direktur','admin'].includes(role)) return res.json({ ok: false, message: 'Role tidak valid.' });
+    const hashed = await bcrypt.hash(password, 12);
+    const newUser = await User.create({
+      name: name.trim(), email: email.toLowerCase().trim(), password: hashed,
+      role: role || 'user', organization: organization?.trim() || 'Inspira Tekno',
+      jabatan: jabatan?.trim() || '', enik: enik?.trim() || '',
+      kodeDir: kodeDir?.trim() || ''
+    });
+    await log(req, 'user_created', 'user_management', `Admin ${req.user.name} membuat akun ${newUser.name} (${newUser.email})`, { targetId: newUser._id });
+    res.json({ ok: true, user: {
+      _id: newUser._id, name: newUser.name, email: newUser.email,
+      role: newUser.role, jabatan: newUser.jabatan, organization: newUser.organization,
+      enik: newUser.enik, kodeDir: newUser.kodeDir, isActive: true
+    }});
+  } catch (err) {
+    console.error(err);
+    res.json({ ok: false, message: 'Gagal membuat pengguna.' });
   }
 });
 
