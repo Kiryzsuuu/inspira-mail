@@ -741,7 +741,8 @@ app.post('/email/:id/send', requireAuth, async (req, res) => {
     ].filter(Boolean);
 
     if (transporter && allEmails.length > 0) {
-      const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3005}`;
+      const _ss = await SiteSettings.getSettings();
+      const mailerName = _ss.mailerName || (_ss.siteName + ' ' + _ss.siteSub).trim() || 'Inspira Mailer';
       const recipientNames = [
         ...email.to.map(r => r.name),
         ...(email.toExternal||[]).map(r => r.name || r.email)
@@ -751,7 +752,7 @@ app.post('/email/:id/send', requireAuth, async (req, res) => {
 
       const htmlBody = `<div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;">
         <div style="background:#071840;padding:24px 32px;border-radius:8px 8px 0 0;">
-          <div style="color:#fff;font-size:18px;font-weight:700;">Inspira Mailer</div>
+          <div style="color:#fff;font-size:18px;font-weight:700;">${mailerName}</div>
           <div style="color:rgba(255,255,255,.6);font-size:12px;margin-top:2px;">Sistem Surat Digital</div>
         </div>
         <div style="border:1px solid #e2e8f0;border-top:none;padding:32px;border-radius:0 0 8px 8px;background:#fff;">
@@ -770,24 +771,13 @@ app.post('/email/:id/send', requireAuth, async (req, res) => {
           <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px 24px;font-size:14px;line-height:1.8;color:#334155;">
             ${email.body || '<em>Tidak ada isi surat.</em>'}
           </div>
-          <!-- Tombol lihat PDF -->
-          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #f1f5f9;text-align:center;">
-            <a href="${appUrl}/email/${email._id}/preview?print=1" target="_blank"
-               style="display:inline-flex;align-items:center;gap:8px;background:#071840;color:#fff;text-decoration:none;padding:10px 22px;border-radius:7px;font-size:13px;font-weight:600;letter-spacing:.2px;">
-              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3v10M6 9l4 4 4-4M3 17h14" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Download Dokumen (PDF A4)
-            </a>
-            <p style="font-size:11px;color:#94a3b8;margin-top:12px;">
-              Klik untuk membuka dokumen A4 dan simpan sebagai PDF.
-            </p>
-          </div>
-          <p style="font-size:11px;color:#94a3b8;margin-top:16px;padding-top:12px;border-top:1px solid #f1f5f9;">
-            Dikirim melalui <strong>Inspira Mailer</strong> &middot; Nomor: ${email.nomorSurat}
+          <p style="font-size:11px;color:#94a3b8;margin-top:24px;padding-top:12px;border-top:1px solid #f1f5f9;">
+            Dikirim melalui <strong>${mailerName}</strong> &middot; Nomor: ${email.nomorSurat}
           </p>
         </div></div>`;
 
       await transporter.sendMail({
-        from: `"${email.from.name} via Inspira Mailer" <${process.env.SMTP_USER}>`,
+        from: `"${email.from.name} via ${mailerName}" <${process.env.SMTP_USER}>`,
         to: allEmails.join(', '),
         replyTo: email.from.email,
         subject: `[${email.nomorSurat}] ${email.subject}`,
@@ -928,13 +918,14 @@ app.post('/admin/site-settings', requireAuth, requireAdmin, ssUpload.single('log
   try {
     const ss = await SiteSettings.getSettings();
     const counts = await getMailCounts(req.user._id);
-    const { siteName, siteSub, siteTagline, siteDesc, orgCode, smtpHost, smtpPort, smtpUser, smtpPass } = req.body;
+    const { siteName, siteSub, siteTagline, siteDesc, orgCode, mailerName, smtpHost, smtpPort, smtpUser, smtpPass } = req.body;
 
     ss.siteName    = siteName?.trim()    || ss.siteName;
     ss.siteSub     = siteSub?.trim()     || ss.siteSub;
     ss.siteTagline = siteTagline?.trim() !== undefined ? siteTagline.trim() : ss.siteTagline;
     ss.siteDesc    = siteDesc?.trim()    !== undefined ? siteDesc.trim()    : ss.siteDesc;
     ss.orgCode     = orgCode?.trim()     || ss.orgCode;
+    if (mailerName?.trim()) ss.mailerName = mailerName.trim();
     ss.smtpHost = smtpHost?.trim() || ss.smtpHost;
     ss.smtpPort = parseInt(smtpPort) || ss.smtpPort;
     ss.smtpUser = smtpUser?.trim() || ss.smtpUser;

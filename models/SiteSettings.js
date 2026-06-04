@@ -7,6 +7,7 @@ const SiteSettingsSchema = new mongoose.Schema({
   siteDesc:    { type: String, default: 'Platform surat dinas digital yang aman, cepat, dan terintegrasi untuk kebutuhan korespondensi organisasi Anda.' },
   logoBase64:  { type: String, default: '' },
   orgCode:     { type: String, default: 'INSPIRA' },
+  mailerName:  { type: String, default: 'Inspira Mailer' },
   smtpHost:    { type: String, default: 'smtp.gmail.com' },
   smtpPort:    { type: Number, default: 587 },
   smtpUser:    { type: String, default: '' },
