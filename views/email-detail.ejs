@@ -247,70 +247,99 @@ document.getElementById('adminDeleteOverlay').addEventListener('click', function
       </div>
     </div>
 
-    <!-- Disposisi -->
+    <!-- Tombol buka modal disposisi -->
     <% if (email.status === 'sent') { %>
     <div class="info-card">
       <div class="info-card-title">Disposisi</div>
       <% if (email.disposisi && email.disposisi.length > 0) { %>
-      <div style="margin-bottom:10px;font-size:12.5px;color:var(--gray-600);">
+      <div style="margin-bottom:10px;">
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--gray-400);margin-bottom:6px;">Diteruskan ke</div>
         <% email.disposisi.forEach(function(d) { %>
-        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--gray-100);">
+        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--gray-100);font-size:12.5px;color:var(--gray-700);">
           <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           <span><%= d.nama %><% if(d.jabatan){ %> <span style="color:var(--gray-400);">· <%= d.jabatan %></span><% } %></span>
         </div>
         <% }) %>
       </div>
-      <% if (email.disposisiCatatan) { %>
-      <div style="font-size:12px;color:var(--gray-500);background:var(--gray-50);border-radius:6px;padding:8px 10px;margin-bottom:10px;"><%= email.disposisiCatatan %></div>
       <% } %>
-      <% } %>
-      <div style="font-size:12px;color:var(--gray-500);margin-bottom:6px;">Teruskan ke</div>
-      <div id="disposisiUserList" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;margin-bottom:8px;">
-        <%
-          const savedIds = (email.disposisi||[]).map(d=>d.userId?.toString());
-          const grouped = {};
-          users.forEach(function(u) {
-            const k = u.kodeDir || '__lain__';
-            if (!grouped[k]) grouped[k] = [];
-            grouped[k].push(u);
-          });
-          const dirMap = {};
-          direktorats.forEach(function(d){ dirMap[d.kode] = d.nama; });
-          const groupKeys = [...direktorats.map(d=>d.kode), '__lain__'].filter(k => grouped[k]);
-        %>
-        <% groupKeys.forEach(function(k) { %>
-        <div style="border:1px solid var(--gray-200);border-radius:8px;overflow:hidden;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--gray-50);cursor:pointer;user-select:none;"
-               onclick="toggleGroup(this)">
-            <span style="font-size:11.5px;font-weight:600;color:var(--gray-700);">
-              <% if(k==='__lain__'){ %>Lainnya<% } else { %><span style="font-family:monospace;color:var(--brand-700);"><%= k %></span> — <%= dirMap[k]||k %><% } %>
-            </span>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button type="button" style="font-size:11px;background:none;border:none;color:var(--brand-600);cursor:pointer;padding:0;"
-                onclick="event.stopPropagation();selectGroup(this)">Pilih semua</button>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="group-chevron"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            </div>
+      <button class="btn btn-secondary" style="width:100%;justify-content:center;font-size:13px;" onclick="bukaModalDisposisi()">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="flex-shrink:0;"><path d="M13 6l4 4-4 4M3 10h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <%= (email.disposisi && email.disposisi.length > 0) ? 'Ubah Disposisi' : 'Buat Disposisi' %>
+      </button>
+    </div>
+    <% } %>
+
+    <!-- MODAL DISPOSISI -->
+    <% if (email.status === 'sent') { %>
+    <%
+      const savedIds = (email.disposisi||[]).map(d=>d.userId?.toString());
+      const grouped = {};
+      users.forEach(function(u) {
+        const k = u.kodeDir || '__lain__';
+        if (!grouped[k]) grouped[k] = [];
+        grouped[k].push(u);
+      });
+      const dirMap = {};
+      direktorats.forEach(function(d){ dirMap[d.kode] = d.nama; });
+      const DISP_TIER = ['KOM','DIR',...direktorats.map(d=>d.kode).filter(k=>k!=='KOM'&&k!=='DIR'),'__lain__'];
+      const groupKeys = DISP_TIER.filter(k => grouped[k]);
+    %>
+    <div id="modalDisposisi" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.45);backdrop-filter:blur(2px);align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:14px;width:480px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;max-height:90vh;overflow:hidden;">
+        <!-- Modal header -->
+        <div style="padding:18px 20px 14px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#0f172a;">Disposisi Surat</div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:1px;">Teruskan ke</div>
           </div>
-          <div class="group-members" style="display:flex;flex-direction:column;gap:2px;padding:6px;">
-            <% (grouped[k]||[]).forEach(function(u) { %>
-            <label style="display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:6px;cursor:pointer;transition:background .1s;"
-                   onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
-              <input type="checkbox" value="<%= u._id %>" data-name="<%= u.name %>" data-jabatan="<%= u.jabatan||'' %>"
-                style="accent-color:var(--brand-600);"
-                <% if(savedIds.includes(u._id.toString())){ %>checked<% } %>>
-              <div>
-                <div style="font-weight:500;color:var(--gray-800);font-size:12.5px;"><%= u.name %></div>
-                <% if(u.jabatan){ %><div style="font-size:11px;color:var(--gray-400)"><%= u.jabatan %></div><% } %>
-              </div>
-            </label>
-            <% }) %>
+          <button onclick="tutupModalDisposisi()" style="background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;border-radius:6px;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <!-- Daftar nama — scrollable -->
+        <div id="disposisiUserList" style="overflow-y:auto;flex:1;min-height:0;">
+          <% groupKeys.forEach(function(k, ki) { %>
+            <% if (ki > 0) { %><div style="height:1px;background:#f1f5f9;"></div><% } %>
+            <!-- label grup -->
+            <div style="padding:8px 16px 4px;background:#f8fafc;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1;border-bottom:1px solid #f1f5f9;">
+              <span style="font-size:9px;font-weight:700;letter-spacing:.7px;color:#64748b;text-transform:uppercase;">
+                <% if(k==='KOM'){ %>Komisaris
+                <% } else if(k==='DIR'){ %>Jajaran Direksi
+                <% } else if(k==='__lain__'){ %>Lainnya
+                <% } else { %><%= dirMap[k]||k %><% } %>
+              </span>
+              <button type="button" onclick="selectAllInGroup(this)"
+                style="font-size:10px;background:none;border:none;color:var(--brand-600);cursor:pointer;padding:0;font-weight:600;">Pilih semua</button>
+            </div>
+            <!-- nama -->
+            <div class="disp-group-body">
+              <% (grouped[k]||[]).forEach(function(u, ui) { %>
+              <label style="display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;transition:background .1s;<%= ui>0?'border-top:1px solid #f8fafc;':'' %>"
+                     onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background=''">
+                <input type="checkbox" value="<%= u._id %>" data-name="<%= u.name %>" data-jabatan="<%= u.jabatan||'' %>"
+                  style="accent-color:var(--brand-600);width:15px;height:15px;flex-shrink:0;"
+                  <% if(savedIds.includes(u._id.toString())){ %>checked<% } %>>
+                <div style="min-width:0;">
+                  <div style="font-size:13px;font-weight:500;color:#1e293b;"><%= u.name %></div>
+                  <% if(u.jabatan){ %><div style="font-size:11px;color:#94a3b8;"><%= u.jabatan %></div><% } %>
+                </div>
+              </label>
+              <% }) %>
+            </div>
+          <% }); %>
+        </div>
+
+        <!-- Catatan + tombol simpan -->
+        <div style="padding:14px 20px 18px;border-top:1px solid #e2e8f0;flex-shrink:0;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:6px;">Instruksi / Catatan</div>
+          <textarea id="disposisiCatatan" class="form-control" style="font-size:13px;min-height:72px;resize:vertical;margin-bottom:10px;" placeholder="Instruksi / catatan..."><%= email.disposisiCatatan||'' %></textarea>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary" style="flex:1;justify-content:center;" onclick="tutupModalDisposisi()">Batal</button>
+            <button class="btn btn-primary" style="flex:2;justify-content:center;" onclick="simpanDisposisi()">Simpan Disposisi</button>
           </div>
         </div>
-        <% }) %>
       </div>
-      <textarea id="disposisiCatatan" class="form-control" style="font-size:12.5px;min-height:64px;margin-bottom:8px;resize:vertical;" placeholder="Instruksi / catatan..."><%= email.disposisiCatatan||'' %></textarea>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:13px;" onclick="simpanDisposisi()">Simpan Disposisi</button>
     </div>
     <% } %>
 
@@ -333,6 +362,25 @@ document.getElementById('adminDeleteOverlay').addEventListener('click', function
 </div>
 
 <script>
+function bukaModalDisposisi() {
+  const m = document.getElementById('modalDisposisi');
+  m.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function tutupModalDisposisi() {
+  const m = document.getElementById('modalDisposisi');
+  m.style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') tutupModalDisposisi(); });
+document.getElementById('modalDisposisi')?.addEventListener('click', function(e){ if(e.target===this) tutupModalDisposisi(); });
+
+function selectAllInGroup(btn) {
+  const body = btn.closest('div').nextElementSibling;
+  const checkboxes = body.querySelectorAll('input[type=checkbox]');
+  const allChecked = [...checkboxes].every(cb => cb.checked);
+  checkboxes.forEach(cb => cb.checked = !allChecked);
+}
 function toggleGroup(header) {
   const members = header.nextElementSibling;
   const chevron = header.querySelector('.group-chevron');
@@ -341,8 +389,8 @@ function toggleGroup(header) {
   chevron.style.transform = open ? 'rotate(-90deg)' : '';
 }
 function selectGroup(btn) {
-  const members = btn.closest('.group-members') || btn.closest('div').nextElementSibling;
-  const checkboxes = members.querySelectorAll('input[type=checkbox]');
+  const body = btn.closest('div').nextElementSibling;
+  const checkboxes = body.querySelectorAll('input[type=checkbox]');
   const allChecked = [...checkboxes].every(cb => cb.checked);
   checkboxes.forEach(cb => cb.checked = !allChecked);
 }
