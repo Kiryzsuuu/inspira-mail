@@ -1,0 +1,158 @@
+<%- include('./partials/header') %>
+<style>
+.dir-table { width:100%; border-collapse:collapse; font-size:13px; }
+.dir-table th { padding:10px 16px; text-align:left; font-size:11.5px; font-weight:600; color:var(--gray-500); background:var(--gray-50); border-bottom:1px solid var(--gray-200); text-transform:uppercase; letter-spacing:.4px; }
+.dir-table td { padding:12px 16px; border-bottom:1px solid var(--gray-100); color:var(--gray-700); vertical-align:middle; }
+.dir-table tr:last-child td { border-bottom:none; }
+.dir-table tbody tr:hover { background:var(--gray-50); }
+.kode-badge { font-family:monospace; font-size:12px; font-weight:700; color:var(--brand-700); background:#eff6ff; padding:3px 10px; border-radius:6px; }
+.member-chips { display:flex; flex-wrap:wrap; gap:4px; }
+.member-chip { font-size:11.5px; background:var(--gray-100); color:var(--gray-600); padding:2px 8px; border-radius:20px; }
+
+/* Modal */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:500; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:#fff; border-radius:var(--radius-lg); padding:28px; width:480px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,.15); }
+.modal-title { font-size:16px; font-weight:700; color:var(--gray-900); margin-bottom:18px; }
+.form-label { font-size:12px; font-weight:600; color:var(--gray-600); margin-bottom:4px; display:block; }
+</style>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/admin">Admin Dashboard</a> / Direktorat</div>
+    <h1 class="page-title">Manajemen Direktorat</h1>
+    <p class="page-subtitle">Daftar direktorat / divisi yang tersedia di sistem</p>
+  </div>
+  <div class="page-actions">
+    <button class="btn btn-primary" onclick="openModal()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Tambah Direktorat
+    </button>
+  </div>
+</div>
+
+<div class="mail-list-wrap">
+  <% if (direktorats.length === 0) { %>
+  <div class="empty-state" style="padding:48px;">
+    <svg width="40" height="40" viewBox="0 0 48 48" fill="none"><rect x="6" y="14" width="36" height="26" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M16 14v-4a2 2 0 012-2h12a2 2 0 012 2v4M24 24v6M21 27h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <p>Belum ada direktorat. Tambahkan direktorat pertama.</p>
+  </div>
+  <% } else { %>
+  <div style="overflow-x:auto;">
+    <table class="dir-table">
+      <thead>
+        <tr>
+          <th style="width:100px;">Kode</th>
+          <th>Nama Direktorat</th>
+          <th>Anggota</th>
+          <th style="width:120px;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+      <% direktorats.forEach(function(d) {
+           const members = users.filter(u => u.kodeDir === d.kode);
+      %>
+        <tr>
+          <td><span class="kode-badge"><%= d.kode %></span></td>
+          <td style="font-weight:500;color:var(--gray-900);"><%= d.nama %></td>
+          <td>
+            <% if (members.length === 0) { %>
+            <span style="font-size:12px;color:var(--gray-400);">Tidak ada anggota</span>
+            <% } else { %>
+            <div class="member-chips">
+              <% members.forEach(function(m) { %>
+              <span class="member-chip"><%= m.name %></span>
+              <% }) %>
+            </div>
+            <% } %>
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost" style="padding:4px 10px;font-size:12.5px;"
+                onclick='openEdit(<%- JSON.stringify({_id:d._id,kode:d.kode,nama:d.nama}) %>)'>Edit</button>
+              <button class="btn btn-ghost" style="padding:4px 10px;font-size:12.5px;color:var(--red-500);"
+                onclick="hapus('<%= d._id %>','<%= d.nama %>')">Hapus</button>
+            </div>
+          </td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">Tambah Direktorat</div>
+    <input type="hidden" id="dirId">
+    <div style="margin-bottom:14px;">
+      <label class="form-label">Kode *</label>
+      <input type="text" id="dirKode" class="form-control" placeholder="Contoh: KOM, DIR, TECH..." style="text-transform:uppercase;">
+      <div style="font-size:11.5px;color:var(--gray-400);margin-top:4px;">Kode singkat unik, huruf kapital, max 10 karakter</div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label class="form-label">Nama Direktorat *</label>
+      <input type="text" id="dirNama" class="form-control" placeholder="Contoh: Dewan Komisaris, Technical & Operations...">
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" onclick="simpan()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal() {
+  document.getElementById('modalTitle').textContent = 'Tambah Direktorat';
+  document.getElementById('dirId').value = '';
+  document.getElementById('dirKode').value = '';
+  document.getElementById('dirNama').value = '';
+  document.getElementById('dirKode').readOnly = false;
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('dirKode').focus(), 100);
+}
+function openEdit(d) {
+  document.getElementById('modalTitle').textContent = 'Edit Direktorat';
+  document.getElementById('dirId').value = d._id;
+  document.getElementById('dirKode').value = d.kode;
+  document.getElementById('dirKode').readOnly = true;
+  document.getElementById('dirNama').value = d.nama;
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('dirNama').focus(), 100);
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+async function simpan() {
+  const kode = document.getElementById('dirKode').value.trim().toUpperCase();
+  const nama = document.getElementById('dirNama').value.trim();
+  const id   = document.getElementById('dirId').value;
+  if (!kode || !nama) { alert('Kode dan Nama wajib diisi.'); return; }
+  const url    = id ? '/admin/direktorat/' + id : '/admin/direktorat';
+  const method = id ? 'PUT' : 'POST';
+  const res    = await fetch(url, {
+    method, headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kode, nama })
+  });
+  const data = await res.json();
+  if (data.ok) location.reload();
+  else alert(data.message || 'Gagal menyimpan.');
+}
+async function hapus(id, nama) {
+  if (!confirm(`Hapus direktorat "${nama}"? Pengguna yang tergabung tidak akan terhapus.`)) return;
+  const res  = await fetch('/admin/direktorat/' + id, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.ok) location.reload();
+  else alert(data.message || 'Gagal menghapus.');
+}
+document.getElementById('dirKode').addEventListener('input', function() {
+  this.value = this.value.toUpperCase();
+});
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+
+<%- include('./partials/footer') %>

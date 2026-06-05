@@ -20,6 +20,8 @@ const Signature = require('./models/Signature');
 const Agreement = require('./models/Agreement');
 const DocCounter = require('./models/DocCounter');
 const SuratMasuk = require('./models/SuratMasuk');
+const Direktorat = require('./models/Direktorat');
+const Jabatan    = require('./models/Jabatan');
 const DocumentSignature = require('./models/DocumentSignature');
 const SiteSettings = require('./models/SiteSettings');
 const QRCode = require('qrcode');
@@ -989,12 +991,15 @@ app.get('/email/:id', requireAuth, async (req, res) => {
       await Email.findByIdAndUpdate(email._id, { $addToSet: { readBy: req.user._id } });
     }
     const counts = await getMailCounts(req.user._id);
-    const allUsers = await User.find({ isActive: true }, 'name jabatan _id').sort('name').lean();
+    const [allUsers, direktorats] = await Promise.all([
+      User.find({ isActive: true }, 'name jabatan kodeDir _id').sort('name').lean(),
+      Direktorat.find().sort('kode').lean()
+    ]);
     res.render('email-detail', {
       title: email.subject, active: isSender ? 'sent' : 'inbox',
       email, docSig: docSigCheck || { signers: [] },
       isSender, currentUser: req.user,
-      users: allUsers,
+      users: allUsers, direktorats,
       formatDate, formatDateTime, ...counts
     });
   } catch (err) { console.error(err); res.redirect('/inbox'); }
@@ -1230,13 +1235,15 @@ app.post('/admin/site-settings', requireAuth, requireAdmin, ssUpload.single('log
 
 app.get('/admin', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const [totalUsers, totalSent, totalDraft, users, recentLogs, counters] = await Promise.all([
+    const [totalUsers, totalSent, totalDraft, users, recentLogs, counters, jabatans, direktorats] = await Promise.all([
       User.countDocuments(),
       Email.countDocuments({ status: 'sent' }),
       Email.countDocuments({ status: 'draft' }),
       User.find().sort({ createdAt: -1 }).select('-password'),
       ActivityLog.find().sort({ createdAt: -1 }).limit(50).lean(),
-      DocCounter.find().sort({ key: 1 }).lean()
+      DocCounter.find().sort({ key: 1 }).lean(),
+      Jabatan.find().sort('nama').lean(),
+      Direktorat.find().sort('kode').lean()
     ]);
     const counts = await getMailCounts(req.user._id);
 
@@ -1249,7 +1256,7 @@ app.get('/admin', requireAuth, requireAdmin, async (req, res) => {
       active: 'admin',
       title: 'Admin Dashboard',
       stats: { totalUsers, totalSent, totalDraft, totalEmails: totalSent + totalDraft },
-      users, counters,
+      users, counters, jabatans, direktorats,
       logs: logsFormatted,
       ROLE_LEVEL,
       ...counts
@@ -1461,6 +1468,79 @@ app.delete('/admin/counters/:key', requireAuth, requireAdmin, async (req, res) =
   } catch (err) {
     res.json({ ok: false });
   }
+});
+
+// ── DIREKTORAT ROUTES ──
+app.get('/admin/direktorat', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const [direktorats, users] = await Promise.all([
+      Direktorat.find().sort('kode').lean(),
+      User.find({ isActive: true }, 'name jabatan kodeDir').sort('name').lean()
+    ]);
+    res.render('admin-direktorat', { title: 'Direktorat', active: 'admin', direktorats, users, ...counts });
+  } catch (err) { console.error(err); res.redirect('/admin'); }
+});
+
+app.post('/admin/direktorat', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { kode, nama } = req.body;
+    const existing = await Direktorat.findOne({ kode: kode.toUpperCase() });
+    if (existing) return res.json({ ok: false, message: `Kode "${kode}" sudah digunakan.` });
+    await Direktorat.create({ kode: kode.toUpperCase(), nama });
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false, message: 'Gagal menyimpan.' }); }
+});
+
+app.put('/admin/direktorat/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { nama } = req.body;
+    await Direktorat.findByIdAndUpdate(req.params.id, { nama });
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.delete('/admin/direktorat/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await Direktorat.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+// ── JABATAN ROUTES ──
+app.get('/admin/jabatan', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const [jabatans, users] = await Promise.all([
+      Jabatan.find().sort('nama').lean(),
+      User.find({ isActive: true }, 'name jabatan').lean()
+    ]);
+    res.render('admin-jabatan', { title: 'Jabatan', active: 'jabatan', jabatans, users, ...counts });
+  } catch (err) { console.error(err); res.redirect('/admin'); }
+});
+
+app.post('/admin/jabatan', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { nama } = req.body;
+    const existing = await Jabatan.findOne({ nama });
+    if (existing) return res.json({ ok: false, message: `Jabatan "${nama}" sudah ada.` });
+    await Jabatan.create({ nama });
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.put('/admin/jabatan/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await Jabatan.findByIdAndUpdate(req.params.id, { nama: req.body.nama });
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.delete('/admin/jabatan/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await Jabatan.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
 });
 
 // ── DIREKTUR ROUTES ──
@@ -2066,8 +2146,11 @@ app.get('/surat-masuk/:id', requireAuth, async (req, res) => {
   try {
     const surat  = await SuratMasuk.findById(req.params.id);
     if (!surat) return res.redirect('/surat-masuk');
-    const users  = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email jabatan organization').sort('name');
-    const counts = await getMailCounts(req.user._id);
+    const [users, direktorats, counts] = await Promise.all([
+      User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email jabatan kodeDir organization').sort('name').lean(),
+      Direktorat.find().sort('kode').lean(),
+      getMailCounts(req.user._id)
+    ]);
     // Auto-tandai dibaca
     if (surat.status === 'baru') {
       await SuratMasuk.findByIdAndUpdate(req.params.id, { status: 'dibaca' });
@@ -2075,7 +2158,7 @@ app.get('/surat-masuk/:id', requireAuth, async (req, res) => {
     }
     res.render('surat-masuk-detail', {
       active: 'surat-masuk', title: 'Detail Surat Masuk',
-      surat, users, formatDate, formatDateTime, ...counts
+      surat, users, direktorats, formatDate, formatDateTime, ...counts
     });
   } catch (err) {
     res.redirect('/surat-masuk');

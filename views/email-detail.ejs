@@ -248,18 +248,47 @@ document.getElementById('adminDeleteOverlay').addEventListener('click', function
       <% } %>
       <% } %>
       <div style="font-size:12px;color:var(--gray-500);margin-bottom:6px;">Teruskan ke</div>
-      <div id="disposisiUserList" style="display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto;margin-bottom:8px;">
-        <% users.forEach(function(u) { %>
-        <label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;border:1px solid var(--gray-200);cursor:pointer;font-size:12.5px;transition:background .1s;"
-               onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
-          <input type="checkbox" value="<%= u._id %>" data-name="<%= u.name %>" data-jabatan="<%= u.jabatan||'' %>"
-            style="accent-color:var(--brand-600);"
-            <% if(email.disposisi && email.disposisi.some(d=>d.userId?.toString()===u._id.toString())){ %>checked<% } %>>
-          <div>
-            <div style="font-weight:500;color:var(--gray-800);"><%= u.name %></div>
-            <% if(u.jabatan){ %><div style="font-size:11px;color:var(--gray-400)"><%= u.jabatan %></div><% } %>
+      <div id="disposisiUserList" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;margin-bottom:8px;">
+        <%
+          const savedIds = (email.disposisi||[]).map(d=>d.userId?.toString());
+          const grouped = {};
+          users.forEach(function(u) {
+            const k = u.kodeDir || '__lain__';
+            if (!grouped[k]) grouped[k] = [];
+            grouped[k].push(u);
+          });
+          const dirMap = {};
+          direktorats.forEach(function(d){ dirMap[d.kode] = d.nama; });
+          const groupKeys = [...direktorats.map(d=>d.kode), '__lain__'].filter(k => grouped[k]);
+        %>
+        <% groupKeys.forEach(function(k) { %>
+        <div style="border:1px solid var(--gray-200);border-radius:8px;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--gray-50);cursor:pointer;user-select:none;"
+               onclick="toggleGroup(this)">
+            <span style="font-size:11.5px;font-weight:600;color:var(--gray-700);">
+              <% if(k==='__lain__'){ %>Lainnya<% } else { %><span style="font-family:monospace;color:var(--brand-700);"><%= k %></span> — <%= dirMap[k]||k %><% } %>
+            </span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button type="button" style="font-size:11px;background:none;border:none;color:var(--brand-600);cursor:pointer;padding:0;"
+                onclick="event.stopPropagation();selectGroup(this)">Pilih semua</button>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="group-chevron"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
           </div>
-        </label>
+          <div class="group-members" style="display:flex;flex-direction:column;gap:2px;padding:6px;">
+            <% (grouped[k]||[]).forEach(function(u) { %>
+            <label style="display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:6px;cursor:pointer;transition:background .1s;"
+                   onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+              <input type="checkbox" value="<%= u._id %>" data-name="<%= u.name %>" data-jabatan="<%= u.jabatan||'' %>"
+                style="accent-color:var(--brand-600);"
+                <% if(savedIds.includes(u._id.toString())){ %>checked<% } %>>
+              <div>
+                <div style="font-weight:500;color:var(--gray-800);font-size:12.5px;"><%= u.name %></div>
+                <% if(u.jabatan){ %><div style="font-size:11px;color:var(--gray-400)"><%= u.jabatan %></div><% } %>
+              </div>
+            </label>
+            <% }) %>
+          </div>
+        </div>
         <% }) %>
       </div>
       <textarea id="disposisiCatatan" class="form-control" style="font-size:12.5px;min-height:64px;margin-bottom:8px;resize:vertical;" placeholder="Instruksi / catatan..."><%= email.disposisiCatatan||'' %></textarea>
@@ -286,6 +315,19 @@ document.getElementById('adminDeleteOverlay').addEventListener('click', function
 </div>
 
 <script>
+function toggleGroup(header) {
+  const members = header.nextElementSibling;
+  const chevron = header.querySelector('.group-chevron');
+  const open = members.style.display !== 'none';
+  members.style.display = open ? 'none' : 'flex';
+  chevron.style.transform = open ? 'rotate(-90deg)' : '';
+}
+function selectGroup(btn) {
+  const members = btn.closest('.group-members') || btn.closest('div').nextElementSibling;
+  const checkboxes = members.querySelectorAll('input[type=checkbox]');
+  const allChecked = [...checkboxes].every(cb => cb.checked);
+  checkboxes.forEach(cb => cb.checked = !allChecked);
+}
 async function simpanDisposisi() {
   const selected = [...document.querySelectorAll('#disposisiUserList input:checked')].map(cb => ({
     userId: cb.value, nama: cb.dataset.name, jabatan: cb.dataset.jabatan

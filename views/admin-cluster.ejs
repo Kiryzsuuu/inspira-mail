@@ -1,0 +1,179 @@
+<%- include('./partials/header') %>
+<style>
+.cluster-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; margin-top:4px; }
+.cluster-card { background:#fff; border:1px solid var(--gray-200); border-radius:var(--radius-md); padding:18px 20px; display:flex; flex-direction:column; gap:12px; box-shadow:var(--shadow-sm); }
+.cluster-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+.cluster-name { font-size:14.5px; font-weight:600; color:var(--gray-900); }
+.cluster-desc { font-size:12.5px; color:var(--gray-500); }
+.cluster-members { display:flex; flex-direction:column; gap:5px; }
+.cluster-member { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--gray-700); padding:5px 8px; background:var(--gray-50); border-radius:6px; }
+.cluster-member-jabatan { font-size:11px; color:var(--gray-400); }
+.cluster-actions { display:flex; gap:8px; margin-top:4px; }
+.btn-sm { padding:5px 12px; font-size:12.5px; border-radius:6px; font-weight:500; cursor:pointer; border:1px solid var(--gray-200); background:#fff; color:var(--gray-700); transition:background .15s; }
+.btn-sm:hover { background:var(--gray-50); }
+.btn-sm.danger { color:var(--red-500); border-color:#fecaca; }
+.btn-sm.danger:hover { background:#fef2f2; }
+.member-count { font-size:11.5px; font-weight:600; color:var(--brand-600); background:#eff6ff; padding:2px 8px; border-radius:20px; }
+
+/* Modal */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:500; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:#fff; border-radius:var(--radius-lg); padding:28px 28px 24px; width:520px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.15); }
+.modal-title { font-size:16px; font-weight:700; color:var(--gray-900); margin-bottom:18px; }
+.form-label { font-size:12px; font-weight:600; color:var(--gray-600); margin-bottom:4px; display:block; }
+.user-checklist { display:flex; flex-direction:column; gap:5px; max-height:200px; overflow-y:auto; border:1px solid var(--gray-200); border-radius:8px; padding:8px; }
+.user-check-item { display:flex; align-items:center; gap:10px; padding:6px 8px; border-radius:6px; cursor:pointer; transition:background .1s; }
+.user-check-item:hover { background:var(--gray-50); }
+.user-check-item input { accent-color:var(--brand-600); flex-shrink:0; }
+</style>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/admin">Admin Dashboard</a> / Cluster Disposisi</div>
+    <h1 class="page-title">Cluster Disposisi</h1>
+    <p class="page-subtitle">Kelompokkan pengguna untuk kemudahan disposisi surat</p>
+  </div>
+  <div class="page-actions">
+    <button class="btn btn-primary" onclick="openModal()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Tambah Cluster
+    </button>
+  </div>
+</div>
+
+<% if (clusters.length === 0) { %>
+<div class="empty-state">
+  <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="16" cy="20" r="7" stroke="currentColor" stroke-width="1.5"/><circle cx="32" cy="20" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M2 40c0-7.7 6.3-14 14-14M46 40c0-7.7-6.3-14-14-14M24 26c7.7 0 14 6.3 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  <p>Belum ada cluster. Buat cluster pertama untuk mengelompokkan pengguna.</p>
+</div>
+<% } else { %>
+<div class="cluster-grid">
+  <% clusters.forEach(function(c) { %>
+  <div class="cluster-card">
+    <div class="cluster-card-header">
+      <div>
+        <div class="cluster-name"><%= c.nama %></div>
+        <% if (c.deskripsi) { %><div class="cluster-desc"><%= c.deskripsi %></div><% } %>
+      </div>
+      <span class="member-count"><%= c.anggota.length %> anggota</span>
+    </div>
+    <div class="cluster-members">
+      <% if (c.anggota.length === 0) { %>
+      <div style="font-size:12.5px;color:var(--gray-400);font-style:italic;">Belum ada anggota</div>
+      <% } %>
+      <% c.anggota.slice(0,4).forEach(function(a) { %>
+      <div class="cluster-member">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div>
+          <div><%= a.name %></div>
+          <% if (a.jabatan) { %><div class="cluster-member-jabatan"><%= a.jabatan %></div><% } %>
+        </div>
+      </div>
+      <% }) %>
+      <% if (c.anggota.length > 4) { %>
+      <div style="font-size:12px;color:var(--gray-400);padding-left:8px;">+<%= c.anggota.length - 4 %> lainnya</div>
+      <% } %>
+    </div>
+    <div class="cluster-actions">
+      <button class="btn-sm" onclick='openEditModal(<%- JSON.stringify(c) %>)'>Edit</button>
+      <button class="btn-sm danger" onclick="hapusCluster('<%= c._id %>', '<%= c.nama %>')">Hapus</button>
+    </div>
+  </div>
+  <% }) %>
+</div>
+<% } %>
+
+<!-- Modal Tambah/Edit -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">Tambah Cluster</div>
+    <input type="hidden" id="clusterId">
+
+    <div style="margin-bottom:14px;">
+      <label class="form-label">Nama Cluster *</label>
+      <input type="text" id="clusterNama" class="form-control" placeholder="Contoh: Direktur, Komisaris, Divisi Marketing...">
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="form-label">Deskripsi</label>
+      <input type="text" id="clusterDeskripsi" class="form-control" placeholder="Opsional">
+    </div>
+    <div style="margin-bottom:18px;">
+      <label class="form-label">Anggota</label>
+      <div class="user-checklist" id="userChecklist">
+        <% users.forEach(function(u) { %>
+        <label class="user-check-item">
+          <input type="checkbox" value="<%= u._id %>" data-name="<%= u.name %>" data-jabatan="<%= u.jabatan||'' %>">
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--gray-800);"><%= u.name %></div>
+            <% if(u.jabatan){ %><div style="font-size:11.5px;color:var(--gray-400);"><%= u.jabatan %></div><% } %>
+          </div>
+        </label>
+        <% }) %>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" onclick="simpanCluster()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal() {
+  document.getElementById('modalTitle').textContent = 'Tambah Cluster';
+  document.getElementById('clusterId').value = '';
+  document.getElementById('clusterNama').value = '';
+  document.getElementById('clusterDeskripsi').value = '';
+  document.querySelectorAll('#userChecklist input').forEach(cb => cb.checked = false);
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openEditModal(c) {
+  document.getElementById('modalTitle').textContent = 'Edit Cluster';
+  document.getElementById('clusterId').value = c._id;
+  document.getElementById('clusterNama').value = c.nama;
+  document.getElementById('clusterDeskripsi').value = c.deskripsi || '';
+  const ids = (c.anggota || []).map(a => a.userId?.toString());
+  document.querySelectorAll('#userChecklist input').forEach(cb => {
+    cb.checked = ids.includes(cb.value);
+  });
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+async function simpanCluster() {
+  const nama = document.getElementById('clusterNama').value.trim();
+  if (!nama) { alert('Nama cluster wajib diisi.'); return; }
+  const deskripsi = document.getElementById('clusterDeskripsi').value.trim();
+  const anggota = [...document.querySelectorAll('#userChecklist input:checked')].map(cb => ({
+    userId: cb.value, name: cb.dataset.name, jabatan: cb.dataset.jabatan
+  }));
+  const id = document.getElementById('clusterId').value;
+  const url  = id ? '/admin/cluster/' + id : '/admin/cluster';
+  const method = id ? 'PUT' : 'POST';
+  const res  = await fetch(url, {
+    method, headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nama, deskripsi, anggota })
+  });
+  const data = await res.json();
+  if (data.ok) location.reload();
+  else alert('Gagal menyimpan cluster.');
+}
+
+async function hapusCluster(id, nama) {
+  if (!confirm(`Hapus cluster "${nama}"?`)) return;
+  const res  = await fetch('/admin/cluster/' + id, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.ok) location.reload();
+  else alert('Gagal menghapus.');
+}
+
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+
+<%- include('./partials/footer') %>

@@ -436,7 +436,10 @@
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Jabatan</label>
-        <input id="editJabatan" type="text" class="form-control" placeholder="Jabatan / posisi" style="font-size:13px;" autocomplete="off">
+        <select id="editJabatan" class="form-control form-select" style="font-size:13px;">
+          <option value="">— Pilih jabatan —</option>
+          <% jabatans.forEach(function(j){ %><option value="<%= j.nama %>"><%= j.nama %></option><% }) %>
+        </select>
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Organisasi / Divisi</label>
@@ -446,11 +449,7 @@
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Kode Direktorat</label>
         <select id="editKodeDir" class="form-control form-select" style="font-size:13px;">
           <option value="">— Belum ditugaskan —</option>
-          <option value="KOM">KOM — Dewan Komisaris</option>
-          <option value="DIR">DIR — Direktur Utama</option>
-          <option value="PLAN">PLAN — Business Strategy & Finance</option>
-          <option value="TECH">TECH — Technical & Operations</option>
-          <option value="MP">MP — Marketing & Partnership</option>
+          <% direktorats.forEach(function(d){ %><option value="<%= d.kode %>"><%= d.kode %> — <%= d.nama %></option><% }) %>
         </select>
       </div>
     </div>
@@ -501,7 +500,10 @@
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Jabatan</label>
-        <input id="addJabatan" type="text" class="form-control" placeholder="Jabatan / posisi" style="font-size:13px;" autocomplete="off">
+        <select id="addJabatan" class="form-control form-select" style="font-size:13px;">
+          <option value="">— Pilih jabatan —</option>
+          <% jabatans.forEach(function(j){ %><option value="<%= j.nama %>"><%= j.nama %></option><% }) %>
+        </select>
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Organisasi / Divisi</label>
@@ -519,11 +521,7 @@
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Kode Direktorat</label>
         <select id="addKodeDir" class="form-control form-select" style="font-size:13px;">
           <option value="">— Belum ditugaskan —</option>
-          <option value="KOM">KOM — Dewan Komisaris</option>
-          <option value="DIR">DIR — Direktur Utama</option>
-          <option value="PLAN">PLAN — Business Strategy & Finance</option>
-          <option value="TECH">TECH — Technical & Operations</option>
-          <option value="MP">MP — Marketing & Partnership</option>
+          <% direktorats.forEach(function(d){ %><option value="<%= d.kode %>"><%= d.kode %> — <%= d.nama %></option><% }) %>
         </select>
       </div>
       <div>
