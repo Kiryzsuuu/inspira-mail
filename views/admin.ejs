@@ -128,12 +128,21 @@
             </td>
             <td>
               <% if (!isCurrentUser) { %>
+              <%
+                const canEditThisUser = !(u.role === 'superadmin' && user.role !== 'superadmin');
+              %>
+              <% if (canEditThisUser) { %>
               <select class="admin-role-select" onchange="changeRole('<%= u._id %>', this.value, this)">
                 <option value="user"       <%= u.role==='user'?'selected':'' %>>User</option>
                 <option value="direktur"   <%= u.role==='direktur'?'selected':'' %>>Direktur / Komisaris</option>
                 <option value="admin"      <%= u.role==='admin'?'selected':'' %>>Admin</option>
+                <% if (user.role === 'superadmin') { %>
                 <option value="superadmin" <%= u.role==='superadmin'?'selected':'' %>>Super Admin</option>
+                <% } %>
               </select>
+              <% } else { %>
+              <span class="profile-badge profile-badge-<%= u.role %>">Super Admin</span>
+              <% } %>
               <% } else { %>
               <span class="profile-badge profile-badge-<%= u.role %>"><%= roleLabel %></span>
               <% } %>

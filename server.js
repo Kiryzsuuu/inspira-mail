@@ -1355,8 +1355,16 @@ app.post('/admin/users/:id/role', requireAuth, requireAdmin, async (req, res) =>
     if (req.params.id === req.user._id.toString()) {
       return res.json({ ok: false, message: 'Tidak dapat mengubah role diri sendiri.' });
     }
+    // Hanya superadmin yang boleh assign/ubah role superadmin
+    if (role === 'superadmin' && req.user.role !== 'superadmin') {
+      return res.json({ ok: false, message: 'Hanya Super Admin yang dapat menetapkan role Super Admin.' });
+    }
     const target = await User.findById(req.params.id);
     if (!target) return res.json({ ok: false, message: 'Pengguna tidak ditemukan.' });
+    // Admin tidak boleh mengubah role user yang sudah superadmin
+    if (target.role === 'superadmin' && req.user.role !== 'superadmin') {
+      return res.json({ ok: false, message: 'Hanya Super Admin yang dapat mengubah role Super Admin.' });
+    }
     const oldRole = target.role;
     await User.findByIdAndUpdate(req.params.id, { role });
     await log(req, 'user_role_changed', 'user_management',
