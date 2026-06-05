@@ -37,7 +37,14 @@ const emailSchema = new mongoose.Schema({
   deletedBy:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   isDeleted:   { type: Boolean, default: false },
   deletedAt:   { type: Date },
-  deletedByAdmin: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  deletedByAdmin: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  disposisi: [{
+    userId:  mongoose.Schema.Types.ObjectId,
+    nama:    String,
+    jabatan: String,
+    _id:     false
+  }],
+  disposisiCatatan: { type: String, default: '' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Email', emailSchema);

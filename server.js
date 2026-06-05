@@ -989,10 +989,12 @@ app.get('/email/:id', requireAuth, async (req, res) => {
       await Email.findByIdAndUpdate(email._id, { $addToSet: { readBy: req.user._id } });
     }
     const counts = await getMailCounts(req.user._id);
+    const allUsers = await User.find({ isActive: true }, 'name jabatan _id').sort('name').lean();
     res.render('email-detail', {
       title: email.subject, active: isSender ? 'sent' : 'inbox',
       email, docSig: docSigCheck || { signers: [] },
       isSender, currentUser: req.user,
+      users: allUsers,
       formatDate, formatDateTime, ...counts
     });
   } catch (err) { console.error(err); res.redirect('/inbox'); }
@@ -1009,6 +1011,19 @@ app.post('/email/:id/read', requireAuth, async (req, res) => {
   } catch (e) {
     res.json({ ok: false });
   }
+});
+
+// Disposisi email
+app.post('/email/:id/disposisi', requireAuth, async (req, res) => {
+  try {
+    const { disposisi, disposisiCatatan } = req.body;
+    const email = await Email.findById(req.params.id);
+    if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
+    email.disposisi = disposisi || [];
+    email.disposisiCatatan = disposisiCatatan || '';
+    await email.save();
+    res.json({ ok: true });
+  } catch (e) { console.error(e); res.json({ ok: false }); }
 });
 
 // Admin delete email — soft delete, simpan rekam jejak

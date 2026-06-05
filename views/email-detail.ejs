@@ -229,6 +229,44 @@ document.getElementById('adminDeleteOverlay').addEventListener('click', function
       </div>
     </div>
 
+    <!-- Disposisi -->
+    <% if (email.status === 'sent') { %>
+    <div class="info-card">
+      <div class="info-card-title">Disposisi</div>
+      <% if (email.disposisi && email.disposisi.length > 0) { %>
+      <div style="margin-bottom:10px;font-size:12.5px;color:var(--gray-600);">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--gray-400);margin-bottom:6px;">Diteruskan ke</div>
+        <% email.disposisi.forEach(function(d) { %>
+        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--gray-100);">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span><%= d.nama %><% if(d.jabatan){ %> <span style="color:var(--gray-400);">· <%= d.jabatan %></span><% } %></span>
+        </div>
+        <% }) %>
+      </div>
+      <% if (email.disposisiCatatan) { %>
+      <div style="font-size:12px;color:var(--gray-500);background:var(--gray-50);border-radius:6px;padding:8px 10px;margin-bottom:10px;"><%= email.disposisiCatatan %></div>
+      <% } %>
+      <% } %>
+      <div style="font-size:12px;color:var(--gray-500);margin-bottom:6px;">Teruskan ke</div>
+      <div id="disposisiUserList" style="display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto;margin-bottom:8px;">
+        <% users.forEach(function(u) { %>
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;border:1px solid var(--gray-200);cursor:pointer;font-size:12.5px;transition:background .1s;"
+               onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+          <input type="checkbox" value="<%= u._id %>" data-name="<%= u.name %>" data-jabatan="<%= u.jabatan||'' %>"
+            style="accent-color:var(--brand-600);"
+            <% if(email.disposisi && email.disposisi.some(d=>d.userId?.toString()===u._id.toString())){ %>checked<% } %>>
+          <div>
+            <div style="font-weight:500;color:var(--gray-800);"><%= u.name %></div>
+            <% if(u.jabatan){ %><div style="font-size:11px;color:var(--gray-400)"><%= u.jabatan %></div><% } %>
+          </div>
+        </label>
+        <% }) %>
+      </div>
+      <textarea id="disposisiCatatan" class="form-control" style="font-size:12.5px;min-height:64px;margin-bottom:8px;resize:vertical;" placeholder="Instruksi / catatan..."><%= email.disposisiCatatan||'' %></textarea>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:13px;" onclick="simpanDisposisi()">Simpan Disposisi</button>
+    </div>
+    <% } %>
+
     <% if (isSender) { %>
     <div class="info-card">
       <div class="info-card-title">Aksi</div>
@@ -246,5 +284,25 @@ document.getElementById('adminDeleteOverlay').addEventListener('click', function
     <% } %>
   </div>
 </div>
+
+<script>
+async function simpanDisposisi() {
+  const selected = [...document.querySelectorAll('#disposisiUserList input:checked')].map(cb => ({
+    userId: cb.value, nama: cb.dataset.name, jabatan: cb.dataset.jabatan
+  }));
+  const catatan = (document.getElementById('disposisiCatatan').value || '').trim();
+  if (!selected.length && !catatan) {
+    alert('Pilih penerima atau isi catatan disposisi.');
+    return;
+  }
+  const res  = await fetch('/email/<%= email._id %>/disposisi', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ disposisi: selected, disposisiCatatan: catatan })
+  });
+  const data = await res.json();
+  if (data.ok) { location.reload(); }
+  else alert('Gagal menyimpan disposisi.');
+}
+</script>
 
 <%- include('./partials/footer') %>
