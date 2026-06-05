@@ -12,6 +12,7 @@ const SiteSettingsSchema = new mongoose.Schema({
   smtpPort:    { type: Number, default: 587 },
   smtpUser:    { type: String, default: '' },
   smtpPass:    { type: String, default: '' },
+  sessionTimeoutMinutes: { type: Number, default: 30 },
 }, { timestamps: true });
 
 // Singleton — selalu hanya satu dokumen

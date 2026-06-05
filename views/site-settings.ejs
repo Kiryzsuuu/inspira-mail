@@ -35,6 +35,10 @@
     <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     SMTP Email
   </button>
+  <button class="ss-tab" onclick="switchTab('keamanan',this)">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2l6 2.5V10c0 4-6 8-6 8S4 14 4 10V4.5L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    Keamanan
+  </button>
 </div>
 
 <style>
@@ -189,6 +193,26 @@
           </button>
         </div>
         <div class="ss-hint">Kosongkan jika tidak ingin mengubah password</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: KEAMANAN -->
+  <div class="ss-panel" id="tab-keamanan">
+    <div class="ss-card">
+      <div class="ss-card-title">Timeout Sesi Pengguna</div>
+
+      <div style="padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:12.5px;color:#1e40af;margin-bottom:16px;">
+        Pengguna yang tidak aktif melebihi durasi ini akan otomatis keluar. Set ke <strong>0</strong> untuk menonaktifkan timeout.
+      </div>
+
+      <div class="ss-field">
+        <label class="ss-label">Durasi Timeout Inaktivitas</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="number" name="sessionTimeoutMinutes" class="form-control" value="<%= ss.sessionTimeoutMinutes ?? 30 %>" min="0" max="1440" style="max-width:120px;">
+          <span style="font-size:13px;color:var(--gray-500);">menit</span>
+        </div>
+        <div class="ss-hint">Contoh: <strong>30</strong> = logout setelah 30 menit tidak ada aktivitas. <strong>0</strong> = tidak ada timeout (sesi berlaku 7 hari).</div>
       </div>
     </div>
   </div>

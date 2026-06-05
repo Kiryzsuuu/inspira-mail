@@ -70,7 +70,7 @@
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M9 5H7a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h0a2 2 0 002-2M9 5a2 2 0 012-2h0a2 2 0 012 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12l1.5 1.5L13 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Tugas
       </a>
-      <% if (user && (user.role === 'admin' || user.role === 'direktur')) { %>
+      <% if (user && (user.role === 'admin' || user.role === 'superadmin' || user.role === 'direktur')) { %>
       <div class="nav-divider"></div>
       <% } %>
       <% if (user && user.role === 'direktur') { %>
@@ -79,7 +79,7 @@
         Ringkasan Org
       </a>
       <% } %>
-      <% if (user && user.role === 'admin') { %>
+      <% if (user && (user.role === 'admin' || user.role === 'superadmin')) { %>
       <a href="/direktur/overview" class="nav-item <%= active === 'direktur' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Ringkasan Org
@@ -128,13 +128,13 @@
             <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             Profil Saya
           </a>
-          <% if (user && (user.role === 'direktur' || user.role === 'admin')) { %>
+          <% if (user && (user.role === 'direktur' || user.role === 'admin' || user.role === 'superadmin')) { %>
           <a href="/direktur/overview" class="user-dropdown-item">
             <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             Ringkasan Organisasi
           </a>
           <% } %>
-          <% if (user && user.role === 'admin') { %>
+          <% if (user && (user.role === 'admin' || user.role === 'superadmin')) { %>
           <a href="/admin" class="user-dropdown-item">
             <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
             Admin Dashboard

@@ -93,6 +93,19 @@ app.use(async (req, res, next) => {
     try {
       const user = await User.findById(req.session.userId).select('-password');
       if (user && user.isActive) {
+        // Cek session timeout inaktivitas
+        const ss = await SiteSettings.getSettings();
+        const timeoutMs = (ss.sessionTimeoutMinutes || 0) * 60 * 1000;
+        if (timeoutMs > 0 && req.session.lastActivity) {
+          if (Date.now() - req.session.lastActivity > timeoutMs) {
+            req.session.destroy(() => {});
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+              return res.status(401).json({ error: 'Sesi habis karena tidak aktif.' });
+            }
+            return res.redirect('/login?timeout=1');
+          }
+        }
+        req.session.lastActivity = Date.now();
         req.user = user;
         res.locals.user = user;
       } else {
@@ -233,7 +246,8 @@ async function getMailCounts(userId) {
 
 app.get('/login', (req, res) => {
   if (req.user) return res.redirect('/inbox');
-  res.render('login', { title: 'Masuk', error: null, savedEmail: '' });
+  const error = req.query.timeout === '1' ? 'Sesi Anda berakhir karena tidak aktif. Silakan masuk kembali.' : null;
+  res.render('login', { title: 'Masuk', error, savedEmail: '' });
 });
 
 app.post('/login', async (req, res) => {
@@ -1210,7 +1224,7 @@ app.post('/admin/site-settings', requireAuth, requireAdmin, ssUpload.single('log
   try {
     const ss = await SiteSettings.getSettings();
     const counts = await getMailCounts(req.user._id);
-    const { siteName, siteSub, siteTagline, siteDesc, orgCode, mailerName, smtpHost, smtpPort, smtpUser, smtpPass } = req.body;
+    const { siteName, siteSub, siteTagline, siteDesc, orgCode, mailerName, smtpHost, smtpPort, smtpUser, smtpPass, sessionTimeoutMinutes } = req.body;
 
     ss.siteName    = siteName?.trim()    || ss.siteName;
     ss.siteSub     = siteSub?.trim()     || ss.siteSub;
@@ -1222,6 +1236,7 @@ app.post('/admin/site-settings', requireAuth, requireAdmin, ssUpload.single('log
     ss.smtpPort = parseInt(smtpPort) || ss.smtpPort;
     ss.smtpUser = smtpUser?.trim() || ss.smtpUser;
     if (smtpPass?.trim()) ss.smtpPass = smtpPass.trim();
+    if (sessionTimeoutMinutes !== undefined) ss.sessionTimeoutMinutes = Math.max(0, parseInt(sessionTimeoutMinutes) || 0);
 
     if (req.file) {
       const resized = await sharp(req.file.buffer).resize(200, 200, { fit: 'inside' }).png().toBuffer();
