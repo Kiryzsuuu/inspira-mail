@@ -39,7 +39,7 @@
       <h3 class="profile-name"><%= user.name %></h3>
       <p class="profile-org"><%= user.organization %></p>
       <span class="profile-badge profile-badge-<%= user.role %>">
-        <%= user.role === 'admin' ? 'Administrator' : 'Pengguna' %>
+        <%= user.role === 'superadmin' ? 'Super Admin' : user.role === 'admin' ? 'Admin' : user.role === 'direktur' ? 'Direktur / Komisaris' : 'Pengguna' %>
       </span>
       <form action="/profile/avatar" method="POST" enctype="multipart/form-data" id="avatarForm">
         <input type="file" id="avatarFile" name="avatar" accept="image/*" style="display:none" onchange="document.getElementById('avatarForm').submit()">

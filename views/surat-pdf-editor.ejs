@@ -402,7 +402,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 
       <!-- QR stamps rendered from server data -->
       <% docSig.signers.forEach(function(s) {
-        const RL2 = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+        const RL2 = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
         const jabatan = s.userRole ? RL2[s.userRole]||s.userRole : (s.userOrg||'');
       %>
       <div class="qr-stamp" id="stamp-<%= s._id %>"
@@ -475,7 +475,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         <% } %>
         <% docSig.signers.forEach(function(s) {
           const initials = s.userName.split(' ').slice(0,2).map(w => w[0] || '').join('').toUpperCase();
-          const roleLabel = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+          const roleLabel = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
         %>
         <div class="signer-item" id="si-<%= s._id %>">
           <div class="signer-av"><%= initials %></div>
@@ -643,7 +643,7 @@ function addStampToPage(signer) {
   const page = document.getElementById('a4Page');
   document.getElementById('sigHint').style.display = 'none';
 
-  const rl = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+  const rl = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
   const jabatan = signer.userRole ? (rl[signer.userRole]||signer.userRole) : (signer.userOrg||'');
 
   const div = document.createElement('div');
@@ -670,7 +670,7 @@ function addStampToPage(signer) {
 // ── ADD SIGNER TO PANEL LIST ──
 function addSignerToPanel(signer) {
   document.getElementById('emptySig')?.remove();
-  const roleLabels = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
+  const roleLabels = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
   const roleText = signer.userRole ? (roleLabels[signer.userRole] || signer.userRole) : (signer.userOrg || '');
   const initials = signer.userName.split(' ').slice(0,2).map(w => w[0] || '').join('').toUpperCase();
 

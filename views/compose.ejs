@@ -82,7 +82,7 @@
   <div class="page-title-group">
     <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / <a href="/compose">Manajemen Dokumen</a> / Buat Baru</div>
     <h1 class="page-title">Buat Dokumen Baru</h1>
-    <p class="page-subtitle">Nota Dinas, Surat Dinas<% if(user && (user.role==='admin'||user.role==='direktur')){ %>, MoU, MoA, PKS, SPK, dan dokumen khusus lainnya<% } %></p>
+    <p class="page-subtitle">Nota Dinas, Surat Dinas<% if(user && (['superadmin','admin','direktur'].includes(user.role))){ %>, MoU, MoA, PKS, SPK, dan dokumen khusus lainnya<% } %></p>
   </div>
 </div>
 
@@ -125,7 +125,7 @@
                 <option value="Nota Dinas" selected>Nota Dinas (Internal)</option>
                 <option value="Surat Dinas">Surat Dinas (Eksternal)</option>
               </optgroup>
-              <% if (user && (user.role === 'admin' || user.role === 'direktur')) { %>
+              <% if (user && (['superadmin','admin','direktur'].includes(user.role))) { %>
               <optgroup label="— Direktur &amp; Admin —">
                 <option value="MoU">MoU (Memorandum of Understanding)</option>
                 <option value="MoA">MoA (Memorandum of Agreement)</option>
@@ -171,7 +171,7 @@
       </div>
 
       <!-- FORM PIHAK KEDUA — hanya untuk direktur+admin & dok. khusus -->
-      <% if (user && (user.role === 'admin' || user.role === 'direktur')) { %>
+      <% if (user && (['superadmin','admin','direktur'].includes(user.role))) { %>
       <div id="sec-pihak-kedua-form" style="display:none;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:16px;margin-bottom:4px;">
         <div class="sec-header" style="margin-bottom:12px;">
           <span class="sec-badge">PIHAK KEDUA</span>
