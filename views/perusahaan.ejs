@@ -1,0 +1,236 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Manage Perusahaan</div>
+    <h1 class="page-title">Manage Perusahaan</h1>
+    <p class="page-subtitle">Kelola daftar perusahaan / instansi eksternal beserta kontak dan emailnya</p>
+  </div>
+  <div class="page-header-actions">
+    <button onclick="openModal()" class="btn btn-primary">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Tambah Perusahaan
+    </button>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH/EDIT -->
+<div id="perusahaanModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.4);overflow-y:auto;">
+  <div style="background:#fff;border-radius:12px;max-width:680px;width:calc(100% - 32px);margin:40px auto;padding:28px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h2 id="modalTitle" style="font-size:16px;font-weight:700;color:var(--gray-800);">Tambah Perusahaan</h2>
+      <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:20px;">✕</button>
+    </div>
+    <form id="perusahaanForm" onsubmit="submitPerusahaan(event)">
+      <input type="hidden" id="editId">
+      <input type="hidden" id="kontakJsonField" name="kontakJson" value="[]">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Nama Perusahaan <span style="color:red;">*</span></label>
+          <input type="text" id="f_nama" class="form-control" placeholder="PT Contoh Perusahaan" required>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Singkatan / Kode</label>
+          <input type="text" id="f_singkatan" class="form-control" placeholder="cth: PT CONT">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Email Utama</label>
+          <input type="email" id="f_email" class="form-control" placeholder="info@perusahaan.com">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Telepon</label>
+          <input type="text" id="f_telepon" class="form-control" placeholder="+62...">
+        </div>
+        <div style="grid-column:span 2;">
+          <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Alamat</label>
+          <input type="text" id="f_alamat" class="form-control" placeholder="Jl. ...">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Website</label>
+          <input type="text" id="f_website" class="form-control" placeholder="https://...">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Keterangan</label>
+          <input type="text" id="f_keterangan" class="form-control" placeholder="Catatan tambahan">
+        </div>
+      </div>
+
+      <!-- KONTAK -->
+      <div style="border-top:1px solid var(--gray-100);padding-top:16px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:13px;font-weight:700;color:var(--gray-700);">Daftar Kontak</span>
+          <button type="button" onclick="addKontakRow()" class="btn btn-secondary" style="padding:5px 12px;font-size:12px;">+ Tambah Kontak</button>
+        </div>
+        <div id="kontakList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div id="kontakEmpty" style="font-size:12.5px;color:var(--gray-400);padding:4px 0;">Belum ada kontak. Klik "+ Tambah Kontak" untuk menambahkan.</div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button type="button" onclick="closeModal()" class="btn btn-secondary">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- FILTER + LIST -->
+<div style="background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--gray-100);">
+    <span style="font-size:13px;font-weight:600;color:var(--gray-700);"><%= total %> perusahaan</span>
+    <form method="GET" action="/perusahaan" style="display:flex;gap:8px;">
+      <input type="text" name="q" value="<%= q %>" class="form-control" style="width:240px;padding:6px 12px;font-size:13px;" placeholder="Cari nama / email...">
+      <button type="submit" class="btn btn-secondary" style="padding:6px 14px;font-size:13px;">Cari</button>
+      <% if (q) { %><a href="/perusahaan" class="btn btn-ghost" style="padding:6px 12px;font-size:13px;">Reset</a><% } %>
+    </form>
+  </div>
+
+  <% if (list.length === 0) { %>
+  <div class="empty-state">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="10" width="36" height="32" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M16 10V6M32 10V6M6 20h36" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 28h4M16 34h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <p>Belum ada perusahaan terdaftar<%= q ? ' dengan kata kunci "' + q + '"' : '' %>.</p>
+  </div>
+  <% } else { %>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--gray-200);background:var(--gray-50);">
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;width:36px;">No.</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Nama Perusahaan</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Email</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Telepon</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Kontak</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Alamat</th>
+          <th style="padding:10px 14px;text-align:center;color:var(--gray-600);font-weight:600;width:80px;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+      <% list.forEach((p, i) => { %>
+      <tr style="border-bottom:1px solid var(--gray-100);" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+        <td style="padding:10px 14px;color:var(--gray-400);"><%= i+1 %></td>
+        <td style="padding:10px 14px;">
+          <div style="font-weight:600;color:var(--gray-800);"><%= p.nama %></div>
+          <% if (p.singkatan) { %><div style="font-size:11.5px;color:var(--gray-400);">(<%= p.singkatan %>)</div><% } %>
+          <% if (p.keterangan) { %><div style="font-size:11.5px;color:var(--gray-400);margin-top:1px;"><%= p.keterangan %></div><% } %>
+        </td>
+        <td style="padding:10px 14px;color:var(--brand-600);font-size:12.5px;"><%= p.email || '—' %></td>
+        <td style="padding:10px 14px;color:var(--gray-500);font-size:12.5px;"><%= p.telepon || '—' %></td>
+        <td style="padding:10px 14px;">
+          <% if (p.kontak && p.kontak.length > 0) { %>
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <% p.kontak.slice(0,2).forEach(k => { %>
+            <div style="font-size:11.5px;color:var(--gray-600);"><%= k.nama %><% if (k.jabatan) { %> <span style="color:var(--gray-400);">(<%= k.jabatan %>)</span><% } %></div>
+            <% }) %>
+            <% if (p.kontak.length > 2) { %><div style="font-size:11px;color:var(--gray-400);">+<%= p.kontak.length - 2 %> lainnya</div><% } %>
+          </div>
+          <% } else { %><span style="color:var(--gray-300);">—</span><% } %>
+        </td>
+        <td style="padding:10px 14px;color:var(--gray-500);font-size:12px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= p.alamat || '—' %></td>
+        <td style="padding:10px 14px;text-align:center;">
+          <button onclick="editPerusahaan('<%= p._id %>')" style="background:none;border:none;cursor:pointer;color:var(--brand-600);padding:4px;" title="Edit">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 3l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <button onclick="hapusPerusahaan('<%= p._id %>')" style="background:none;border:none;cursor:pointer;color:var(--gray-400);padding:4px;" title="Hapus">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 6h12M8 6V4h4v2M7 6v10h6V6H7z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </td>
+      </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<script>
+let _kontaks = [];
+
+function openModal(data) {
+  document.getElementById('perusahaanModal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  _kontaks = [];
+  document.getElementById('editId').value = '';
+  document.getElementById('modalTitle').textContent = 'Tambah Perusahaan';
+  ['nama','singkatan','email','telepon','alamat','website','keterangan'].forEach(f => {
+    document.getElementById('f_' + f).value = data ? (data[f] || '') : '';
+  });
+  if (data && data._id) {
+    document.getElementById('editId').value = data._id;
+    document.getElementById('modalTitle').textContent = 'Edit Perusahaan';
+    _kontaks = (data.kontak || []).map(k => ({...k}));
+  }
+  renderKontaks();
+}
+function closeModal() {
+  document.getElementById('perusahaanModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+function addKontakRow(k) {
+  _kontaks.push(k || { nama: '', jabatan: '', email: '', telepon: '' });
+  renderKontaks();
+}
+function removeKontak(i) { _kontaks.splice(i, 1); renderKontaks(); }
+function renderKontaks() {
+  const list = document.getElementById('kontakList');
+  const empty = document.getElementById('kontakEmpty');
+  list.innerHTML = '';
+  empty.style.display = _kontaks.length ? 'none' : '';
+  _kontaks.forEach((k, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr 1fr 28px;gap:8px;align-items:center;';
+    row.innerHTML = `
+      <input type="text" class="form-control" placeholder="Nama" value="${k.nama||''}" style="font-size:12.5px;" oninput="_kontaks[${i}].nama=this.value">
+      <input type="text" class="form-control" placeholder="Jabatan" value="${k.jabatan||''}" style="font-size:12.5px;" oninput="_kontaks[${i}].jabatan=this.value">
+      <input type="email" class="form-control" placeholder="Email" value="${k.email||''}" style="font-size:12.5px;" oninput="_kontaks[${i}].email=this.value">
+      <input type="text" class="form-control" placeholder="Telepon" value="${k.telepon||''}" style="font-size:12.5px;" oninput="_kontaks[${i}].telepon=this.value">
+      <button type="button" onclick="removeKontak(${i})" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:18px;padding:0;">×</button>
+    `;
+    list.appendChild(row);
+  });
+}
+
+async function submitPerusahaan(e) {
+  e.preventDefault();
+  document.getElementById('kontakJsonField').value = JSON.stringify(_kontaks);
+  const editId = document.getElementById('editId').value;
+  const body = new FormData(document.getElementById('perusahaanForm'));
+  body.set('nama',       document.getElementById('f_nama').value);
+  body.set('singkatan',  document.getElementById('f_singkatan').value);
+  body.set('email',      document.getElementById('f_email').value);
+  body.set('telepon',    document.getElementById('f_telepon').value);
+  body.set('alamat',     document.getElementById('f_alamat').value);
+  body.set('website',    document.getElementById('f_website').value);
+  body.set('keterangan', document.getElementById('f_keterangan').value);
+  body.set('kontakJson', JSON.stringify(_kontaks));
+
+  if (editId) {
+    const r = await fetch('/perusahaan/' + editId, { method: 'PUT', body: new URLSearchParams(Object.fromEntries(body)) });
+    const j = await r.json();
+    if (j.ok) location.reload(); else alert('Gagal menyimpan.');
+  } else {
+    const form = document.createElement('form');
+    form.method = 'POST'; form.action = '/perusahaan';
+    body.forEach((v, k) => { const i = document.createElement('input'); i.type='hidden'; i.name=k; i.value=v; form.appendChild(i); });
+    document.body.appendChild(form); form.submit();
+  }
+}
+
+async function editPerusahaan(id) {
+  const r = await fetch('/perusahaan/' + id + '/json');
+  const j = await r.json();
+  if (j.ok) openModal(j.data); else alert('Gagal memuat data.');
+}
+
+async function hapusPerusahaan(id) {
+  if (!confirm('Hapus perusahaan ini?')) return;
+  const r = await fetch('/perusahaan/' + id, { method: 'DELETE' });
+  const j = await r.json();
+  if (j.ok) location.reload(); else alert('Gagal menghapus.');
+}
+
+document.getElementById('perusahaanModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('perusahaanModal')) closeModal();
+});
+</script>
+
+<%- include('./partials/footer') %>

@@ -25,6 +25,9 @@ const Jabatan    = require('./models/Jabatan');
 const Organisasi = require('./models/Organisasi');
 const DocumentSignature = require('./models/DocumentSignature');
 const SiteSettings = require('./models/SiteSettings');
+const NomorSaja   = require('./models/NomorSaja');
+const Arsip       = require('./models/Arsip');
+const Perusahaan  = require('./models/Perusahaan');
 const QRCode = require('qrcode');
 
 const app = express();
@@ -606,6 +609,21 @@ function getAllowedSifat(user) {
 // Dokumen khusus → nomor pakai tipe langsung
 const TIPE_KHUSUS = ['MoU','MoA','Contract','IA','PKS','SPK'];
 
+const TIPE_COUNTER_KEY = {
+  'Nota Dinas':  'NOTA',
+  'Surat Dinas': 'SURAT-DINAS',
+  'Surat':       'SURAT',
+  'MoU':         'MOU',
+  'MoA':         'MOA',
+  'Contract':    'CONTRACT',
+  'IA':          'IA',
+  'PKS':         'PKS',
+  'SPK':         'SPK',
+};
+function getTipeCounterKey(tipeSurat) {
+  return TIPE_COUNTER_KEY[tipeSurat] || 'SURAT';
+}
+
 function buildNomorSurat(seq, tipeSurat, kodeDir, jenis, roman, year) {
   const s = String(seq).padStart(3,'0');
   if (TIPE_KHUSUS.includes(tipeSurat)) {
@@ -661,13 +679,29 @@ app.get('/compose', requireAuth, async (req, res) => {
 // Manajemen Dokumen — Form buat dokumen baru
 app.get('/compose/new', requireAuth, async (req, res) => {
   try {
-    const users = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization enik jabatan').sort('name');
     const counts = await getMailCounts(req.user._id);
     const allowedKodeDir = getAllowedKodeDir(req.user);
     const allowedSifat   = getAllowedSifat(req.user);
-    res.render('compose', { active: 'compose', title: 'Buat Dokumen Baru', users, allowedKodeDir, allowedSifat, ...counts });
+
+    let pengirimUsers = [];
+    if (['admin','superadmin'].includes(req.user.role)) {
+      // Admin bisa pilih semua user (direktur, komisaris, siapapun)
+      pengirimUsers = await User.find({ isActive: true }).select('name email enik jabatan kodeDir role').sort('name').lean();
+    } else if (req.user.role === 'direktur') {
+      // Direktur hanya bisa atas nama diri sendiri — picker dikosongkan
+      pengirimUsers = [];
+    } else {
+      // User biasa: hanya pilih dari sesama direktorat (kodeDir sama)
+      const kd = req.user.kodeDir;
+      pengirimUsers = kd
+        ? await User.find({ kodeDir: kd, isActive: true }).select('name email enik jabatan kodeDir role').sort('name').lean()
+        : [];
+    }
+
+    const allUsers = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization enik jabatan').sort('name').lean();
+    res.render('compose', { active: 'compose', title: 'Buat Dokumen Baru', users: allUsers, pengirimUsers, allowedKodeDir, allowedSifat, jenisDefault: null, hideJenisTabs: false, ...counts });
   } catch (err) {
-    res.render('compose', { active: 'compose', title: 'Buat Dokumen Baru', users: [], allowedKodeDir: ['PLAN','TECH','MP'], allowedSifat: ['Biasa/Terbuka','Segera'], inboxCount: 0, draftCount: 0 });
+    res.render('compose', { active: 'compose', title: 'Buat Dokumen Baru', users: [], pengirimUsers: [], allowedKodeDir: ['PLAN','TECH','MP'], allowedSifat: ['Biasa/Terbuka','Segera'], jenisDefault: null, hideJenisTabs: false, inboxCount: 0, draftCount: 0 });
   }
 });
 
@@ -707,8 +741,8 @@ app.post('/compose', requireAuth, lampiranUpload.single('lampiran'), async (req,
     const now  = new Date();
     const year = now.getFullYear();
     const ROMAN_M = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
-    const seq  = await DocCounter.nextSeq('SURAT', year);
     const tipe = tipeSurat || 'Nota Dinas';
+    const seq  = await DocCounter.nextSeq(getTipeCounterKey(tipe), year);
     const nomorSurat = buildNomorSurat(seq, tipe, kodeDir || kodeDiv || 'DIR', jenis || 'internal', ROMAN_M[now.getMonth()+1], year);
 
     const isDraft = action === 'draft';
@@ -2087,6 +2121,271 @@ app.delete('/agreements/:id', requireAuth, requireSuperAdmin, async (req, res) =
   } catch (err) {
     res.json({ ok: false });
   }
+});
+
+// ── PERUSAHAAN (MANAGE EKSTERNAL) ──
+
+app.get('/perusahaan', requireAuth, requireDirektur, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const { q } = req.query;
+    const filter = { isActive: true };
+    if (q) filter.$or = [
+      { nama:     { $regex: q, $options: 'i' } },
+      { singkatan:{ $regex: q, $options: 'i' } },
+      { email:    { $regex: q, $options: 'i' } },
+    ];
+    const list  = await Perusahaan.find(filter).sort({ nama: 1 }).lean();
+    const total = await Perusahaan.countDocuments({ isActive: true });
+    res.render('perusahaan', {
+      active: 'perusahaan', title: 'Manage Perusahaan',
+      list, total, q: q||'', formatDate, ...counts
+    });
+  } catch (err) { console.error(err); res.redirect('/inbox'); }
+});
+
+app.get('/perusahaan/:id/json', requireAuth, requireDirektur, async (req, res) => {
+  try {
+    const p = await Perusahaan.findById(req.params.id).lean();
+    if (!p) return res.json({ ok: false });
+    res.json({ ok: true, data: p });
+  } catch { res.json({ ok: false }); }
+});
+
+app.post('/perusahaan', requireAuth, requireDirektur, async (req, res) => {
+  try {
+    const { nama, singkatan, alamat, email, telepon, website, keterangan, kontakJson } = req.body;
+    if (!nama?.trim()) return res.redirect('/perusahaan?error=1');
+    let kontak = [];
+    try { kontak = JSON.parse(kontakJson || '[]'); } catch {}
+    await Perusahaan.create({
+      nama: nama.trim(), singkatan: singkatan?.trim() || '',
+      alamat: alamat?.trim() || '', email: email?.trim() || '',
+      telepon: telepon?.trim() || '', website: website?.trim() || '',
+      keterangan: keterangan?.trim() || '', kontak,
+      createdBy: { userId: req.user._id, name: req.user.name },
+    });
+    await log(req, 'perusahaan_create', 'perusahaan', `Perusahaan "${nama}" ditambahkan`, { nama });
+    res.redirect('/perusahaan');
+  } catch (err) { console.error(err); res.redirect('/perusahaan'); }
+});
+
+app.put('/perusahaan/:id', requireAuth, requireDirektur, async (req, res) => {
+  try {
+    const { nama, singkatan, alamat, email, telepon, website, keterangan, kontakJson } = req.body;
+    let kontak = [];
+    try { kontak = JSON.parse(kontakJson || '[]'); } catch {}
+    await Perusahaan.findByIdAndUpdate(req.params.id, {
+      nama: nama?.trim(), singkatan: singkatan?.trim() || '',
+      alamat: alamat?.trim() || '', email: email?.trim() || '',
+      telepon: telepon?.trim() || '', website: website?.trim() || '',
+      keterangan: keterangan?.trim() || '', kontak,
+    });
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
+});
+
+app.delete('/perusahaan/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await Perusahaan.findByIdAndUpdate(req.params.id, { isActive: false });
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
+});
+
+// JSON list untuk compose picker
+app.get('/perusahaan-list', requireAuth, requireDirektur, async (req, res) => {
+  try {
+    const list = await Perusahaan.find({ isActive: true }, 'nama singkatan email alamat kontak').sort({ nama: 1 }).lean();
+    res.json(list);
+  } catch { res.json([]); }
+});
+
+// ── COMPOSE INTERNAL / EKSTERNAL (terpisah) ──
+
+app.get('/compose/internal', requireAuth, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const allowedKodeDir = getAllowedKodeDir(req.user);
+    const allowedSifat   = getAllowedSifat(req.user);
+    let pengirimUsers = [];
+    if (['admin','superadmin'].includes(req.user.role)) {
+      pengirimUsers = await User.find({ isActive: true }).select('name email enik jabatan kodeDir role').sort('name').lean();
+    } else if (req.user.role !== 'direktur') {
+      const kd = req.user.kodeDir;
+      pengirimUsers = kd ? await User.find({ kodeDir: kd, isActive: true }).select('name email enik jabatan kodeDir role').sort('name').lean() : [];
+    }
+    // Untuk to/cc penerima, ambil semua user kecuali diri sendiri
+    const allUsers = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization enik jabatan').sort('name').lean();
+    res.render('compose', {
+      active: 'compose-internal', title: 'Tulis Surat Internal',
+      users: allUsers, pengirimUsers, allowedKodeDir, allowedSifat,
+      jenisDefault: 'internal', hideJenisTabs: true, ...counts
+    });
+  } catch (err) {
+    res.redirect('/compose/new');
+  }
+});
+
+app.get('/compose/eksternal', requireAuth, requireDirektur, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const allowedKodeDir = getAllowedKodeDir(req.user);
+    const allowedSifat   = getAllowedSifat(req.user);
+    let pengirimUsers = [];
+    if (['admin','superadmin'].includes(req.user.role)) {
+      pengirimUsers = await User.find({ isActive: true }).select('name email enik jabatan kodeDir role').sort('name').lean();
+    } else if (req.user.role !== 'direktur') {
+      const kd = req.user.kodeDir;
+      pengirimUsers = kd ? await User.find({ kodeDir: kd, isActive: true }).select('name email enik jabatan kodeDir role').sort('name').lean() : [];
+    }
+    const allUsers = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization enik jabatan').sort('name').lean();
+    res.render('compose', {
+      active: 'compose-eksternal', title: 'Tulis Surat Eksternal',
+      users: allUsers, pengirimUsers, allowedKodeDir, allowedSifat,
+      jenisDefault: 'eksternal', hideJenisTabs: true, ...counts
+    });
+  } catch (err) {
+    res.redirect('/compose/new');
+  }
+});
+
+// ── GENERATE NOMOR SAJA ──
+
+const ALL_TIPE_SURAT = ['Nota Dinas','Surat Dinas','Surat','MoU','MoA','Contract','IA','PKS','SPK'];
+
+app.get('/nomor-saja', requireAuth, requireDirektur, async (req, res) => {
+  try {
+    const counts  = await getMailCounts(req.user._id);
+    const { q, tipe } = req.query;
+    const filter = { 'createdBy.userId': req.user._id };
+    if (tipe) filter.tipeSurat = tipe;
+    if (q)    filter.$or = [
+      { nomorSurat: { $regex: q, $options: 'i' } },
+      { perihal:    { $regex: q, $options: 'i' } },
+    ];
+    const list = await NomorSaja.find(filter).sort({ createdAt: -1 }).limit(100).lean();
+    res.render('nomor-saja', {
+      active: 'nomor-saja', title: 'Generate Nomor Surat',
+      list, q: q||'', tipe: tipe||'',
+      ALL_TIPE_SURAT, allowedKodeDir: getAllowedKodeDir(req.user),
+      formatDate, ...counts
+    });
+  } catch (err) { console.error(err); res.redirect('/inbox'); }
+});
+
+app.post('/nomor-saja', requireAuth, requireDirektur, async (req, res) => {
+  try {
+    const { tipeSurat, perihal, tanggal, kodeDir, jenis } = req.body;
+    if (!tipeSurat || !tanggal) return res.redirect('/nomor-saja?error=1');
+
+    const allowedKDir = getAllowedKodeDir(req.user);
+    const kd = kodeDir || req.user.kodeDir || 'DIR';
+    if (!allowedKDir.includes(kd)) return res.redirect('/nomor-saja?error=kodeDir');
+
+    const d = new Date(tanggal);
+    const year = d.getFullYear();
+    const ROMAN_M = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+    const seq = await DocCounter.nextSeq(getTipeCounterKey(tipeSurat), year);
+    const nomorSurat = buildNomorSurat(seq, tipeSurat, kd, jenis || 'internal', ROMAN_M[d.getMonth()+1], year);
+
+    await NomorSaja.create({
+      nomorSurat, tipeSurat,
+      perihal: perihal?.trim() || '(Tanpa Perihal)',
+      tanggal: d, kodeDir: kd, jenis: jenis || 'internal',
+      createdBy: { userId: req.user._id, name: req.user.name, email: req.user.email },
+    });
+
+    await log(req, 'nomor_generate', 'surat', `Nomor ${nomorSurat} di-generate oleh ${req.user.name}`, { nomorSurat });
+    res.redirect('/nomor-saja');
+  } catch (err) { console.error(err); res.redirect('/nomor-saja'); }
+});
+
+app.delete('/nomor-saja/:id', requireAuth, requireDirektur, async (req, res) => {
+  try {
+    const doc = await NomorSaja.findById(req.params.id);
+    if (!doc) return res.json({ ok: false });
+    if (!['admin','superadmin'].includes(req.user.role) && String(doc.createdBy.userId) !== String(req.user._id)) {
+      return res.json({ ok: false, message: 'Tidak diizinkan.' });
+    }
+    await NomorSaja.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
+});
+
+// ── DOKUMEN ARSIP ──
+
+const arsipUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(__dirname, 'uploads', 'arsip');
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname);
+      cb(null, Date.now() + '-' + Math.round(Math.random()*1e6) + ext);
+    }
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
+
+const ARSIP_KATEGORI = ['Umum','Surat Masuk','Surat Keluar','Perjanjian','Laporan','Keuangan','SDM','Lainnya'];
+
+app.get('/arsip', requireAuth, requireDirektur, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const { q, kategori } = req.query;
+    const filter = {};
+    if (kategori) filter.kategori = kategori;
+    if (q) filter.$or = [
+      { judul:      { $regex: q, $options: 'i' } },
+      { nomorArsip: { $regex: q, $options: 'i' } },
+      { keterangan: { $regex: q, $options: 'i' } },
+    ];
+    const list  = await Arsip.find(filter).sort({ tanggal: -1 }).limit(200).lean();
+    const total = await Arsip.countDocuments();
+    res.render('arsip', {
+      active: 'arsip', title: 'Dokumen Arsip',
+      list, total, q: q||'', kategori: kategori||'',
+      ARSIP_KATEGORI, formatDate, ...counts
+    });
+  } catch (err) { console.error(err); res.redirect('/inbox'); }
+});
+
+app.post('/arsip', requireAuth, requireDirektur, arsipUpload.single('lampiran'), async (req, res) => {
+  try {
+    const { nomorArsip, judul, kategori, tanggal, keterangan, sumber } = req.body;
+    if (!judul || !tanggal) return res.redirect('/arsip?error=1');
+    await Arsip.create({
+      nomorArsip: nomorArsip?.trim() || '',
+      judul: judul.trim(),
+      kategori: kategori || 'Umum',
+      tanggal: new Date(tanggal),
+      keterangan: keterangan?.trim() || '',
+      sumber: sumber?.trim() || '',
+      lampiran: req.file ? '/uploads/arsip/' + req.file.filename : '',
+      lampiranNama: req.file ? req.file.originalname : '',
+      createdBy: { userId: req.user._id, name: req.user.name, email: req.user.email },
+    });
+    await log(req, 'arsip_create', 'arsip', `Arsip "${judul}" ditambahkan oleh ${req.user.name}`);
+    res.redirect('/arsip');
+  } catch (err) { console.error(err); res.redirect('/arsip'); }
+});
+
+app.delete('/arsip/:id', requireAuth, requireDirektur, async (req, res) => {
+  try {
+    const doc = await Arsip.findById(req.params.id);
+    if (!doc) return res.json({ ok: false });
+    if (!['admin','superadmin','direktur'].includes(req.user.role) && String(doc.createdBy.userId) !== String(req.user._id)) {
+      return res.json({ ok: false, message: 'Tidak diizinkan.' });
+    }
+    if (doc.lampiran) {
+      const fp = path.join(__dirname, doc.lampiran);
+      if (fs.existsSync(fp)) fs.unlinkSync(fp);
+    }
+    await Arsip.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
 });
 
 // ── SURAT MASUK ──

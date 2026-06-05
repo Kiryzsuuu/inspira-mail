@@ -89,7 +89,7 @@
 <form action="/compose" method="POST" id="composeForm" enctype="multipart/form-data">
   <input type="hidden" name="action" id="formAction" value="send">
   <input type="hidden" name="body" id="bodyHidden">
-  <input type="hidden" name="jenis" id="jenisHidden" value="internal">
+  <input type="hidden" name="jenis" id="jenisHidden" value="<%= jenisDefault || 'internal' %>">
   <input type="hidden" name="externalRecipients" id="externalRecipientsHidden" value="[]">
   <input type="hidden" name="tipeSurat" id="tipeSuratHidden" value="Surat">
   <input type="hidden" name="suratData" id="suratDataHidden" value="{}">
@@ -154,14 +154,32 @@
       <!-- PENGIRIM RESMI -->
       <div class="form-group">
         <label class="form-label">Pengirim Resmi <span style="font-size:11px;color:var(--gray-400);font-weight:400;">(nama yang tertera di dokumen)</span></label>
+        <% if (user.role === 'direktur') { %>
+        <input type="text" name="pengirimResmi" class="form-control" value="<%= user.name %>" readonly style="background:var(--gray-50);color:var(--gray-500);">
+        <small class="form-hint">Sebagai direktur, surat hanya dapat dibuat atas nama diri sendiri.</small>
+        <% } else if (['admin','superadmin'].includes(user.role)) { %>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <input type="text" name="pengirimResmi" id="pengirimResmiInput" class="form-control" value="<%= user.name %>" placeholder="Nama pengirim resmi di surat">
           <select id="pengirimPicker" class="form-control form-select" onchange="document.getElementById('pengirimResmiInput').value=this.value;this.value=''">
             <option value="">— Pilih dari daftar karyawan —</option>
-            <% users.forEach(u => { %><option value="<%= u.name %>"><%= u.enik ? u.enik + ' — ' : '' %><%= u.name %><%= u.jabatan ? ' (' + u.jabatan + ')' : '' %></option><% }) %>
+            <% pengirimUsers.forEach(u => { %><option value="<%= u.name %>"><%= u.enik ? u.enik + ' — ' : '' %><%= u.name %><%= u.jabatan ? ' (' + u.jabatan + ')' : '' %></option><% }) %>
           </select>
         </div>
-        <small class="form-hint">Pembuat dokumen: <strong><%= user.name %></strong><%= user.enik ? ' (ENIK: ' + user.enik + ')' : '' %></small>
+        <small class="form-hint">Admin dapat membuat surat atas nama direktur atau komisaris. Pembuat: <strong><%= user.name %></strong></small>
+        <% } else { %>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <input type="text" name="pengirimResmi" id="pengirimResmiInput" class="form-control" value="<%= user.name %>" placeholder="Nama pengirim resmi di surat">
+          <% if (pengirimUsers.length > 0) { %>
+          <select id="pengirimPicker" class="form-control form-select" onchange="document.getElementById('pengirimResmiInput').value=this.value;this.value=''">
+            <option value="">— Pilih dari daftar karyawan —</option>
+            <% pengirimUsers.forEach(u => { %><option value="<%= u.name %>"><%= u.enik ? u.enik + ' — ' : '' %><%= u.name %><%= u.jabatan ? ' (' + u.jabatan + ')' : '' %></option><% }) %>
+          </select>
+          <% } else { %>
+          <input type="text" class="form-control" disabled placeholder="Tidak ada karyawan lain di direktorat ini" style="background:var(--gray-50);color:var(--gray-400);">
+          <% } %>
+        </div>
+        <small class="form-hint">Hanya dapat memilih pengirim dari direktorat yang sama. Pembuat: <strong><%= user.name %></strong><%= user.enik ? ' (ENIK: ' + user.enik + ')' : '' %></small>
+        <% } %>
       </div>
 
       <!-- Info jika template eksternal -->
@@ -812,6 +830,7 @@
       <!-- ═══════════════════════════════════════════════════════ -->
       <!-- JENIS SURAT (Internal / Eksternal)                     -->
       <!-- ═══════════════════════════════════════════════════════ -->
+      <% if (!hideJenisTabs) { %>
       <div class="form-group">
         <label class="form-label">Jenis Surat</label>
         <div class="jenis-tabs">
@@ -825,6 +844,17 @@
           </button>
         </div>
       </div>
+      <% } else { %>
+      <div style="padding:8px 14px;background:<%= jenisDefault==='eksternal' ? '#fff7ed' : '#eff6ff' %>;border:1px solid <%= jenisDefault==='eksternal' ? '#fed7aa' : '#bfdbfe' %>;border-radius:8px;font-size:12.5px;color:<%= jenisDefault==='eksternal' ? '#c2410c' : '#1d4ed8' %>;margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+        <% if (jenisDefault==='eksternal') { %>
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M2 10h16M10 2c-2 2.5-3 5-3 8s1 5.5 3 8M10 2c2 2.5 3 5 3 8s-1 5.5-3 8" stroke="currentColor" stroke-width="1.5"/></svg>
+        Surat <strong>Eksternal</strong> — dikirim ke penerima di luar sistem
+        <% } else { %>
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 100 12A6 6 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Surat <strong>Internal</strong> — dikirim ke pengguna terdaftar
+        <% } %>
+      </div>
+      <% } %>
 
       <!-- INTERNAL section -->
       <div id="internalSection">
@@ -891,15 +921,17 @@
       <!-- EKSTERNAL section -->
       <div id="eksternalSection" style="display:none;">
         <div class="form-group">
-          <label class="form-label">Tambah Penerima Eksternal</label>
-          <div class="ext-recipient-input">
-            <input type="text" id="extName" class="form-control" placeholder="Nama penerima" style="max-width:200px;">
-            <input type="text" id="extJabatan" class="form-control" placeholder="Jabatan (opsional)" style="max-width:200px;">
-            <input type="email" id="extEmail" class="form-control" placeholder="email@domain.com">
+          <label class="form-label">Penerima Eksternal</label>
+          <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+            <select id="perusahaanPicker" class="form-control form-select" style="flex:1;" onchange="onPerusahaanPick(this.value)">
+              <option value="">— Pilih perusahaan —</option>
+            </select>
+            <input type="email" id="extEmail" class="form-control" placeholder="email@perusahaan.com" style="flex:1;">
             <button type="button" class="btn btn-secondary" onclick="addExt()" style="white-space:nowrap;padding:8px 16px;">+ Tambah</button>
+            <a href="/perusahaan" target="_blank" style="font-size:12px;color:var(--brand-600);white-space:nowrap;">Kelola</a>
           </div>
           <div class="ext-list" id="extList"></div>
-          <div id="extEmpty" style="font-size:12.5px;color:var(--gray-400);padding:6px 0;">Belum ada penerima. Tambahkan di atas.</div>
+          <div id="extEmpty" style="font-size:12.5px;color:var(--gray-400);padding:6px 0;">Belum ada penerima. Pilih perusahaan atau isi email manual lalu klik + Tambah.</div>
         </div>
       </div>
 
@@ -1233,17 +1265,17 @@ function setJenis(j) {
 // ── EXTERNAL RECIPIENTS ──
 let extList = [];
 function addExt() {
-  const n = document.getElementById('extName').value.trim();
-  const j = document.getElementById('extJabatan').value.trim();
   const e = document.getElementById('extEmail').value.trim();
+  const sel = document.getElementById('perusahaanPicker');
+  const selectedId = sel ? sel.value : '';
+  const p = _perusahaanData.find(x => x._id === selectedId);
+  const nama = p ? p.nama : e;
   if (!e) { document.getElementById('extEmail').focus(); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { alert('Format email tidak valid.'); return; }
   if (extList.find(r => r.email === e)) { alert('Email sudah ditambahkan.'); return; }
-  extList.push({ name: n||e, jabatan: j, email: e }); renderExtList();
-  document.getElementById('extName').value = '';
-  document.getElementById('extJabatan').value = '';
+  extList.push({ name: nama, jabatan: '', email: e }); renderExtList();
   document.getElementById('extEmail').value = '';
-  document.getElementById('extName').focus();
+  if (sel) sel.value = '';
 }
 function removeExt(email) { extList = extList.filter(r => r.email !== email); renderExtList(); }
 function renderExtList() {
@@ -1603,6 +1635,38 @@ document.addEventListener('click', e => {
     if (w && !w.contains(e.target)) document.getElementById(id+'Dropdown')?.classList.remove('open');
   });
 });
+
+// ── INIT JENIS DEFAULT ──
+<% if (jenisDefault === 'eksternal') { %>
+setJenis('eksternal');
+<% } %>
+
+// ── PERUSAHAAN PICKER ──
+let _perusahaanData = [];
+async function loadPerusahaan() {
+  try {
+    const r = await fetch('/perusahaan-list');
+    _perusahaanData = await r.json();
+    const sel = document.getElementById('perusahaanPicker');
+    if (!sel) return;
+    _perusahaanData.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p._id;
+      o.textContent = (p.singkatan ? p.singkatan + ' — ' : '') + p.nama;
+      sel.appendChild(o);
+    });
+  } catch(e) {}
+}
+loadPerusahaan();
+
+function onPerusahaanPick(id) {
+  if (!id) { document.getElementById('extEmail').value = ''; return; }
+  const p = _perusahaanData.find(x => x._id === id);
+  if (!p) return;
+  // Langsung isi email utama perusahaan
+  document.getElementById('extEmail').value = p.email || '';
+}
+function onKontakPick() {}
 </script>
 
 <%- include('./partials/footer') %>

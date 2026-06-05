@@ -1,0 +1,146 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Dokumen Arsip</div>
+    <h1 class="page-title">Dokumen Arsip</h1>
+    <p class="page-subtitle">Manajemen arsip dokumen fisik dan digital organisasi</p>
+  </div>
+  <div class="page-header-actions">
+    <button onclick="toggleForm()" class="btn btn-primary">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Tambah Arsip
+    </button>
+  </div>
+</div>
+
+<!-- FORM TAMBAH (tersembunyi) -->
+<div id="arsipFormWrap" style="display:none;background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:24px;margin-bottom:20px;">
+  <div style="font-size:13px;font-weight:700;color:var(--gray-700);margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--gray-100);">Tambah Dokumen Arsip</div>
+  <form method="POST" action="/arsip" enctype="multipart/form-data">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Nomor Arsip <span style="color:var(--gray-400);font-weight:400;">(opsional)</span></label>
+        <input type="text" name="nomorArsip" class="form-control" placeholder="Nomor dokumen arsip">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Kategori</label>
+        <select name="kategori" class="form-control form-select">
+          <% ARSIP_KATEGORI.forEach(k => { %><option value="<%= k %>"><%= k %></option><% }) %>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Tanggal Dokumen</label>
+        <input type="date" name="tanggal" class="form-control" value="<%= new Date().toISOString().slice(0,10) %>" required>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Judul / Perihal <span style="color:red;">*</span></label>
+      <input type="text" name="judul" class="form-control" placeholder="Judul dokumen arsip" required>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Sumber / Asal Dokumen</label>
+        <input type="text" name="sumber" class="form-control" placeholder="Instansi atau pihak pengirim">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">File Lampiran <span style="color:var(--gray-400);font-weight:400;">(maks 10MB)</span></label>
+        <input type="file" name="lampiran" class="form-control" style="padding:5px;">
+      </div>
+    </div>
+    <div style="margin-bottom:18px;">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;">Keterangan</label>
+      <textarea name="keterangan" class="form-control" rows="2" placeholder="Catatan tambahan..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button type="button" onclick="toggleForm()" class="btn btn-secondary">Batal</button>
+      <button type="submit" class="btn btn-primary">Simpan Arsip</button>
+    </div>
+  </form>
+</div>
+
+<!-- FILTER + LIST -->
+<div style="background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--gray-100);">
+    <span style="font-size:13px;font-weight:600;color:var(--gray-700);"><%= total %> dokumen arsip</span>
+    <form method="GET" action="/arsip" style="display:flex;gap:8px;">
+      <input type="text" name="q" value="<%= q %>" class="form-control" style="width:220px;padding:6px 12px;font-size:13px;" placeholder="Cari judul / nomor...">
+      <select name="kategori" class="form-control form-select" style="width:150px;padding:6px;font-size:13px;" onchange="this.form.submit()">
+        <option value="">Semua kategori</option>
+        <% ARSIP_KATEGORI.forEach(k => { %><option value="<%= k %>" <%= kategori === k ? 'selected' : '' %>><%= k %></option><% }) %>
+      </select>
+      <button type="submit" class="btn btn-secondary" style="padding:6px 14px;font-size:13px;">Cari</button>
+      <% if (q || kategori) { %><a href="/arsip" class="btn btn-ghost" style="padding:6px 12px;font-size:13px;">Reset</a><% } %>
+    </form>
+  </div>
+
+  <% if (list.length === 0) { %>
+  <div class="empty-state">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="6" width="36" height="40" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M14 16h20M14 24h16M14 32h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <p>Belum ada dokumen arsip<%= q ? ' dengan kata kunci "' + q + '"' : '' %>.</p>
+  </div>
+  <% } else { %>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--gray-200);background:var(--gray-50);">
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;width:36px;">No.</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Nomor Arsip</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Judul</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Kategori</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Sumber</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Tanggal</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Lampiran</th>
+          <th style="padding:10px 14px;text-align:center;color:var(--gray-600);font-weight:600;width:60px;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+      <% list.forEach((d, i) => { %>
+      <tr style="border-bottom:1px solid var(--gray-100);" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+        <td style="padding:10px 14px;color:var(--gray-400);"><%= i+1 %></td>
+        <td style="padding:10px 14px;font-family:monospace;font-weight:600;color:var(--brand-700);font-size:12px;"><%= d.nomorArsip || '—' %></td>
+        <td style="padding:10px 14px;max-width:260px;">
+          <div style="font-weight:500;color:var(--gray-800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= d.judul %></div>
+          <% if (d.keterangan) { %><div style="font-size:11.5px;color:var(--gray-400);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= d.keterangan %></div><% } %>
+        </td>
+        <td style="padding:10px 14px;">
+          <span style="font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:4px;background:#f0fdf4;color:#15803d;"><%= d.kategori %></span>
+        </td>
+        <td style="padding:10px 14px;color:var(--gray-500);"><%= d.sumber || '—' %></td>
+        <td style="padding:10px 14px;color:var(--gray-500);white-space:nowrap;"><%= formatDate(d.tanggal) %></td>
+        <td style="padding:10px 14px;">
+          <% if (d.lampiran) { %>
+          <a href="<%= d.lampiran %>" target="_blank" style="font-size:12px;color:var(--brand-600);text-decoration:none;display:flex;align-items:center;gap:4px;">
+            <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M4 4h8l4 4v10H4V4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 4v4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <%= d.lampiranNama || 'Lihat' %>
+          </a>
+          <% } else { %>—<% } %>
+        </td>
+        <td style="padding:10px 14px;text-align:center;">
+          <button onclick="hapusArsip('<%= d._id %>')" style="background:none;border:none;cursor:pointer;color:var(--gray-400);padding:4px;" title="Hapus">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 6h12M8 6V4h4v2M7 6v10h6V6H7z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </td>
+      </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<script>
+function toggleForm() {
+  const w = document.getElementById('arsipFormWrap');
+  w.style.display = w.style.display === 'none' ? 'block' : 'none';
+}
+async function hapusArsip(id) {
+  if (!confirm('Hapus arsip ini?')) return;
+  const r = await fetch('/arsip/' + id, { method: 'DELETE' });
+  const j = await r.json();
+  if (j.ok) location.reload();
+  else alert(j.message || 'Gagal menghapus.');
+}
+</script>
+
+<%- include('./partials/footer') %>

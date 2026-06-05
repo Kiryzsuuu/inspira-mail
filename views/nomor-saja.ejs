@@ -1,0 +1,130 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Generate Nomor Surat</div>
+    <h1 class="page-title">Generate Nomor Surat</h1>
+    <p class="page-subtitle">Buat nomor surat resmi tanpa isi dokumen — hanya nomor, perihal, dan tanggal</p>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:start;">
+
+  <!-- FORM GENERATE -->
+  <div style="background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:24px;">
+    <div style="font-size:13px;font-weight:700;color:var(--gray-700);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--gray-100);">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="vertical-align:-2px;margin-right:6px;"><path d="M10 2l6 2.5V10c0 4-6 8-6 8S4 14 4 10V4.5L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      Buat Nomor Baru
+    </div>
+    <form method="POST" action="/nomor-saja">
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;">Jenis Dokumen</label>
+        <select name="tipeSurat" class="form-control form-select" required>
+          <% ALL_TIPE_SURAT.forEach(t => { %>
+          <option value="<%= t %>" <%= tipe === t ? 'selected' : '' %>><%= t %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;">Perihal</label>
+        <input type="text" name="perihal" class="form-control" placeholder="Perihal surat..." maxlength="200">
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;">Tanggal Surat</label>
+        <input type="date" name="tanggal" class="form-control" value="<%= new Date().toISOString().slice(0,10) %>" required>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;">Kode Direktorat</label>
+          <select name="kodeDir" class="form-control form-select">
+            <% allowedKodeDir.forEach(k => { %><option value="<%= k %>"><%= k %></option><% }) %>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;">Jenis</label>
+          <select name="jenis" class="form-control form-select">
+            <option value="internal">Internal</option>
+            <option value="eksternal">Eksternal</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Generate Nomor
+      </button>
+    </form>
+  </div>
+
+  <!-- LIST -->
+  <div>
+    <div style="background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--gray-100);">
+        <span style="font-size:13px;font-weight:600;color:var(--gray-700);"><%= list.length %> nomor di-generate</span>
+        <form method="GET" action="/nomor-saja" style="display:flex;gap:8px;">
+          <input type="text" name="q" value="<%= q %>" class="form-control" style="width:200px;padding:6px 12px;font-size:13px;" placeholder="Cari nomor / perihal...">
+          <select name="tipe" class="form-control form-select" style="width:140px;padding:6px;font-size:13px;" onchange="this.form.submit()">
+            <option value="">Semua jenis</option>
+            <% ALL_TIPE_SURAT.forEach(t => { %><option value="<%= t %>" <%= tipe === t ? 'selected' : '' %>><%= t %></option><% }) %>
+          </select>
+          <button type="submit" class="btn btn-secondary" style="padding:6px 14px;font-size:13px;">Cari</button>
+        </form>
+      </div>
+
+      <% if (list.length === 0) { %>
+      <div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 48 48" fill="none"><rect x="8" y="8" width="32" height="36" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M16 18h16M16 26h10M16 34h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <p>Belum ada nomor yang di-generate.</p>
+      </div>
+      <% } else { %>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--gray-200);background:var(--gray-50);">
+              <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;width:36px;">No.</th>
+              <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Nomor Surat</th>
+              <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Jenis</th>
+              <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Perihal</th>
+              <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Tanggal</th>
+              <th style="padding:10px 14px;text-align:center;color:var(--gray-600);font-weight:600;width:60px;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% list.forEach((d, i) => { %>
+          <tr style="border-bottom:1px solid var(--gray-100);" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+            <td style="padding:10px 14px;color:var(--gray-400);"><%= i+1 %></td>
+            <td style="padding:10px 14px;font-family:monospace;font-weight:700;color:var(--brand-700);font-size:12.5px;"><%= d.nomorSurat %></td>
+            <td style="padding:10px 14px;">
+              <span style="font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:4px;background:#eff6ff;color:#1d4ed8;"><%= d.tipeSurat %></span>
+            </td>
+            <td style="padding:10px 14px;color:var(--gray-700);max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= d.perihal %></td>
+            <td style="padding:10px 14px;color:var(--gray-500);white-space:nowrap;"><%= formatDate(d.tanggal) %></td>
+            <td style="padding:10px 14px;text-align:center;">
+              <button onclick="hapusNomor('<%= d._id %>')" style="background:none;border:none;cursor:pointer;color:var(--gray-400);padding:4px;" title="Hapus">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 6h12M8 6V4h4v2M7 6v10h6V6H7z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </td>
+          </tr>
+          <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+async function hapusNomor(id) {
+  if (!confirm('Hapus nomor ini?')) return;
+  const r = await fetch('/nomor-saja/' + id, { method: 'DELETE' });
+  const j = await r.json();
+  if (j.ok) location.reload();
+  else alert(j.message || 'Gagal menghapus.');
+}
+</script>
+
+<%- include('./partials/footer') %>
