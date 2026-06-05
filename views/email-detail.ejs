@@ -1,7 +1,7 @@
 <%- include('./partials/header') %>
 
 <%
-const tagClass = { Penting:'tag-penting', Urgent:'tag-urgent', Info:'tag-info', Normal:'tag-normal' };
+const tagClass = { Biasa:'tag-normal', Penting:'tag-penting', Segera:'tag-info', Mendesak:'tag-urgent', Normal:'tag-normal', Urgent:'tag-urgent', Info:'tag-info' };
 const sifatColor = { 'Biasa/Terbuka':'var(--green-600)','Rahasia':'#9333ea','Terbatas':'var(--amber-600)','Segera':'var(--red-600)' };
 const sifatBg    = { 'Biasa/Terbuka':'var(--green-50)','Rahasia':'#faf5ff','Terbatas':'var(--amber-50)','Segera':'var(--red-50)' };
 const roleLabel  = { admin:'Administrator', direktur:'Direktur', user:'Pengguna' };
@@ -75,11 +75,37 @@ const roleLabel  = { admin:'Administrator', direktur:'Direktur', user:'Pengguna'
         <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:20px 24px;font-size:14px;line-height:1.8;color:var(--gray-700);min-height:120px;">
           <%- email.body || '<em style="color:var(--gray-400);">Tidak ada isi surat.</em>' %>
         </div>
-        <% if (email.lampiran) { %>
-        <div style="margin-top:12px;padding:10px 14px;background:#f8faff;border:1px solid #dbeafe;border-radius:8px;display:flex;align-items:center;gap:10px;">
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M13 2H5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7l-4-5z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 2v5h5" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <div style="flex:1;font-size:13px;"><strong>Lampiran:</strong> <%= email.lampiranNama || 'File terlampir' %></div>
-          <a href="<%= email.lampiran %>" target="_blank" class="btn btn-secondary" style="padding:4px 12px;font-size:12px;">Unduh</a>
+        <% if (email.lampiran) {
+          const lamExt = (email.lampiranNama || email.lampiran).split('.').pop().toLowerCase();
+          const isImg  = ['jpg','jpeg','png','gif','webp'].includes(lamExt);
+          const isPdf  = lamExt === 'pdf';
+        %>
+        <div style="margin-top:12px;border:1px solid #dbeafe;border-radius:8px;overflow:hidden;">
+          <!-- Header bar -->
+          <div style="padding:10px 14px;background:#f8faff;display:flex;align-items:center;gap:10px;">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M13 2H5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7l-4-5z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 2v5h5" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <div style="flex:1;font-size:13px;color:var(--gray-700);"><strong>Lampiran:</strong> <%= email.lampiranNama || 'File terlampir' %></div>
+            <a href="<%= email.lampiran %>" target="_blank" class="btn btn-secondary" style="padding:4px 12px;font-size:12px;">
+              <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 3v10M5 9l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 17h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Unduh
+            </a>
+            <a href="<%= email.lampiran %>" target="_blank" class="btn btn-primary" style="padding:4px 12px;font-size:12px;">
+              <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M3 10s2-5 7-5 7 5 7 5-2 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+              Lihat
+            </a>
+          </div>
+          <!-- Preview inline -->
+          <% if (isImg) { %>
+          <div style="padding:12px;background:#fff;text-align:center;">
+            <img src="<%= email.lampiran %>" alt="<%= email.lampiranNama %>"
+              style="max-width:100%;max-height:500px;border-radius:6px;object-fit:contain;cursor:pointer;"
+              onclick="window.open(this.src,'_blank')">
+          </div>
+          <% } else if (isPdf) { %>
+          <div style="background:#fff;">
+            <iframe src="<%= email.lampiran %>" style="width:100%;height:480px;border:none;" title="<%= email.lampiranNama %>"></iframe>
+          </div>
+          <% } %>
         </div>
         <% } %>
       </div>

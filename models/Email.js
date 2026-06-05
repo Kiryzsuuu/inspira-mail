@@ -18,7 +18,7 @@ const emailSchema = new mongoose.Schema({
   toExternal:  [externalSchema],
   subject:     { type: String, required: true },
   body:        { type: String, default: '' },
-  tag:         { type: String, enum: ['Urgent','Penting','Info','Normal','Draft'], default: 'Normal' },
+  tag:         { type: String, enum: ['Biasa','Penting','Segera','Mendesak','Draft'], default: 'Biasa' },
   berkas:      { type: String, default: '' },
   nomorSurat:  { type: String, default: '' },
   kodeDiv:     { type: String, default: 'OPS' },

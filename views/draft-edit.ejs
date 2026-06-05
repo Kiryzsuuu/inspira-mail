@@ -130,10 +130,10 @@
           <label class="form-label">Tag / Prioritas</label>
           <div class="select-wrap">
             <select name="tag" class="form-control form-select">
-              <option value="Normal"  <%= email.tag==='Normal'?'selected':'' %>>Normal</option>
-              <option value="Penting" <%= email.tag==='Penting'?'selected':'' %>>Penting</option>
-              <option value="Urgent"  <%= email.tag==='Urgent'?'selected':'' %>>Urgent</option>
-              <option value="Info"    <%= email.tag==='Info'?'selected':'' %>>Info</option>
+              <option value="Biasa"    <%= (email.tag==='Biasa'||email.tag==='Normal')?'selected':'' %>>Biasa</option>
+              <option value="Penting"  <%= email.tag==='Penting'?'selected':'' %>>Penting</option>
+              <option value="Segera"   <%= (email.tag==='Segera'||email.tag==='Info')?'selected':'' %>>Segera</option>
+              <option value="Mendesak" <%= (email.tag==='Mendesak'||email.tag==='Urgent')?'selected':'' %>>Mendesak</option>
             </select>
           </div>
         </div>

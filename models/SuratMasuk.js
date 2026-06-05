@@ -6,7 +6,7 @@ const suratMasukSchema = new mongoose.Schema({
   perihal:       { type: String, required: true, trim: true },
   tanggalSurat:  { type: Date },
   tanggalTerima: { type: Date, required: true },
-  klasifikasi:   { type: String, enum: ['Urgent','Penting','Normal','Info'], default: 'Normal' },
+  klasifikasi:   { type: String, enum: ['Biasa','Penting','Segera','Mendesak'], default: 'Biasa' },
   catatan:       { type: String, trim: true, default: '' },
 
   // Uploaded scan stored locally

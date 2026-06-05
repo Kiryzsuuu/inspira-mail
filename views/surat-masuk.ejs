@@ -1,4 +1,12 @@
 <%- include('./partials/header') %>
+<style>
+.dok-table { width:100%; border-collapse:collapse; font-size:13px; }
+.dok-table th { padding:10px 14px; text-align:left; font-size:11.5px; font-weight:600; color:var(--gray-500); background:var(--gray-50); border-bottom:1px solid var(--gray-200); text-transform:uppercase; letter-spacing:.4px; }
+.dok-table td { padding:11px 14px; border-bottom:1px solid var(--gray-100); color:var(--gray-700); vertical-align:middle; }
+.dok-table tr:last-child td { border-bottom:none; }
+.dok-table tbody tr:hover { background:var(--gray-50); }
+tr.unread td { background:#fafbff; }
+</style>
 
 <div class="page-header">
   <div class="page-title-group">
@@ -85,7 +93,7 @@
             <div class="filter-section-label">Klasifikasi</div>
             <div class="filter-chips">
               <button type="button" class="filter-chip <%= !filter.klasifikasi ? 'active':'' %>" onclick="setHidden('hKlasifikasi','')">Semua</button>
-              <% ['Urgent','Penting','Normal','Info'].forEach(k => { %>
+              <% ['Biasa','Penting','Segera','Mendesak'].forEach(k => { %>
               <button type="button" class="filter-chip <%= filter.klasifikasi===k ? 'active':'' %>" onclick="setHidden('hKlasifikasi','<%= k %>')"><%= k %></button>
               <% }) %>
             </div>
@@ -152,38 +160,55 @@
     <p>Belum ada surat masuk yang dicatat.</p>
     <button class="btn btn-primary" style="margin-top:12px;" onclick="openModal()">Catat Surat Pertama</button>
   </div>
-  <% } %>
-
+  <% } else { %>
   <%
-  const tagClass = { Urgent:'tag-urgent', Penting:'tag-penting', Normal:'tag-normal', Info:'tag-info' };
+  const tagClass = { Biasa:'tag-normal', Penting:'tag-penting', Segera:'tag-info', Mendesak:'tag-urgent', Normal:'tag-normal', Urgent:'tag-urgent', Info:'tag-info' };
   const stClass  = { baru:'sm-baru', dibaca:'sm-dibaca', ditindaklanjuti:'sm-tindak', selesai:'sm-selesai' };
   const stLabel  = { baru:'Baru', dibaca:'Dibaca', ditindaklanjuti:'Ditindaklanjuti', selesai:'Selesai' };
   %>
-
-  <% surats.forEach(function(s) {
-    const inisial = s.dariInstansi.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-  %>
-  <a href="/surat-masuk/<%= s._id %>" class="mail-item <%= s.status === 'baru' ? 'unread' : '' %>"
-     data-tag="<%= s.klasifikasi.toLowerCase() %>" data-read="<%= s.status !== 'baru' %>">
-    <div class="mail-avatar av-blue"><%= inisial %></div>
-    <div class="mail-body">
-      <div class="mail-from"><%= s.dariInstansi %></div>
-      <div class="mail-subject"><%= s.perihal %></div>
-      <div class="mail-berkas">
-        <% if (s.nomorSurat) { %>No. <%= s.nomorSurat %> &nbsp;&bull;&nbsp;<% } %>
-        Diterima: <%= formatDate(s.tanggalTerima) %>
-        <% if (s.file) { %>&nbsp;&bull;&nbsp;
-          <svg width="11" height="11" viewBox="0 0 20 20" fill="none"><path d="M13 2H5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7l-4-5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 2v5h5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-          Ada lampiran
-        <% } %>
-      </div>
-    </div>
-    <div class="mail-meta">
-      <span class="mail-tag <%= tagClass[s.klasifikasi] || 'tag-normal' %>"><%= s.klasifikasi %></span>
-      <span class="sm-status-badge <%= stClass[s.status] %>"><%= stLabel[s.status] %></span>
-    </div>
-  </a>
-  <% }) %>
+  <div class="admin-table-wrap" style="overflow-x:auto;">
+    <table class="dok-table">
+      <thead>
+        <tr>
+          <th style="width:100px;">Klasifikasi</th>
+          <th style="width:170px;">Nomor Surat</th>
+          <th>Perihal / Subjek</th>
+          <th style="width:160px;">Dari Instansi</th>
+          <th style="width:110px;">Tgl Terima</th>
+          <th style="width:120px;">Status</th>
+          <th style="width:50px;text-align:center;">Lamp.</th>
+        </tr>
+      </thead>
+      <tbody>
+      <% surats.forEach(function(s) { %>
+      <tr class="mail-item <%= s.status==='baru'?'unread':'' %>"
+          data-tag="<%= s.klasifikasi.toLowerCase() %>"
+          data-read="<%= s.status!=='baru' %>"
+          data-search="<%= (s.perihal+' '+s.dariInstansi+' '+(s.nomorSurat||'')).toLowerCase() %>"
+          onclick="window.location='/surat-masuk/<%= s._id %>'"
+          style="cursor:pointer;">
+        <td><span class="mail-tag <%= tagClass[s.klasifikasi]||'tag-normal' %>" style="font-size:11px;"><%= s.klasifikasi %></span></td>
+        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;">
+          <%= s.nomorSurat || '—' %>
+          <% if(s.status==='baru'){%><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--brand-500);margin-left:5px;vertical-align:middle;"></span><%}%>
+        </td>
+        <td>
+          <div style="font-weight:<%= s.status==='baru'?'600':'400' %>;color:var(--gray-900);"><%= s.perihal %></div>
+        </td>
+        <td style="color:var(--gray-600);font-size:12.5px;"><%= s.dariInstansi %></td>
+        <td style="font-size:12.5px;color:var(--gray-500);white-space:nowrap;"><%= formatDate(s.tanggalTerima) %></td>
+        <td><span class="sm-status-badge <%= stClass[s.status] %>"><%= stLabel[s.status] %></span></td>
+        <td style="text-align:center;">
+          <% if(s.file){%>
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="color:var(--brand-500);"><path d="M13 2H5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7l-4-5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <%}%>
+        </td>
+      </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
 </div>
 
 <!-- Modal: Catat Surat Masuk -->
@@ -222,10 +247,10 @@
           <label class="form-label">Klasifikasi</label>
           <div class="select-wrap">
             <select name="klasifikasi" class="form-control form-select">
-              <option value="Normal">Normal</option>
+              <option value="Biasa">Biasa</option>
               <option value="Penting">Penting</option>
-              <option value="Urgent">Urgent</option>
-              <option value="Info">Info</option>
+              <option value="Segera">Segera</option>
+              <option value="Mendesak">Mendesak</option>
             </select>
           </div>
         </div>

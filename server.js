@@ -393,9 +393,11 @@ app.get('/inbox', requireAuth, async (req, res) => {
       subject: m.subject,
       date: formatDate(m.createdAt),
       dateISO: m.createdAt ? new Date(m.createdAt).toISOString().slice(0,10) : '',
-      tag: m.tag,
+      tag: m.tag || 'Biasa',
       berkas: m.berkas,
       jenis: m.jenis || 'internal',
+      nomorSurat: m.nomorSurat || '-',
+      tipeSurat: m.tipeSurat || 'Surat',
       read: m.readBy.some(id => id.toString() === req.user._id.toString())
     }));
 
@@ -422,9 +424,11 @@ app.get('/sent', requireAuth, async (req, res) => {
       subject: m.subject,
       date: formatDate(m.createdAt),
       dateISO: m.createdAt ? new Date(m.createdAt).toISOString().slice(0,10) : '',
-      tag: m.tag,
+      tag: m.tag || 'Biasa',
       berkas: m.berkas,
-      jenis: m.jenis || 'internal'
+      jenis: m.jenis || 'internal',
+      nomorSurat: m.nomorSurat || '-',
+      tipeSurat: m.tipeSurat || 'Surat'
     }));
 
     res.render('sent', { mails: formatted, active: 'sent', title: 'Terkirim', ...counts });
@@ -972,18 +976,22 @@ app.get('/email/:id', requireAuth, async (req, res) => {
   try {
     const email = await Email.findById(req.params.id);
     if (!email) return res.redirect('/inbox');
-    const isSender   = email.from.userId?.toString() === req.user._id.toString();
-    const isReceiver = email.to.some(t => t.userId?.toString() === req.user._id.toString())
-                    || email.cc.some(t => t.userId?.toString() === req.user._id.toString());
-    if (!isSender && !isReceiver) return res.redirect('/inbox');
+    const uid        = req.user._id.toString();
+    const isSender   = email.from.userId?.toString() === uid;
+    const isReceiver = email.to.some(t => t.userId?.toString() === uid)
+                    || email.cc.some(t => t.userId?.toString() === uid);
+    const isPrivileged = ['admin','direktur'].includes(req.user.role);
+    // Cek disposisi — user yang menerima disposisi juga boleh akses
+    const docSigCheck = await DocumentSignature.findOne({ emailId: email._id });
+    const isDisposisi  = docSigCheck?.signers.some(s => s.userId?.toString() === uid);
+    if (!isSender && !isReceiver && !isPrivileged && !isDisposisi) return res.redirect('/inbox');
     if (isReceiver && !email.readBy.map(String).includes(String(req.user._id))) {
       await Email.findByIdAndUpdate(email._id, { $addToSet: { readBy: req.user._id } });
     }
-    const docSig = await DocumentSignature.findOne({ emailId: email._id });
     const counts = await getMailCounts(req.user._id);
     res.render('email-detail', {
       title: email.subject, active: isSender ? 'sent' : 'inbox',
-      email, docSig: docSig || { signers: [] },
+      email, docSig: docSigCheck || { signers: [] },
       isSender, currentUser: req.user,
       formatDate, formatDateTime, ...counts
     });

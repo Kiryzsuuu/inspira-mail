@@ -47,8 +47,9 @@
             <div class="filter-chips">
               <button class="filter-chip active" data-group="tag" data-val="all" onclick="pickChip(this)">Semua</button>
               <button class="filter-chip" data-group="tag" data-val="penting" onclick="pickChip(this)">Penting</button>
-              <button class="filter-chip" data-group="tag" data-val="urgent" onclick="pickChip(this)">Urgent</button>
-              <button class="filter-chip" data-group="tag" data-val="normal" onclick="pickChip(this)">Normal</button>
+              <button class="filter-chip" data-group="tag" data-val="segera" onclick="pickChip(this)">Segera</button>
+              <button class="filter-chip" data-group="tag" data-val="mendesak" onclick="pickChip(this)">Mendesak</button>
+              <button class="filter-chip" data-group="tag" data-val="biasa" onclick="pickChip(this)">Biasa</button>
             </div>
           </div>
           <div class="filter-section">
@@ -91,7 +92,7 @@
 
   <% sentMails.forEach(function(m, i) {
     const initials = m.fromName.split(' ').slice(0,2).map(w => w && w[0] ? w[0] : '').join('').toUpperCase() || 'SU';
-    const tagClass = { Penting: 'tag-penting', Urgent: 'tag-urgent', Info: 'tag-info', Normal: 'tag-normal' }[m.tag] || 'tag-normal';
+    const tagClass = { Biasa:'tag-normal', Penting:'tag-penting', Segera:'tag-info', Mendesak:'tag-urgent', Normal:'tag-normal', Urgent:'tag-urgent', Info:'tag-info' }[m.tag] || 'tag-normal';
     const avColors = ['av-green','av-teal','av-blue','av-amber','av-purple'];
     const avColor = avColors[i % avColors.length];
   %>
@@ -107,7 +108,7 @@
     </div>
     <div class="mail-meta">
       <span class="mail-date"><%= m.date %></span>
-      <span class="mail-tag <%= tagClass %>"><%= m.tag || 'Normal' %></span>
+      <span class="mail-tag <%= tagClass %>"><%= m.tag || 'Biasa' %></span>
     </div>
   </div>
   <% }); %>

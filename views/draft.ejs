@@ -43,8 +43,9 @@
             <div class="filter-chips">
               <button class="filter-chip active" data-group="tag" data-val="all" onclick="pickChip(this)">Semua</button>
               <button class="filter-chip" data-group="tag" data-val="penting" onclick="pickChip(this)">Penting</button>
-              <button class="filter-chip" data-group="tag" data-val="urgent" onclick="pickChip(this)">Urgent</button>
-              <button class="filter-chip" data-group="tag" data-val="normal" onclick="pickChip(this)">Normal</button>
+              <button class="filter-chip" data-group="tag" data-val="segera" onclick="pickChip(this)">Segera</button>
+              <button class="filter-chip" data-group="tag" data-val="mendesak" onclick="pickChip(this)">Mendesak</button>
+              <button class="filter-chip" data-group="tag" data-val="biasa" onclick="pickChip(this)">Biasa</button>
             </div>
           </div>
           <div class="filter-section">
@@ -119,7 +120,7 @@
   </div>
   <% } %>
 
-  <% const tagClass = { Penting:'tag-penting', Urgent:'tag-urgent', Info:'tag-info', Normal:'tag-normal' };
+  <% const tagClass = { Biasa:'tag-normal', Penting:'tag-penting', Segera:'tag-info', Mendesak:'tag-urgent', Normal:'tag-normal', Urgent:'tag-urgent', Info:'tag-info' };
      const avColors = ['av-teal','av-blue','av-green','av-purple','av-amber'];
   %>
   <% mails.forEach(function(m, i) {
@@ -154,7 +155,7 @@
     <!-- Meta + actions -->
     <div class="mail-meta" style="gap:8px;">
       <span class="mail-date"><%= formatDate(m.createdAt) %></span>
-      <% if (m.tag && m.tag !== 'Normal') { %><span class="mail-tag <%= tagClass[m.tag] || 'tag-normal' %>"><%= m.tag %></span><% } %>
+      <% if (m.tag && m.tag !== 'Biasa' && m.tag !== 'Normal') { %><span class="mail-tag <%= tagClass[m.tag] || 'tag-normal' %>"><%= m.tag %></span><% } %>
       <span class="mail-tag tag-draft">Draf</span>
       <% if (m.jenis === 'eksternal') { %><span class="mail-tag" style="background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;">Eksternal</span><% } %>
       <!-- Action buttons -->

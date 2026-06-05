@@ -1,4 +1,16 @@
 <%- include('./partials/header') %>
+<style>
+.dok-table { width:100%; border-collapse:collapse; font-size:13px; }
+.dok-table th { padding:10px 14px; text-align:left; font-size:11.5px; font-weight:600; color:var(--gray-500); background:var(--gray-50); border-bottom:1px solid var(--gray-200); text-transform:uppercase; letter-spacing:.4px; }
+.dok-table td { padding:11px 14px; border-bottom:1px solid var(--gray-100); color:var(--gray-700); vertical-align:middle; }
+.dok-table tr:last-child td { border-bottom:none; }
+.dok-table tbody tr:hover { background:var(--gray-50); }
+.dok-tipe-badge { font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; white-space:nowrap; }
+.tipe-nota { background:#f0fdf4; color:#15803d; }
+.tipe-surat { background:#eff6ff; color:#1d4ed8; }
+.tipe-lain { background:var(--gray-100); color:var(--gray-600); }
+tr.unread td { background:#fafbff; }
+</style>
 
 <div class="page-header">
   <div class="page-title-group">
@@ -31,7 +43,7 @@
     <div class="stat-icon red">
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 3a7 7 0 100 14A7 7 0 0010 3z" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v4M10 7h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     </div>
-    <div><div class="stat-label">Urgent</div><div class="stat-value"><%= mails.filter(m => m.tag === 'Urgent').length %></div></div>
+    <div><div class="stat-label">Mendesak</div><div class="stat-value"><%= mails.filter(m => m.tag === 'Mendesak' || m.tag === 'Urgent').length %></div></div>
   </div>
   <div class="stat-card">
     <div class="stat-icon blue">
@@ -66,8 +78,9 @@
             <div class="filter-chips">
               <button class="filter-chip active" data-group="tag" data-val="all" onclick="pickChip(this)">Semua</button>
               <button class="filter-chip" data-group="tag" data-val="penting" onclick="pickChip(this)">Penting</button>
-              <button class="filter-chip" data-group="tag" data-val="urgent" onclick="pickChip(this)">Urgent</button>
-              <button class="filter-chip" data-group="tag" data-val="normal" onclick="pickChip(this)">Normal</button>
+              <button class="filter-chip" data-group="tag" data-val="segera" onclick="pickChip(this)">Segera</button>
+              <button class="filter-chip" data-group="tag" data-val="mendesak" onclick="pickChip(this)">Mendesak</button>
+              <button class="filter-chip" data-group="tag" data-val="biasa" onclick="pickChip(this)">Biasa</button>
             </div>
           </div>
           <div class="filter-section">
@@ -109,29 +122,65 @@
     </div>
   </div>
 
-  <% mails.forEach(function(m) {
-    var initials = m.from.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase();
-    var tagClass = { Penting: 'tag-penting', Urgent: 'tag-urgent', Info: 'tag-info', Normal: 'tag-normal', Draft: 'tag-draft' }[m.tag] || 'tag-normal';
-    var avatarColors = ['av-green','av-teal','av-blue','av-amber','av-purple'];
-    var avColor = avatarColors[m.id % avatarColors.length];
-  %>
-  <a href="/email/<%= m.id %>" class="mail-item <%= m.read ? '' : 'unread' %>"
-     data-tag="<%= m.tag.toLowerCase() %>" data-read="<%= m.read %>"
-     data-jenis="<%= (m.jenis || 'internal').toLowerCase() %>"
-     data-date="<%= m.dateISO || '' %>"
-     data-search="<%= (m.subject + ' ' + m.from).toLowerCase() %>">
-    <div class="mail-avatar <%= avColor %>"><%= initials %></div>
-    <div class="mail-body">
-      <div class="mail-from"><%= m.from %></div>
-      <div class="mail-subject"><%= m.subject %></div>
-      <div class="mail-berkas"><%= m.berkas %></div>
-    </div>
-    <div class="mail-meta">
-      <span class="mail-date"><%= m.date %></span>
-      <span class="mail-tag <%= tagClass %>"><%= m.tag %></span>
-    </div>
-  </a>
-  <% }); %>
+  <% if (mails.length === 0) { %>
+  <div class="empty-state">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M6 10h36a2 2 0 012 2v24a2 2 0 01-2 2H6a2 2 0 01-2-2V12a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5"/><path d="M4 14l20 14L44 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <p>Kotak masuk kosong.</p>
+  </div>
+  <% } else { %>
+  <div class="admin-table-wrap" style="overflow-x:auto;">
+    <table class="dok-table">
+      <thead>
+        <tr>
+          <th style="width:100px;">Jenis</th>
+          <th style="width:190px;">Nomor Surat</th>
+          <th>Perihal / Subjek</th>
+          <th style="width:150px;">Dari</th>
+          <th style="width:90px;">Prioritas</th>
+          <th style="width:90px;">Status</th>
+          <th style="width:110px;">Tanggal</th>
+        </tr>
+      </thead>
+      <tbody>
+      <% const tagCls = { Biasa:'tag-normal', Penting:'tag-penting', Segera:'tag-info', Mendesak:'tag-urgent', Normal:'tag-normal', Urgent:'tag-urgent', Info:'tag-info' }; %>
+      <% mails.forEach(function(m) { %>
+      <tr class="mail-item <%= m.read ? '' : 'unread' %>"
+          data-tag="<%= (m.tag||'biasa').toLowerCase() %>"
+          data-read="<%= m.read %>"
+          data-jenis="<%= (m.jenis||'internal').toLowerCase() %>"
+          data-date="<%= m.dateISO||'' %>"
+          data-search="<%= (m.subject+' '+m.from+' '+(m.nomorSurat||'')).toLowerCase() %>"
+          onclick="window.location='/email/<%= m._id %>'"
+          style="cursor:pointer;">
+        <td>
+          <span class="dok-tipe-badge <%= m.tipeSurat==='Nota Dinas'?'tipe-nota':m.tipeSurat==='Surat Dinas'?'tipe-surat':'tipe-lain' %>">
+            <%= m.tipeSurat %>
+          </span>
+        </td>
+        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;">
+          <%= m.nomorSurat %>
+          <% if (!m.read) { %><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--brand-500);margin-left:5px;vertical-align:middle;"></span><% } %>
+        </td>
+        <td>
+          <div style="font-weight:<%= m.read?'400':'600' %>;color:var(--gray-900);"><%= m.subject %></div>
+          <% if (m.berkas) { %><div style="font-size:11.5px;color:var(--gray-400);margin-top:2px;"><%= m.berkas %></div><% } %>
+        </td>
+        <td style="color:var(--gray-600);font-size:13px;"><%= m.from %></td>
+        <td><span class="mail-tag <%= tagCls[m.tag]||'tag-normal' %>" style="font-size:11px;"><%= m.tag||'Biasa' %></span></td>
+        <td>
+          <% if (m.read) { %>
+          <span style="font-size:11px;font-weight:600;color:var(--green-600);">Dibaca</span>
+          <% } else { %>
+          <span style="font-size:11px;font-weight:600;color:var(--brand-600);">Baru</span>
+          <% } %>
+        </td>
+        <td style="font-size:12.5px;color:var(--gray-500);white-space:nowrap;"><%= m.date %></td>
+      </tr>
+      <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
 </div>
 
 <script>
