@@ -2251,7 +2251,7 @@ app.get('/compose/eksternal', requireAuth, requireDirektur, async (req, res) => 
 
 // ── GENERATE NOMOR SAJA ──
 
-const ALL_TIPE_SURAT = ['Nota Dinas','Surat Dinas','Surat','MoU','MoA','Contract','IA','PKS','SPK'];
+const ALL_TIPE_SURAT = ['Surat','MoU','MoA','Contract','IA','PKS','SPK'];
 
 app.get('/nomor-saja', requireAuth, requireDirektur, async (req, res) => {
   try {
@@ -2300,14 +2300,17 @@ app.post('/nomor-saja', requireAuth, requireDirektur, async (req, res) => {
   } catch (err) { console.error(err); res.redirect('/nomor-saja'); }
 });
 
-app.delete('/nomor-saja/:id', requireAuth, requireDirektur, async (req, res) => {
+app.delete('/nomor-saja/:id', requireAuth, async (req, res) => {
   try {
+    if (req.user.role !== 'superadmin') return res.json({ ok: false, message: 'Hanya superadmin yang dapat menghapus.' });
     const doc = await NomorSaja.findById(req.params.id);
-    if (!doc) return res.json({ ok: false });
-    if (!['admin','superadmin'].includes(req.user.role) && String(doc.createdBy.userId) !== String(req.user._id)) {
-      return res.json({ ok: false, message: 'Tidak diizinkan.' });
+    if (!doc) return res.json({ ok: false, message: 'Data tidak ditemukan.' });
+    const { konfirmasi } = req.body;
+    if (!konfirmasi || konfirmasi.trim() !== (doc.nomorSurat || '').trim()) {
+      return res.json({ ok: false, message: 'Nomor surat tidak cocok. Hapus dibatalkan.' });
     }
     await NomorSaja.findByIdAndDelete(req.params.id);
+    await log(req, 'nomor_delete', 'surat', `Nomor ${doc.nomorSurat} dihapus oleh ${req.user.name}`, { nomorSurat: doc.nomorSurat });
     res.json({ ok: true });
   } catch { res.json({ ok: false }); }
 });
@@ -2372,18 +2375,22 @@ app.post('/arsip', requireAuth, requireDirektur, arsipUpload.single('lampiran'),
   } catch (err) { console.error(err); res.redirect('/arsip'); }
 });
 
-app.delete('/arsip/:id', requireAuth, requireDirektur, async (req, res) => {
+app.delete('/arsip/:id', requireAuth, async (req, res) => {
   try {
+    if (req.user.role !== 'superadmin') return res.json({ ok: false, message: 'Hanya superadmin yang dapat menghapus.' });
     const doc = await Arsip.findById(req.params.id);
-    if (!doc) return res.json({ ok: false });
-    if (!['admin','superadmin','direktur'].includes(req.user.role) && String(doc.createdBy.userId) !== String(req.user._id)) {
-      return res.json({ ok: false, message: 'Tidak diizinkan.' });
+    if (!doc) return res.json({ ok: false, message: 'Data tidak ditemukan.' });
+    const { konfirmasi } = req.body;
+    const identifier = (doc.nomorArsip || doc.judul || '').trim();
+    if (!konfirmasi || konfirmasi.trim() !== identifier) {
+      return res.json({ ok: false, message: 'Nomor/judul tidak cocok. Hapus dibatalkan.' });
     }
     if (doc.lampiran) {
       const fp = path.join(__dirname, doc.lampiran);
       if (fs.existsSync(fp)) fs.unlinkSync(fp);
     }
     await Arsip.findByIdAndDelete(req.params.id);
+    await log(req, 'arsip_delete', 'arsip', `Arsip "${doc.judul}" dihapus oleh ${req.user.name}`);
     res.json({ ok: true });
   } catch { res.json({ ok: false }); }
 });
