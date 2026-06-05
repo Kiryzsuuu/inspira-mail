@@ -57,26 +57,25 @@
   </div>
   <% } else { %>
   <div style="overflow-x:auto;">
-    <table class="dok-table" id="mailTable" style="width:100%;">
+    <table class="dok-table" id="mailTable">
       <thead>
         <tr>
-          <th style="width:110px;">Jenis</th>
-          <th style="width:170px;">Nomor Surat</th>
+          <th style="width:120px;">Jenis</th>
+          <th style="width:190px;">Nomor Surat</th>
           <th>Perihal / Subjek</th>
-          <th style="width:150px;">Penerima</th>
-          <th style="width:85px;">Prioritas</th>
+          <th style="width:140px;">Penerima</th>
+          <th style="width:90px;">Prioritas</th>
           <th style="width:100px;">Tanggal</th>
         </tr>
       </thead>
       <tbody>
       <% const tagCls = { Biasa:'tag-normal', Penting:'tag-penting', Segera:'tag-info', Mendesak:'tag-urgent', Normal:'tag-normal', Urgent:'tag-urgent', Info:'tag-info' };
-         const TIPE_KHUSUS_S = ['MoU','MoA','Contract','IA','PKS','SPK'];
          function tipeCls(t) {
            if(t==='Nota Dinas') return 'tipe-nota';
            if(t==='Surat Dinas') return 'tipe-surat';
-           if(t==='MoU'||t==='MoA') return 'tipe-mou';
-           if(t==='Contract'||t==='IA') return 'tipe-contract';
-           if(t==='PKS'||t==='SPK') return 'tipe-pks';
+           if(['MoU','MoA'].includes(t)) return 'tipe-mou';
+           if(['Contract','IA'].includes(t)) return 'tipe-contract';
+           if(['PKS','SPK'].includes(t)) return 'tipe-pks';
            return 'tipe-lain';
          }
       %>
@@ -89,11 +88,11 @@
           onclick="window.location='/email/<%= m._id %>'"
           style="cursor:pointer;">
         <td><span class="dok-tipe-badge <%= tipeCls(m.tipeSurat) %>"><%= m.tipeSurat||'—' %></span></td>
-        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;"><%= m.nomorSurat||'—' %></td>
-        <td><div style="font-weight:500;color:var(--gray-900);max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= m.subject %></div></td>
-        <td style="color:var(--gray-600);font-size:12.5px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= m.to %>"><%= m.to %></td>
+        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;white-space:nowrap;"><%= m.nomorSurat||'—' %></td>
+        <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;"><%= m.subject %></td>
+        <td style="font-size:12px;color:var(--gray-500);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= m.to||'—' %></td>
         <td><span class="mail-tag <%= tagCls[m.tag]||'tag-normal' %>" style="font-size:11px;"><%= m.tag||'Biasa' %></span></td>
-        <td style="font-size:12.5px;color:var(--gray-500);white-space:nowrap;"><%= m.date %></td>
+        <td style="font-size:12px;color:var(--gray-400);white-space:nowrap;"><%= m.date %></td>
       </tr>
       <% }); %>
       </tbody>
