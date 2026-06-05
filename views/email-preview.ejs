@@ -1043,7 +1043,8 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
     </div>
   </div>
 
-  <!-- Right panel -->
+  <!-- Right panel: hanya tampil jika draft atau co-signer pending -->
+  <% if (email.status === 'draft' || isPendingCosigner) { %>
   <div class="pdf-panel">
     <%
       const mySig = docSig.signers.find(s => s.userId.toString() === currentUser._id.toString());
@@ -1156,6 +1157,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
       </div>
     </div>
   </div>
+  <% } %>
 </div>
 
 <script src="/js/app.js"></script>

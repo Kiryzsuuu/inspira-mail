@@ -62,25 +62,16 @@
   </div>
   <% } else { %>
   <div style="overflow-x:auto;">
-    <table class="dok-table" id="mailTable" style="table-layout:fixed;">
-      <colgroup>
-        <col style="width:110px;">
-        <col style="width:185px;">
-        <col>
-        <col style="width:140px;">
-        <col style="width:80px;">
-        <col style="width:75px;">
-        <col style="width:105px;">
-      </colgroup>
+    <table class="dok-table" id="mailTable" style="width:100%;">
       <thead>
         <tr>
-          <th>Jenis</th>
-          <th>Nomor Surat</th>
+          <th style="width:110px;">Jenis</th>
+          <th style="width:170px;">Nomor Surat</th>
           <th>Perihal / Subjek</th>
-          <th>Dari</th>
-          <th>Prioritas</th>
-          <th>Status</th>
-          <th>Tanggal</th>
+          <th style="width:140px;">Dari</th>
+          <th style="width:85px;">Prioritas</th>
+          <th style="width:75px;">Status</th>
+          <th style="width:100px;">Tanggal</th>
         </tr>
       </thead>
       <tbody>
@@ -94,15 +85,13 @@
           data-search="<%= (m.subject+' '+m.from+' '+(m.nomorSurat||'')).toLowerCase() %>"
           onclick="window.location='/email/<%= m._id %>'"
           style="cursor:pointer;">
-        <td style="white-space:nowrap;overflow:hidden;"><span class="dok-tipe-badge <%= m.tipeSurat==='Nota Dinas'?'tipe-nota':m.tipeSurat==='Surat Dinas'?'tipe-surat':'tipe-lain' %>" style="overflow:hidden;text-overflow:ellipsis;max-width:100px;display:inline-block;"><%= m.tipeSurat||'—' %></span></td>
-        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-          <% if (!m.read) { %><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--brand-500);margin-right:5px;vertical-align:middle;flex-shrink:0;"></span><% } %><%= m.nomorSurat||'—' %>
+        <td><span class="dok-tipe-badge <%= m.tipeSurat==='Nota Dinas'?'tipe-nota':m.tipeSurat==='Surat Dinas'?'tipe-surat':'tipe-lain' %>"><%= m.tipeSurat||'—' %></span></td>
+        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;">
+          <% if (!m.read) { %><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--brand-500);margin-right:5px;vertical-align:middle;"></span><% } %><%= m.nomorSurat||'—' %>
         </td>
-        <td style="overflow:hidden;">
-          <div style="font-weight:<%= m.read?'400':'600' %>;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= m.subject %></div>
-        </td>
-        <td style="color:var(--gray-600);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= m.from %></td>
-        <td><span class="mail-tag <%= tagCls[m.tag]||'tag-normal' %>" style="font-size:11px;white-space:nowrap;"><%= m.tag||'Biasa' %></span></td>
+        <td><div style="font-weight:<%= m.read?'400':'600' %>;color:var(--gray-900);max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= m.subject %></div></td>
+        <td style="color:var(--gray-600);font-size:12.5px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= m.from %></td>
+        <td><span class="mail-tag <%= tagCls[m.tag]||'tag-normal' %>" style="font-size:11px;"><%= m.tag||'Biasa' %></span></td>
         <td>
           <% if (m.read) { %>
           <span style="font-size:11px;font-weight:600;color:var(--green-600);">Dibaca</span>

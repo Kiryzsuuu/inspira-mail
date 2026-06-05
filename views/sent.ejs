@@ -57,23 +57,15 @@
   </div>
   <% } else { %>
   <div style="overflow-x:auto;">
-    <table class="dok-table" id="mailTable" style="table-layout:fixed;">
-      <colgroup>
-        <col style="width:110px;">
-        <col style="width:185px;">
-        <col>
-        <col style="width:150px;">
-        <col style="width:85px;">
-        <col style="width:105px;">
-      </colgroup>
+    <table class="dok-table" id="mailTable" style="width:100%;">
       <thead>
         <tr>
-          <th>Jenis</th>
-          <th>Nomor Surat</th>
+          <th style="width:110px;">Jenis</th>
+          <th style="width:170px;">Nomor Surat</th>
           <th>Perihal / Subjek</th>
-          <th>Penerima</th>
-          <th>Prioritas</th>
-          <th>Tanggal</th>
+          <th style="width:150px;">Penerima</th>
+          <th style="width:85px;">Prioritas</th>
+          <th style="width:100px;">Tanggal</th>
         </tr>
       </thead>
       <tbody>
@@ -96,13 +88,11 @@
           data-search="<%= (m.subject+' '+(m.to||'')+' '+(m.nomorSurat||'')).toLowerCase() %>"
           onclick="window.location='/email/<%= m._id %>'"
           style="cursor:pointer;">
-        <td style="white-space:nowrap;overflow:hidden;"><span class="dok-tipe-badge <%= tipeCls(m.tipeSurat) %>" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;display:inline-block;"><%= m.tipeSurat %></span></td>
-        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= m.nomorSurat||'—' %></td>
-        <td style="overflow:hidden;">
-          <div style="font-weight:500;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= m.subject %></div>
-        </td>
-        <td style="color:var(--gray-600);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="<%= m.to %>"><%= m.to %></td>
-        <td><span class="mail-tag <%= tagCls[m.tag]||'tag-normal' %>" style="font-size:11px;white-space:nowrap;"><%= m.tag||'Biasa' %></span></td>
+        <td><span class="dok-tipe-badge <%= tipeCls(m.tipeSurat) %>"><%= m.tipeSurat||'—' %></span></td>
+        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;"><%= m.nomorSurat||'—' %></td>
+        <td><div style="font-weight:500;color:var(--gray-900);max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= m.subject %></div></td>
+        <td style="color:var(--gray-600);font-size:12.5px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= m.to %>"><%= m.to %></td>
+        <td><span class="mail-tag <%= tagCls[m.tag]||'tag-normal' %>" style="font-size:11px;"><%= m.tag||'Biasa' %></span></td>
         <td style="font-size:12.5px;color:var(--gray-500);white-space:nowrap;"><%= m.date %></td>
       </tr>
       <% }); %>
