@@ -148,7 +148,7 @@ function requireAuth(req, res, next) {
 }
 
 // Role hierarchy: superadmin > admin > direktur > user
-const ROLE_LEVEL = { superadmin: 4, admin: 3, direktur: 2, user: 1 };
+const ROLE_LEVEL = { superadmin: 4, admin: 3, direktur: 3, user: 1 };
 
 function requireRole(minRole) {
   return (req, res, next) => {
@@ -594,8 +594,7 @@ const KODE_DIR_MAP = {
 };
 // Hierarki akses kodeDir berdasarkan role & kodeDir user
 function getAllowedKodeDir(user) {
-  if (['admin','superadmin'].includes(user.role)) return ['KOM','DIR','PLAN','TECH','MP'];
-  if (user.role === 'direktur') return ['KOM','DIR'];
+  if (['admin','superadmin','direktur'].includes(user.role)) return ['KOM','DIR','PLAN','TECH','MP'];
   // role user: hanya kodeDir yang ditugaskan, fallback ke kode non-pimpinan
   return user.kodeDir ? [user.kodeDir] : ['PLAN','TECH','MP'];
 }
