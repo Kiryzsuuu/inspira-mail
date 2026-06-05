@@ -82,7 +82,7 @@
   <div class="page-title-group">
     <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / <a href="/compose">Manajemen Dokumen</a> / Buat Baru</div>
     <h1 class="page-title">Buat Dokumen Baru</h1>
-    <p class="page-subtitle">Nota Dinas, Surat Dinas<% if(user && (['superadmin','admin','direktur'].includes(user.role))){ %>, MoU, MoA, PKS, SPK, dan dokumen khusus lainnya<% } %></p>
+    <p class="page-subtitle">Nota Dinas, Surat Dinas<% if(user && (['superadmin','admin','direktur'].includes(user.role))){ %>, MoU, MoA, PKS, SPK, SK, dan dokumen khusus lainnya<% } %></p>
   </div>
 </div>
 
@@ -133,6 +133,7 @@
                 <option value="IA">IA (Implementation Agreement)</option>
                 <option value="PKS">PKS (Perjanjian Kerja Sama)</option>
                 <option value="SPK">SPK (Surat Perintah Kerja)</option>
+                <option value="SK">SK (Surat Keputusan)</option>
               </optgroup>
               <% } %>
             </select>
@@ -1243,7 +1244,7 @@ function onTipeChange(val) {
     // auto-suggest kodeDir sudah tidak diperlukan — user pilih manual
   }
   // Tampilkan form Pihak Kedua untuk dokumen khusus
-  const TIPE_KHUSUS_JS = ['MoU','MoA','Contract','IA','PKS','SPK'];
+  const TIPE_KHUSUS_JS = ['MoU','MoA','Contract','IA','PKS','SPK','SK'];
   const p2form = document.getElementById('sec-pihak-kedua-form');
   if (p2form) p2form.style.display = TIPE_KHUSUS_JS.includes(val) ? '' : 'none';
   // Update quill placeholder

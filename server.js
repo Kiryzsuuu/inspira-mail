@@ -607,7 +607,7 @@ function getAllowedSifat(user) {
   return ['Biasa/Terbuka','Segera'];
 }
 // Dokumen khusus → nomor pakai tipe langsung
-const TIPE_KHUSUS = ['MoU','MoA','Contract','IA','PKS','SPK'];
+const TIPE_KHUSUS = ['MoU','MoA','Contract','IA','PKS','SPK','SK'];
 
 const TIPE_COUNTER_KEY = {
   'Nota Dinas':  'NOTA',
@@ -616,6 +616,7 @@ const TIPE_COUNTER_KEY = {
   'MoU':         'MOU',
   'MoA':         'MOA',
   'Contract':    'CONTRACT',
+  'SK':          'SK',
   'IA':          'IA',
   'PKS':         'PKS',
   'SPK':         'SPK',
@@ -2251,7 +2252,7 @@ app.get('/compose/eksternal', requireAuth, requireDirektur, async (req, res) => 
 
 // ── GENERATE NOMOR SAJA ──
 
-const ALL_TIPE_SURAT = ['Surat','MoU','MoA','Contract','IA','PKS','SPK'];
+const ALL_TIPE_SURAT = ['MoU','MoA','Contract','IA','PKS','SPK','SK'];
 
 app.get('/nomor-saja', requireAuth, requireDirektur, async (req, res) => {
   try {
