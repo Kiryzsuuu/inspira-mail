@@ -235,6 +235,34 @@ body { font-family: var(--font); background: var(--gray-100); color: var(--gray-
 .mail-list-wrap { background: #fff; border: 1px solid var(--gray-150); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
 .mail-list-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--gray-100); }
 .mail-list-title { font-size: 13px; font-weight: 500; color: var(--gray-600); }
+
+/* ── DOK TABLE (shared: inbox, sent, surat-masuk, dokumen-overview) ── */
+.dok-tabs { display:flex; gap:0; border-bottom:2px solid var(--gray-100); overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
+.dok-tabs::-webkit-scrollbar { display:none; }
+.dok-tab { padding:12px 18px; font-size:13px; font-weight:500; color:var(--gray-500); cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent; margin-bottom:-2px; text-decoration:none; transition:color .15s; display:inline-flex; align-items:center; }
+.dok-tab:hover { color:var(--gray-700); }
+.dok-tab.active { color:var(--brand-600); border-bottom-color:var(--brand-600); font-weight:600; }
+.dok-tab .tab-count { display:inline-block; background:var(--gray-100); color:var(--gray-500); font-size:10.5px; font-weight:600; padding:1px 6px; border-radius:10px; margin-left:5px; }
+.dok-tab.active .tab-count { background:#dbeafe; color:#1d4ed8; }
+.dok-search { display:flex; gap:8px; padding:12px 16px; border-bottom:1px solid var(--gray-100); }
+.dok-search input { flex:1; }
+.dok-table { width:100%; border-collapse:collapse; font-size:13px; }
+.dok-table th { padding:10px 14px; text-align:left; font-size:11.5px; font-weight:600; color:var(--gray-500); background:var(--gray-50); border-bottom:1px solid var(--gray-200); text-transform:uppercase; letter-spacing:.4px; }
+.dok-table td { padding:11px 14px; border-bottom:1px solid var(--gray-100); color:var(--gray-700); vertical-align:middle; }
+.dok-table tr:last-child td { border-bottom:none; }
+.dok-table tbody tr { cursor:pointer; transition:background .1s; }
+.dok-table tbody tr:hover { background:var(--gray-50); }
+.dok-table tbody tr.unread td { background:#fafbff; }
+.dok-tipe-badge { font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; white-space:nowrap; }
+.tipe-nota { background:#f0fdf4; color:#15803d; }
+.tipe-surat { background:#eff6ff; color:#1d4ed8; }
+.tipe-mou,.tipe-moa { background:#fdf4ff; color:#7e22ce; }
+.tipe-contract,.tipe-ia { background:#fff7ed; color:#c2410c; }
+.tipe-pks,.tipe-spk { background:#fef3c7; color:#92400e; }
+.tipe-lain { background:var(--gray-100); color:var(--gray-600); }
+.dok-status { font-size:11px; font-weight:600; padding:2px 9px; border-radius:20px; display:inline-block; }
+.dok-status.draft { background:var(--gray-100); color:var(--gray-500); }
+.dok-status.sent { background:#dcfce7; color:#15803d; }
 .filter-tabs { display: flex; gap: 4px; }
 .filter-tab { padding: 5px 12px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 400; color: var(--gray-500); border: none; background: none; cursor: pointer; transition: all .15s; }
 .filter-tab.active, .filter-tab:hover { background: var(--brand-50); color: var(--brand-600); font-weight: 500; }

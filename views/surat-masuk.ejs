@@ -1,12 +1,4 @@
 <%- include('./partials/header') %>
-<style>
-.dok-table { width:100%; border-collapse:collapse; font-size:13px; }
-.dok-table th { padding:10px 14px; text-align:left; font-size:11.5px; font-weight:600; color:var(--gray-500); background:var(--gray-50); border-bottom:1px solid var(--gray-200); text-transform:uppercase; letter-spacing:.4px; }
-.dok-table td { padding:11px 14px; border-bottom:1px solid var(--gray-100); color:var(--gray-700); vertical-align:middle; }
-.dok-table tr:last-child td { border-bottom:none; }
-.dok-table tbody tr:hover { background:var(--gray-50); }
-tr.unread td { background:#fafbff; }
-</style>
 
 <div class="page-header">
   <div class="page-title-group">
@@ -59,99 +51,18 @@ tr.unread td { background:#fafbff; }
 
 <!-- List -->
 <div class="mail-list-wrap">
-  <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
-    <span class="mail-list-title"><%= surats.length %> surat tercatat</span>
-    <form method="GET" id="smForm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <input type="text" name="q" class="search-input" placeholder="Cari perihal, instansi, nomor..." value="<%= filter.q || '' %>" style="width:220px;padding:7px 12px;">
-      <!-- hidden date fields, diisi dari dropdown -->
-      <input type="hidden" name="klasifikasi" id="hKlasifikasi" value="<%= filter.klasifikasi || '' %>">
-      <input type="hidden" name="status"      id="hStatus"      value="<%= filter.status || '' %>">
-      <input type="hidden" name="dateFrom"    id="hDateFrom"    value="<%= filter.dateFrom || '' %>">
-      <input type="hidden" name="dateTo"      id="hDateTo"      value="<%= filter.dateTo || '' %>">
-      <input type="hidden" name="dateMonth"   id="hDateMonth"   value="<%= filter.dateMonth || '' %>">
-      <input type="hidden" name="dateYear"    id="hDateYear"    value="<%= filter.dateYear || '' %>">
-      <input type="hidden" name="sort"        id="hSort"        value="<%= filter.sort || 'newest' %>">
-      <input type="hidden" name="dateYear"    id="hDateYear"    value="<%= filter.dateYear || '' %>">
-
-      <% const hasFilter = filter.status || filter.klasifikasi || filter.q || filter.dateFrom || filter.dateTo || filter.dateMonth || filter.dateYear; %>
-      <div id="smActiveChips" class="filter-active-chips">
-        <% if (filter.klasifikasi) { %><div class="filter-active-chip"><%= filter.klasifikasi %><button type="button" onclick="clearField('hKlasifikasi','<%= filter.klasifikasi %>')">×</button></div><% } %>
-        <% if (filter.status) { %><div class="filter-active-chip"><%= filter.status.charAt(0).toUpperCase()+filter.status.slice(1) %><button type="button" onclick="clearField('hStatus','<%= filter.status %>')">×</button></div><% } %>
-        <% if (filter.dateFrom || filter.dateTo) { %><div class="filter-active-chip"><%= filter.dateFrom||'?' %> s/d <%= filter.dateTo||'?' %><button type="button" onclick="clearDate()">×</button></div><% } %>
-        <% if ((filter.dateMonth || filter.dateYear) && !filter.dateFrom && !filter.dateTo) { %><div class="filter-active-chip"><%= filter.dateMonth ? ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][parseInt(filter.dateMonth)]||'' : '' %> <%= filter.dateYear||'' %><button type="button" onclick="clearDate()">×</button></div><% } %>
-      </div>
-
-      <div class="filter-wrap">
-        <button type="button" class="filter-btn <%= hasFilter ? 'has-filter' : '' %>" id="filterBtn" onclick="toggleFilterDropdown()">
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-          Filter
-          <% let fc=0; if(filter.klasifikasi)fc++; if(filter.status)fc++; if(filter.dateFrom||filter.dateTo||filter.dateMonth||filter.dateYear)fc++; %>
-          <% if(fc>0){%><span class="filter-badge"><%=fc%></span><%}%>
-        </button>
-        <div class="filter-dropdown" id="filterDropdown">
-          <div class="filter-section">
-            <div class="filter-section-label">Klasifikasi</div>
-            <div class="filter-chips">
-              <button type="button" class="filter-chip <%= !filter.klasifikasi ? 'active':'' %>" onclick="setHidden('hKlasifikasi','')">Semua</button>
-              <% ['Biasa','Penting','Segera','Mendesak'].forEach(k => { %>
-              <button type="button" class="filter-chip <%= filter.klasifikasi===k ? 'active':'' %>" onclick="setHidden('hKlasifikasi','<%= k %>')"><%= k %></button>
-              <% }) %>
-            </div>
-          </div>
-          <div class="filter-section">
-            <div class="filter-section-label">Status</div>
-            <div class="filter-chips">
-              <button type="button" class="filter-chip <%= !filter.status ? 'active':'' %>" onclick="setHidden('hStatus','')">Semua</button>
-              <% ['baru','dibaca','ditindaklanjuti','selesai'].forEach(s => { %>
-              <button type="button" class="filter-chip <%= filter.status===s ? 'active':'' %>" onclick="setHidden('hStatus','<%= s %>')"><%= s.charAt(0).toUpperCase()+s.slice(1) %></button>
-              <% }) %>
-            </div>
-          </div>
-          <div class="filter-section">
-            <div class="filter-section-label">Tanggal</div>
-            <div class="filter-chips" style="margin-bottom:8px;">
-              <button type="button" class="filter-chip <%= (!filter.dateFrom&&!filter.dateTo&&!filter.dateMonth&&!filter.dateYear)?'active':'' %>" onclick="pickDateMode(this,'all')">Semua</button>
-              <button type="button" class="filter-chip <%= (filter.dateFrom||filter.dateTo)?'active':'' %>" onclick="pickDateMode(this,'range')">Rentang</button>
-              <button type="button" class="filter-chip <%= (filter.dateMonth||filter.dateYear)?'active':'' %>" onclick="pickDateMode(this,'month')">Bulan/Tahun</button>
-            </div>
-            <div id="smDateRange" style="display:<%= (filter.dateFrom||filter.dateTo)?'':'none' %>;">
-              <div class="filter-date-row">
-                <input type="date" id="inDateFrom" value="<%= filter.dateFrom||'' %>" oninput="document.getElementById('hDateFrom').value=this.value">
-                <span class="filter-date-sep">s/d</span>
-                <input type="date" id="inDateTo"   value="<%= filter.dateTo||'' %>"   oninput="document.getElementById('hDateTo').value=this.value">
-              </div>
-            </div>
-            <div id="smDateMonth" style="display:<%= (filter.dateMonth||filter.dateYear)?'':'none' %>;">
-              <div class="filter-date-row">
-                <select id="inDateMonth" onchange="document.getElementById('hDateMonth').value=this.value">
-                  <option value="">-- Bulan --</option>
-                  <% [['01','Januari'],['02','Februari'],['03','Maret'],['04','April'],['05','Mei'],['06','Juni'],['07','Juli'],['08','Agustus'],['09','September'],['10','Oktober'],['11','November'],['12','Desember']].forEach(([v,l]) => { %>
-                  <option value="<%= v %>" <%= filter.dateMonth===v?'selected':'' %>><%= l %></option>
-                  <% }) %>
-                </select>
-                <select id="inDateYear" onchange="document.getElementById('hDateYear').value=this.value">
-                  <option value="">-- Tahun --</option>
-                  <% for(let y=new Date().getFullYear();y>=2020;y--){ %>
-                  <option value="<%= y %>" <%= filter.dateYear==y?'selected':'' %>><%= y %></option>
-                  <% } %>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div class="filter-section">
-            <div class="filter-section-label">Urutan</div>
-            <div class="filter-chips">
-              <button type="button" class="filter-chip <%= (filter.sort||'newest')==='newest' ? 'active':'' %>" onclick="setHidden('hSort','newest');this.closest('.filter-chips').querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));this.classList.add('active')">Terbaru</button>
-              <button type="button" class="filter-chip <%= filter.sort==='oldest' ? 'active':'' %>" onclick="setHidden('hSort','oldest');this.closest('.filter-chips').querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));this.classList.add('active')">Terlama</button>
-            </div>
-          </div>
-          <div class="filter-actions">
-            <button type="button" class="btn btn-ghost" style="font-size:12.5px;padding:6px 14px;" onclick="window.location='/surat-masuk'">Reset</button>
-            <button type="submit" class="btn btn-primary" style="font-size:12.5px;padding:6px 14px;">Terapkan</button>
-          </div>
-        </div>
-      </div>
-    </form>
+  <!-- TABS -->
+  <div class="dok-tabs" style="padding:0 16px;">
+    <a href="#" class="dok-tab active" onclick="filterTab('all',this)">Semua <span class="tab-count"><%= surats.length %></span></a>
+    <a href="#" class="dok-tab" onclick="filterTab('baru',this)">Baru <span class="tab-count"><%= surats.filter(s=>s.status==='baru').length %></span></a>
+    <a href="#" class="dok-tab" onclick="filterTab('dibaca',this)">Dibaca <span class="tab-count"><%= surats.filter(s=>s.status==='dibaca').length %></span></a>
+    <a href="#" class="dok-tab" onclick="filterTab('ditindaklanjuti',this)">Ditindaklanjuti <span class="tab-count"><%= surats.filter(s=>s.status==='ditindaklanjuti').length %></span></a>
+    <a href="#" class="dok-tab" onclick="filterTab('selesai',this)">Selesai <span class="tab-count"><%= surats.filter(s=>s.status==='selesai').length %></span></a>
+  </div>
+  <!-- SEARCH -->
+  <div class="dok-search">
+    <input type="text" id="smSearchBox" class="form-control" style="font-size:13px;" placeholder="Cari perihal, instansi, nomor surat..." oninput="filterSearch()">
+    <a href="/surat-masuk" class="btn btn-ghost" style="padding:7px 12px;font-size:13px;">Reset</a>
   </div>
 
   <% if (surats.length === 0) { %>
@@ -166,8 +77,8 @@ tr.unread td { background:#fafbff; }
   const stClass  = { baru:'sm-baru', dibaca:'sm-dibaca', ditindaklanjuti:'sm-tindak', selesai:'sm-selesai' };
   const stLabel  = { baru:'Baru', dibaca:'Dibaca', ditindaklanjuti:'Ditindaklanjuti', selesai:'Selesai' };
   %>
-  <div class="admin-table-wrap" style="overflow-x:auto;">
-    <table class="dok-table">
+  <div style="overflow-x:auto;">
+    <table class="dok-table" id="smTable">
       <thead>
         <tr>
           <th style="width:100px;">Klasifikasi</th>
@@ -183,6 +94,7 @@ tr.unread td { background:#fafbff; }
       <% surats.forEach(function(s) { %>
       <tr class="mail-item <%= s.status==='baru'?'unread':'' %>"
           data-tag="<%= s.klasifikasi.toLowerCase() %>"
+          data-status="<%= s.status %>"
           data-read="<%= s.status!=='baru' %>"
           data-search="<%= (s.perihal+' '+s.dariInstansi+' '+(s.nomorSurat||'')).toLowerCase() %>"
           onclick="window.location='/surat-masuk/<%= s._id %>'"
@@ -282,35 +194,25 @@ tr.unread td { background:#fafbff; }
 </div>
 
 <script>
-// ── FILTER DROPDOWN (server-side form) ──
-function toggleFilterDropdown() {
-  document.getElementById('filterDropdown').classList.toggle('open');
+// ── FILTER TABS + SEARCH (client-side) ──
+let activeTab = 'all';
+function filterTab(tab, el) {
+  activeTab = tab;
+  document.querySelectorAll('.dok-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  filterSearch();
+  return false;
 }
-document.addEventListener('click', e => {
-  const wrap = document.querySelector('.filter-wrap');
-  if (wrap && !wrap.contains(e.target)) document.getElementById('filterDropdown')?.classList.remove('open');
-});
-function setHidden(id, val) {
-  document.getElementById(id).value = val;
-  document.getElementById(id).closest('form').querySelector('.filter-chip.active')?.classList.remove('active');
-  event.currentTarget.classList.add('active');
-}
-function pickDateMode(btn, mode) {
-  btn.closest('.filter-chips').querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('smDateRange').style.display  = mode === 'range' ? '' : 'none';
-  document.getElementById('smDateMonth').style.display  = mode === 'month' ? '' : 'none';
-  if (mode === 'all') {
-    ['hDateFrom','hDateTo','hDateMonth','hDateYear'].forEach(id => document.getElementById(id).value = '');
-  }
-}
-function clearField(id, val) {
-  document.getElementById(id).value = '';
-  document.getElementById('smForm').submit();
-}
-function clearDate() {
-  ['hDateFrom','hDateTo','hDateMonth','hDateYear'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('smForm').submit();
+function filterSearch() {
+  const q = (document.getElementById('smSearchBox').value || '').toLowerCase();
+  document.querySelectorAll('#smTable tbody tr').forEach(row => {
+    const search = (row.dataset.search || '');
+    const status = (row.dataset.status || '');
+    let show = true;
+    if (activeTab !== 'all') show = status === activeTab;
+    if (show && q) show = search.includes(q);
+    row.style.display = show ? '' : 'none';
+  });
 }
 
 function openModal() {

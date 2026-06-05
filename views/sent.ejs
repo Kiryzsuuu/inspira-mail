@@ -1,18 +1,4 @@
 <%- include('./partials/header') %>
-<style>
-.dok-table { width:100%; border-collapse:collapse; font-size:13px; }
-.dok-table th { padding:10px 14px; text-align:left; font-size:11.5px; font-weight:600; color:var(--gray-500); background:var(--gray-50); border-bottom:1px solid var(--gray-200); text-transform:uppercase; letter-spacing:.4px; }
-.dok-table td { padding:11px 14px; border-bottom:1px solid var(--gray-100); color:var(--gray-700); vertical-align:middle; }
-.dok-table tr:last-child td { border-bottom:none; }
-.dok-table tbody tr:hover { background:var(--gray-50); }
-.dok-tipe-badge { font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; white-space:nowrap; }
-.tipe-nota { background:#f0fdf4; color:#15803d; }
-.tipe-surat { background:#eff6ff; color:#1d4ed8; }
-.tipe-mou,.tipe-moa { background:#fdf4ff; color:#7e22ce; }
-.tipe-contract,.tipe-ia { background:#fff7ed; color:#c2410c; }
-.tipe-pks,.tipe-spk { background:#fef3c7; color:#92400e; }
-.tipe-lain { background:var(--gray-100); color:var(--gray-600); }
-</style>
 
 <div class="page-header">
   <div class="page-title-group">
@@ -50,65 +36,17 @@
 </div>
 
 <div class="mail-list-wrap">
-  <div class="mail-list-header" style="flex-wrap:wrap;gap:10px;">
-    <span class="mail-list-title" id="listCount"><%= mails.length %> surat terkirim</span>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <input type="text" id="searchBox" class="search-input" placeholder="Cari subjek, penerima..." style="width:220px;padding:7px 12px;" oninput="applyFilters()">
-      <div id="activeChips" class="filter-active-chips"></div>
-      <div class="filter-wrap">
-        <button class="filter-btn" id="filterBtn" onclick="toggleFilterDropdown()">
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-          Filter
-          <span class="filter-badge" id="filterBadge" style="display:none;">0</span>
-        </button>
-        <div class="filter-dropdown" id="filterDropdown">
-          <div class="filter-section">
-            <div class="filter-section-label">Prioritas</div>
-            <div class="filter-chips">
-              <button class="filter-chip active" data-group="tag" data-val="all" onclick="pickChip(this)">Semua</button>
-              <button class="filter-chip" data-group="tag" data-val="penting" onclick="pickChip(this)">Penting</button>
-              <button class="filter-chip" data-group="tag" data-val="segera" onclick="pickChip(this)">Segera</button>
-              <button class="filter-chip" data-group="tag" data-val="mendesak" onclick="pickChip(this)">Mendesak</button>
-              <button class="filter-chip" data-group="tag" data-val="biasa" onclick="pickChip(this)">Biasa</button>
-            </div>
-          </div>
-          <div class="filter-section">
-            <div class="filter-section-label">Tipe Surat</div>
-            <div class="filter-chips">
-              <button class="filter-chip active" data-group="jenis" data-val="all" onclick="pickChip(this)">Semua</button>
-              <button class="filter-chip" data-group="jenis" data-val="internal" onclick="pickChip(this)">Internal</button>
-              <button class="filter-chip" data-group="jenis" data-val="eksternal" onclick="pickChip(this)">Eksternal</button>
-            </div>
-          </div>
-          <div class="filter-section">
-            <div class="filter-section-label">Tanggal</div>
-            <div class="filter-chips" style="margin-bottom:8px;">
-              <button class="filter-chip active" data-group="datemode" data-val="all" onclick="pickChip(this);toggleDateMode('all')">Semua</button>
-              <button class="filter-chip" data-group="datemode" data-val="single" onclick="pickChip(this);toggleDateMode('single')">Tanggal</button>
-              <button class="filter-chip" data-group="datemode" data-val="range" onclick="pickChip(this);toggleDateMode('range')">Rentang</button>
-              <button class="filter-chip" data-group="datemode" data-val="month" onclick="pickChip(this);toggleDateMode('month')">Bulan/Tahun</button>
-            </div>
-            <div id="dateInputSingle" style="display:none;"><div class="filter-date-row"><input type="date" id="dateSingle" oninput="applyFilters()"></div></div>
-            <div id="dateInputRange" style="display:none;"><div class="filter-date-row"><input type="date" id="dateFrom" oninput="applyFilters()"><span class="filter-date-sep">s/d</span><input type="date" id="dateTo" oninput="applyFilters()"></div></div>
-            <div id="dateInputMonth" style="display:none;"><div class="filter-date-row">
-              <select id="dateMonth" onchange="applyFilters()"><option value="">-- Bulan --</option><option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option><option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option><option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option></select>
-              <select id="dateYear" onchange="applyFilters()"><option value="">-- Tahun --</option><% for(let y=new Date().getFullYear();y>=2020;y--){%><option value="<%=y%>"><%=y%></option><%}%></select>
-            </div></div>
-          </div>
-          <div class="filter-section">
-            <div class="filter-section-label">Urutan</div>
-            <div class="filter-chips">
-              <button class="filter-chip active" data-group="sort" data-val="newest" onclick="pickChip(this)">Terbaru</button>
-              <button class="filter-chip" data-group="sort" data-val="oldest" onclick="pickChip(this)">Terlama</button>
-            </div>
-          </div>
-          <div class="filter-actions">
-            <button class="btn btn-ghost" style="font-size:12.5px;padding:6px 14px;" onclick="resetAllFilters()">Reset</button>
-            <button class="btn btn-primary" style="font-size:12.5px;padding:6px 14px;" onclick="toggleFilterDropdown()">Tutup</button>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- TABS -->
+  <div class="dok-tabs" style="padding:0 16px;">
+    <a href="#" class="dok-tab active" onclick="filterTab('all',this)">Semua <span class="tab-count"><%= mails.length %></span></a>
+    <a href="#" class="dok-tab" onclick="filterTab('internal',this)">Internal <span class="tab-count"><%= mails.filter(m=>m.jenis==='internal').length %></span></a>
+    <a href="#" class="dok-tab" onclick="filterTab('eksternal',this)">Eksternal <span class="tab-count"><%= mails.filter(m=>m.jenis==='eksternal').length %></span></a>
+    <a href="#" class="dok-tab" onclick="filterTab('penting',this)">Penting <span class="tab-count"><%= mails.filter(m=>m.tag==='Penting').length %></span></a>
+    <a href="#" class="dok-tab" onclick="filterTab('mendesak',this)">Mendesak <span class="tab-count"><%= mails.filter(m=>m.tag==='Mendesak'||m.tag==='Urgent').length %></span></a>
+  </div>
+  <!-- SEARCH -->
+  <div class="dok-search">
+    <input type="text" id="searchBox" class="form-control" style="font-size:13px;" placeholder="Cari subjek, penerima, nomor surat..." oninput="filterSearch()">
   </div>
 
   <% if (mails.length === 0) { %>
@@ -118,8 +56,8 @@
     <a href="/compose/new" class="btn btn-primary" style="margin-top:12px;">Tulis Surat Pertama</a>
   </div>
   <% } else { %>
-  <div class="admin-table-wrap" style="overflow-x:auto;">
-    <table class="dok-table">
+  <div style="overflow-x:auto;">
+    <table class="dok-table" id="mailTable">
       <thead>
         <tr>
           <th style="width:100px;">Jenis</th>
@@ -168,8 +106,29 @@
 </div>
 
 <script>
-window._countSuffix = ' surat terkirim';
-<%- include('./partials/filter-script') %>
+let activeTab = 'all';
+function filterTab(tab, el) {
+  activeTab = tab;
+  document.querySelectorAll('.dok-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  filterSearch();
+  return false;
+}
+function filterSearch() {
+  const q = (document.getElementById('searchBox').value || '').toLowerCase();
+  document.querySelectorAll('#mailTable tbody tr').forEach(row => {
+    const search = (row.dataset.search || '');
+    const tag    = (row.dataset.tag || '');
+    const jenis  = (row.dataset.jenis || '');
+    let show = true;
+    if (activeTab === 'internal')  show = jenis === 'internal';
+    else if (activeTab === 'eksternal') show = jenis === 'eksternal';
+    else if (activeTab === 'penting')   show = tag === 'penting';
+    else if (activeTab === 'mendesak')  show = tag === 'mendesak';
+    if (show && q) show = search.includes(q);
+    row.style.display = show ? '' : 'none';
+  });
+}
 </script>
 
 <%- include('./partials/footer') %>
