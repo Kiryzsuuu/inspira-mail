@@ -43,7 +43,7 @@
 
 <%
   const TIPE_KHUSUS_OV = ['MoU','MoA','Contract','IA','PKS','SPK'];
-  const isPriv = user && (user.role==='admin'||user.role==='direktur');
+  const isPriv = user && (['superadmin','admin','direktur'].includes(user.role));
 
   // Count per tab dari docs (semua, sebelum filter tab)
   const allDocs = docs; // sudah difilter q dari server

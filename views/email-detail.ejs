@@ -26,7 +26,7 @@ const roleLabel  = { admin:'Administrator', direktur:'Direktur', user:'Pengguna'
     <span class="mail-tag <%= tagClass[email.tag] || 'tag-normal' %>" style="font-size:13px;padding:5px 14px;">
       <%= email.tag %>
     </span>
-    <% if (currentUser && currentUser.role === 'admin') { %>
+    <% if (currentUser && currentUser.role === 'superadmin') { %>
     <button class="btn btn-secondary" style="color:var(--red-500);" onclick="openAdminDelete()">
       <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M6 4h8M4 6h12M7 6v10h6V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Hapus (Admin)
@@ -35,7 +35,7 @@ const roleLabel  = { admin:'Administrator', direktur:'Direktur', user:'Pengguna'
   </div>
 </div>
 
-<% if (currentUser && currentUser.role === 'admin') { %>
+<% if (currentUser && currentUser.role === 'superadmin') { %>
 <!-- Modal Konfirmasi Delete Admin -->
 <div id="adminDeleteOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:12px;padding:28px 32px;width:460px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2);">
@@ -118,7 +118,8 @@ document.getElementById('adminDeleteOverlay').addEventListener('click', function
           const jabatanMap = {};
           users.forEach(function(u){ jabatanMap[u._id.toString()] = u.jabatan || ''; });
           function renderPerson(r) {
-            const jab = jabatanMap[r.userId ? r.userId.toString() : ''] || '';
+            const key = r.userId ? r.userId.toString() : '';
+            const jab = jabatanMap[key] || r.jabatan || '';
             return `<span style="font-weight:500;">${r.name}</span>${jab ? `<span style="color:var(--gray-400);font-size:12px;"> — ${jab}</span>` : ''}`;
           }
         %>

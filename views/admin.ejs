@@ -100,7 +100,7 @@
           <% users.forEach(function(u) {
             const initials = u.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
             const isCurrentUser = u._id.toString() === user._id.toString();
-            const roleLabel = { admin: 'Administrator', direktur: 'Direktur', user: 'Pengguna' }[u.role] || 'Pengguna';
+            const roleLabel = { superadmin: 'Super Admin', admin: 'Admin', direktur: 'Direktur', user: 'Pengguna' }[u.role] || 'Pengguna';
           %>
           <tr class="admin-user-row" data-name="<%= u.name.toLowerCase() %> <%= (u.enik||'').toLowerCase() %>" data-email="<%= u.email.toLowerCase() %>" data-role="<%= u.role %>">
             <td style="font-family:monospace;font-weight:600;font-size:13px;color:var(--brand-700);">
@@ -129,9 +129,10 @@
             <td>
               <% if (!isCurrentUser) { %>
               <select class="admin-role-select" onchange="changeRole('<%= u._id %>', this.value, this)">
-                <option value="user"     <%= u.role==='user'?'selected':'' %>>User</option>
-                <option value="direktur" <%= u.role==='direktur'?'selected':'' %>>Direktur / Komisaris</option>
-                <option value="admin"    <%= u.role==='admin'?'selected':'' %>>Super Admin</option>
+                <option value="user"       <%= u.role==='user'?'selected':'' %>>User</option>
+                <option value="direktur"   <%= u.role==='direktur'?'selected':'' %>>Direktur / Komisaris</option>
+                <option value="admin"      <%= u.role==='admin'?'selected':'' %>>Admin</option>
+                <option value="superadmin" <%= u.role==='superadmin'?'selected':'' %>>Super Admin</option>
               </select>
               <% } else { %>
               <span class="profile-badge profile-badge-<%= u.role %>"><%= roleLabel %></span>

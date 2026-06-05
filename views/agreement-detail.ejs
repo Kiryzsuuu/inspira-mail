@@ -3,7 +3,7 @@
 <%
 const statusColor = { draft:'tag-draft', review:'tag-penting', aktif:'tag-info', berakhir:'tag-normal', dibatalkan:'tag-urgent' };
 const typeColor   = { MOU:'ag-mou', PKS:'ag-pks', SPK:'ag-spk', KONTRAK:'ag-kontrak' };
-const canChangeStatus = (user.role === 'admin' || user.role === 'direktur' ||
+const canChangeStatus = (['superadmin','admin','direktur'].includes(user.role) ||
                          doc.createdBy.userId.toString() === user._id.toString());
 %>
 
@@ -17,7 +17,7 @@ const canChangeStatus = (user.role === 'admin' || user.role === 'direktur' ||
     <span class="mail-tag <%= statusColor[doc.status] || 'tag-normal' %>" style="font-size:13px;padding:5px 14px;">
       <%= doc.status.charAt(0).toUpperCase() + doc.status.slice(1) %>
     </span>
-    <% if (user.role === 'admin') { %>
+    <% if (user.role === 'superadmin') { %>
     <button class="btn btn-secondary" style="color:var(--red-500);" onclick="deleteDoc()">
       <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       Hapus

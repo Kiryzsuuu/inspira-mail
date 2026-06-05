@@ -134,8 +134,8 @@ function requireAuth(req, res, next) {
   next();
 }
 
-// Role hierarchy: admin > direktur > user
-const ROLE_LEVEL = { admin: 3, direktur: 2, user: 1 };
+// Role hierarchy: superadmin > admin > direktur > user
+const ROLE_LEVEL = { superadmin: 4, admin: 3, direktur: 2, user: 1 };
 
 function requireRole(minRole) {
   return (req, res, next) => {
@@ -146,8 +146,9 @@ function requireRole(minRole) {
   };
 }
 
-const requireAdmin = requireRole('admin');
-const requireDirektur = requireRole('direktur');
+const requireAdmin      = requireRole('admin');
+const requireSuperAdmin = requireRole('superadmin');
+const requireDirektur   = requireRole('direktur');
 
 // Multer for document attachment (PDF, Word, images — max 10MB)
 const lampiranUpload = multer({
@@ -579,14 +580,14 @@ const KODE_DIR_MAP = {
 };
 // Hierarki akses kodeDir berdasarkan role & kodeDir user
 function getAllowedKodeDir(user) {
-  if (user.role === 'admin') return ['KOM','DIR','PLAN','TECH','MP'];
+  if (['admin','superadmin'].includes(user.role)) return ['KOM','DIR','PLAN','TECH','MP'];
   if (user.role === 'direktur') return ['KOM','DIR'];
   // role user: hanya kodeDir yang ditugaskan, fallback ke kode non-pimpinan
   return user.kodeDir ? [user.kodeDir] : ['PLAN','TECH','MP'];
 }
 // Sifat surat yang diizinkan per role
 function getAllowedSifat(user) {
-  if (['admin','direktur'].includes(user.role)) return ['Biasa/Terbuka','Segera','Terbatas','Rahasia'];
+  if (['superadmin','admin','direktur'].includes(user.role)) return ['Biasa/Terbuka','Segera','Terbatas','Rahasia'];
   return ['Biasa/Terbuka','Segera'];
 }
 // Dokumen khusus → nomor pakai tipe langsung
@@ -662,7 +663,7 @@ app.post('/compose', requireAuth, lampiranUpload.single('lampiran'), async (req,
           tipeSurat, suratData, kodeDiv, kodeLay, sumberTemplate, pengirimResmi, kodeDir } = req.body;
   try {
     // Dokumen khusus hanya untuk direktur+admin
-    if (TIPE_KHUSUS.includes(tipeSurat) && !['admin','direktur'].includes(req.user.role)) {
+    if (TIPE_KHUSUS.includes(tipeSurat) && !['superadmin','admin','direktur'].includes(req.user.role)) {
       return res.redirect('/compose?error=access');
     }
     // Validasi kodeDir sesuai hierarki role
@@ -997,7 +998,7 @@ app.get('/email/:id', requireAuth, async (req, res) => {
     const isSender   = email.from.userId?.toString() === uid;
     const isReceiver = email.to.some(t => t.userId?.toString() === uid)
                     || email.cc.some(t => t.userId?.toString() === uid);
-    const isPrivileged = ['admin','direktur'].includes(req.user.role);
+    const isPrivileged = ['superadmin','admin','direktur'].includes(req.user.role);
     // Cek disposisi — user yang menerima disposisi juga boleh akses
     const docSigCheck = await DocumentSignature.findOne({ emailId: email._id });
     const isDisposisi  = docSigCheck?.signers.some(s => s.userId?.toString() === uid);
@@ -1047,7 +1048,7 @@ app.post('/email/:id/disposisi', requireAuth, async (req, res) => {
 });
 
 // Admin delete email — soft delete, simpan rekam jejak
-app.delete('/email/:id/admin-delete', requireAuth, requireAdmin, async (req, res) => {
+app.delete('/email/:id/admin-delete', requireAuth, requireSuperAdmin, async (req, res) => {
   try {
     const { konfirmasi } = req.body;
     const email = await Email.findById(req.params.id);
@@ -1350,7 +1351,7 @@ app.post('/admin/users/:id/toggle', requireAuth, requireAdmin, async (req, res) 
 app.post('/admin/users/:id/role', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { role } = req.body;
-    if (!['user', 'direktur', 'admin'].includes(role)) return res.json({ ok: false, message: 'Role tidak valid.' });
+    if (!['user', 'direktur', 'admin', 'superadmin'].includes(role)) return res.json({ ok: false, message: 'Role tidak valid.' });
     if (req.params.id === req.user._id.toString()) {
       return res.json({ ok: false, message: 'Tidak dapat mengubah role diri sendiri.' });
     }
@@ -1408,7 +1409,7 @@ app.post('/admin/users', requireAuth, requireAdmin, async (req, res) => {
     if (password.length < 8) return res.json({ ok: false, message: 'Kata sandi minimal 8 karakter.' });
     const exists = await User.findOne({ email: email.toLowerCase().trim() });
     if (exists) return res.json({ ok: false, message: 'Email sudah terdaftar.' });
-    if (!['user','direktur','admin'].includes(role)) return res.json({ ok: false, message: 'Role tidak valid.' });
+    if (!['user','direktur','admin','superadmin'].includes(role)) return res.json({ ok: false, message: 'Role tidak valid.' });
     const hashed = await bcrypt.hash(password, 12);
     const newUser = await User.create({
       name: name.trim(), email: email.toLowerCase().trim(), password: hashed,
@@ -1428,7 +1429,7 @@ app.post('/admin/users', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-app.delete('/admin/users/:id', requireAuth, requireAdmin, async (req, res) => {
+app.delete('/admin/users/:id', requireAuth, requireSuperAdmin, async (req, res) => {
   try {
     if (req.params.id === req.user._id.toString()) {
       return res.json({ ok: false, message: 'Tidak dapat menghapus diri sendiri.' });
@@ -1474,7 +1475,7 @@ app.post('/admin/counters/set', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-app.delete('/admin/counters/:key', requireAuth, requireAdmin, async (req, res) => {
+app.delete('/admin/counters/:key', requireAuth, requireSuperAdmin, async (req, res) => {
   try {
     const key = decodeURIComponent(req.params.key);
     await DocCounter.findOneAndDelete({ key });
@@ -1516,7 +1517,7 @@ app.put('/admin/direktorat/:id', requireAuth, requireAdmin, async (req, res) => 
   } catch (err) { res.json({ ok: false }); }
 });
 
-app.delete('/admin/direktorat/:id', requireAuth, requireAdmin, async (req, res) => {
+app.delete('/admin/direktorat/:id', requireAuth, requireSuperAdmin, async (req, res) => {
   try {
     await Direktorat.findByIdAndDelete(req.params.id);
     res.json({ ok: true });
@@ -1552,7 +1553,7 @@ app.put('/admin/jabatan/:id', requireAuth, requireAdmin, async (req, res) => {
   } catch (err) { res.json({ ok: false }); }
 });
 
-app.delete('/admin/jabatan/:id', requireAuth, requireAdmin, async (req, res) => {
+app.delete('/admin/jabatan/:id', requireAuth, requireSuperAdmin, async (req, res) => {
   try {
     await Jabatan.findByIdAndDelete(req.params.id);
     res.json({ ok: true });
@@ -1588,7 +1589,7 @@ app.put('/admin/organisasi/:id', requireAuth, requireAdmin, async (req, res) => 
   } catch (err) { res.json({ ok: false }); }
 });
 
-app.delete('/admin/organisasi/:id', requireAuth, requireAdmin, async (req, res) => {
+app.delete('/admin/organisasi/:id', requireAuth, requireSuperAdmin, async (req, res) => {
   try {
     await Organisasi.findByIdAndDelete(req.params.id);
     res.json({ ok: true });
@@ -2038,7 +2039,7 @@ app.post('/agreements/:id/status', requireAuth, requireDirektur, async (req, res
     if (!doc) return res.json({ ok: false, message: 'Dokumen tidak ditemukan.' });
 
     // Only direktur/admin can move to aktif
-    if (status === 'aktif' && !['direktur','admin'].includes(req.user.role)) {
+    if (status === 'aktif' && !['direktur','admin','superadmin'].includes(req.user.role)) {
       return res.json({ ok: false, message: 'Hanya Direktur / Admin yang dapat mengaktifkan dokumen.' });
     }
 
@@ -2057,7 +2058,7 @@ app.post('/agreements/:id/status', requireAuth, requireDirektur, async (req, res
   }
 });
 
-app.delete('/agreements/:id', requireAuth, requireAdmin, async (req, res) => {
+app.delete('/agreements/:id', requireAuth, requireSuperAdmin, async (req, res) => {
   try {
     await Agreement.findByIdAndDelete(req.params.id);
     res.json({ ok: true });
@@ -2244,7 +2245,7 @@ app.post('/surat-masuk/:id/disposisi', requireAuth, async (req, res) => {
   }
 });
 
-app.delete('/surat-masuk/:id', requireAuth, async (req, res) => {
+app.delete('/surat-masuk/:id', requireAuth, requireSuperAdmin, async (req, res) => {
   try {
     const surat = await SuratMasuk.findById(req.params.id);
     if (!surat) return res.json({ ok: false });

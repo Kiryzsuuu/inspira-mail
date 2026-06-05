@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   name:     { type: String, required: true, trim: true },
   email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
-  role:     { type: String, enum: ['user', 'direktur', 'admin'], default: 'user' },
+  role:     { type: String, enum: ['user', 'direktur', 'admin', 'superadmin'], default: 'user' },
   organization: { type: String, default: 'Inspira Tekno', trim: true },
   jabatan:  { type: String, trim: true },
   phone: { type: String, trim: true },
@@ -28,16 +28,20 @@ userSchema.methods.getInitials = function() {
 };
 
 userSchema.methods.getRoleLabel = function() {
-  const labels = { admin: 'Super Admin', direktur: 'Direktur / Komisaris', user: 'User' };
+  const labels = { superadmin: 'Super Admin', admin: 'Admin', direktur: 'Direktur / Komisaris', user: 'User' };
   return labels[this.role] || 'Pengguna';
 };
 
 userSchema.methods.canApprove = function() {
-  return ['admin', 'direktur'].includes(this.role);
+  return ['superadmin', 'admin', 'direktur'].includes(this.role);
 };
 
 userSchema.methods.isAdmin = function() {
-  return this.role === 'admin';
+  return ['admin', 'superadmin'].includes(this.role);
+};
+
+userSchema.methods.isSuperAdmin = function() {
+  return this.role === 'superadmin';
 };
 
 module.exports = mongoose.model('User', userSchema);
