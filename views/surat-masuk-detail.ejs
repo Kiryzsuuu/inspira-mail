@@ -339,58 +339,95 @@ const isPdf   = surat.file && surat.file.mimetype === 'application/pdf';
     </div>
 
     <!-- Disposisi -->
-    <div class="sm-panel-card">
-      <div class="sm-panel-title">Disposisi</div>
-      <div style="font-size:11.5px;color:#64748b;margin-bottom:10px;margin-top:-8px;">Teruskan ke</div>
-      <div id="disposisiUserList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;padding-right:2px;">
+    <div class="sm-panel-card" style="padding:0;overflow:hidden;">
+      <%
+        const savedDIds = (surat.disposisi||[]).map(d=>d.userId?.toString());
+        const smGrouped = {};
+        users.forEach(function(u) {
+          const k = u.kodeDir || '__lain__';
+          if (!smGrouped[k]) smGrouped[k] = [];
+          smGrouped[k].push(u);
+        });
+        const smDirMap = {};
+        direktorats.forEach(function(d){ smDirMap[d.kode] = d.nama; });
+
+        /* Tier ordering: KOM → DIR → divisi lainnya → __lain__ */
+        const TIER_KOM   = ['KOM'];
+        const TIER_DIR   = ['DIR'];
+        const TIER_DIV   = direktorats.map(d=>d.kode).filter(k=>k!=='KOM'&&k!=='DIR');
+        const allTierKeys = [...TIER_KOM,...TIER_DIR,...TIER_DIV,'__lain__'];
+        const smKeys = allTierKeys.filter(k => smGrouped[k]);
+
+        function getTierLabel(k) {
+          if (k==='KOM') return 'KOMISARIS';
+          if (k==='DIR') return 'JAJARAN DIREKSI';
+          if (TIER_DIV.includes(k)) return 'DIVISI';
+          return 'LAINNYA';
+        }
+      %>
+
+      <!-- Header panel -->
+      <div style="padding:14px 16px 10px;border-bottom:1px solid #e2e8f0;">
+        <div class="sm-panel-title" style="margin-bottom:2px;">Disposisi</div>
+        <div style="font-size:11.5px;color:#64748b;">Teruskan ke</div>
+      </div>
+
+      <!-- Scrollable list -->
+      <div id="disposisiUserList" style="overflow-y:auto;max-height:320px;">
         <%
-          const savedDIds = (surat.disposisi||[]).map(d=>d.userId?.toString());
-          const smGrouped = {};
-          users.forEach(function(u) {
-            const k = u.kodeDir || '__lain__';
-            if (!smGrouped[k]) smGrouped[k] = [];
-            smGrouped[k].push(u);
-          });
-          const smDirMap = {};
-          direktorats.forEach(function(d){ smDirMap[d.kode] = d.nama; });
-          const smKeys = [...direktorats.map(d=>d.kode), '__lain__'].filter(k => smGrouped[k]);
+          let lastTier = null;
+          smKeys.forEach(function(k) {
+            const thisTier = getTierLabel(k);
         %>
-        <% smKeys.forEach(function(k) { %>
-        <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#fff;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#f1f5f9;border-bottom:1px solid #e2e8f0;cursor:pointer;"
-               onclick="toggleSmGroup(this)">
-            <span style="font-size:11px;font-weight:700;color:#1a56a8;letter-spacing:.2px;">
-              <% if(k==='__lain__'){ %>Lainnya<% } else { %><%= k %> &mdash; <%= smDirMap[k]||k %><% } %>
-            </span>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <button type="button"
-                style="font-size:10.5px;background:#dbeafe;border:none;color:#1a56a8;cursor:pointer;padding:2px 8px;border-radius:4px;font-weight:500;line-height:1.6;"
-                onclick="event.stopPropagation();selectSmGroup(this)">Pilih semua</button>
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" class="sm-chevron" style="color:#94a3b8;"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <% if (thisTier !== lastTier) { lastTier = thisTier; %>
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 14px 4px;">
+            <span style="font-size:9.5px;font-weight:700;letter-spacing:.8px;color:#94a3b8;text-transform:uppercase;white-space:nowrap;"><%= thisTier %></span>
+            <div style="flex:1;height:1px;background:#e2e8f0;"></div>
+          </div>
+          <% } %>
+
+          <!-- Group: <%= k %> -->
+          <div style="margin:0 10px 6px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px 6px 0 0;cursor:pointer;border-bottom:none;"
+                 onclick="toggleSmGroup(this)">
+              <span style="font-size:10.5px;font-weight:700;color:#334155;">
+                <% if(k==='__lain__'){ %>Lainnya<% } else { %>
+                  <span style="color:#1a56a8;font-family:monospace;"><%= k %></span>
+                  <span style="color:#475569;font-weight:500;"> — <%= smDirMap[k]||k %></span>
+                <% } %>
+              </span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button type="button"
+                  style="font-size:10px;background:#eff6ff;border:1px solid #bfdbfe;color:#1a56a8;cursor:pointer;padding:1px 7px;border-radius:4px;font-weight:600;"
+                  onclick="event.stopPropagation();selectSmGroup(this)">Pilih semua</button>
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" class="sm-chevron" style="color:#94a3b8;transition:transform .2s;"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </div>
+            </div>
+            <div class="sm-group-members" style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 6px 6px;overflow:hidden;">
+              <% (smGrouped[k]||[]).forEach(function(u, ui) { %>
+              <label style="display:flex;align-items:center;gap:9px;padding:7px 10px;cursor:pointer;transition:background .1s;<%= ui>0?'border-top:1px solid #f1f5f9;':'' %>"
+                     onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                <input type="checkbox" value="<%= u._id %>" data-name="<%= u.name %>" data-jabatan="<%= u.jabatan||'' %>"
+                  style="accent-color:#1a56a8;width:14px;height:14px;flex-shrink:0;"
+                  <% if(savedDIds.includes(u._id?.toString())){ %>checked<% } %>>
+                <div style="min-width:0;flex:1;">
+                  <div style="font-size:12px;font-weight:500;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= u.name %></div>
+                  <% if(u.jabatan){ %><div style="font-size:10.5px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= u.jabatan %></div><% } %>
+                </div>
+              </label>
+              <% }) %>
             </div>
           </div>
-          <div class="sm-group-members" style="display:flex;flex-direction:column;gap:1px;padding:4px 6px;">
-            <% (smGrouped[k]||[]).forEach(function(u) { %>
-            <label style="display:flex;align-items:center;gap:9px;padding:6px 6px;border-radius:6px;cursor:pointer;transition:background .12s;"
-                   onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-              <input type="checkbox" value="<%= u._id %>" data-name="<%= u.name %>" data-jabatan="<%= u.jabatan||'' %>"
-                style="accent-color:#1a56a8;width:14px;height:14px;flex-shrink:0;"
-                <% if(savedDIds.includes(u._id?.toString())){ %>checked<% } %>>
-              <div style="min-width:0;">
-                <div style="font-size:12.5px;font-weight:500;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= u.name %></div>
-                <% if(u.jabatan){ %><div style="font-size:10.5px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= u.jabatan %></div><% } %>
-              </div>
-            </label>
-            <% }) %>
-          </div>
-        </div>
-        <% }) %>
+        <% }); %>
+        <div style="height:6px;"></div>
       </div>
-      <div style="margin-top:10px;">
-        <div class="sm-panel-title" style="margin-bottom:5px;">Instruksi / Catatan</div>
+
+      <!-- Catatan & tombol -->
+      <div style="padding:10px 14px 14px;border-top:1px solid #e2e8f0;">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:5px;">Instruksi / Catatan</div>
         <textarea id="disposisiCatatan" class="sm-textarea" placeholder="Instruksi / catatan..."><%= surat.disposisiCatatan||'' %></textarea>
+        <button class="sm-btn sm-btn-primary" style="margin-top:8px;" onclick="simpanDisposisi()">Simpan Disposisi</button>
       </div>
-      <button class="sm-btn sm-btn-primary" style="margin-top:10px;" onclick="simpanDisposisi()">Simpan Disposisi</button>
     </div>
 
     <!-- Hapus -->
@@ -411,7 +448,7 @@ function toggleSmGroup(header) {
   const members = header.nextElementSibling;
   const chevron = header.querySelector('.sm-chevron');
   const open = members.style.display !== 'none';
-  members.style.display = open ? 'none' : 'flex';
+  members.style.display = open ? 'none' : '';
   chevron.style.transform = open ? 'rotate(-90deg)' : '';
 }
 function selectSmGroup(btn) {
