@@ -7,8 +7,9 @@ const participantSchema = new mongoose.Schema({
 }, { _id: false });
 
 const externalSchema = new mongoose.Schema({
-  name:  String,
-  email: String
+  name:    String,
+  email:   String,
+  jabatan: String
 }, { _id: false });
 
 const emailSchema = new mongoose.Schema({

@@ -1,0 +1,116 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/admin">Admin Dashboard</a> / Organisasi</div>
+    <h1 class="page-title">Manajemen Organisasi / Divisi</h1>
+    <p class="page-subtitle">Daftar organisasi atau divisi yang tersedia sebagai pilihan saat edit pengguna</p>
+  </div>
+  <div class="page-actions">
+    <button class="btn btn-primary" onclick="openModal()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Tambah Organisasi
+    </button>
+  </div>
+</div>
+
+<div class="mail-list-wrap">
+  <% if (organisasis.length === 0) { %>
+  <div class="empty-state" style="padding:48px;">
+    <svg width="40" height="40" viewBox="0 0 48 48" fill="none"><rect x="6" y="14" width="36" height="26" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M16 14v-4a2 2 0 012-2h12a2 2 0 012 2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <p>Belum ada organisasi. Tambahkan organisasi pertama.</p>
+  </div>
+  <% } else { %>
+  <div style="overflow-x:auto;">
+    <table class="dok-table">
+      <thead>
+        <tr>
+          <th>Nama Organisasi / Divisi</th>
+          <th style="width:180px;">Jumlah Pengguna</th>
+          <th style="width:120px;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+      <% organisasis.forEach(function(o) {
+           const count = users.filter(u => u.organization === o.nama).length;
+      %>
+        <tr>
+          <td style="font-weight:500;color:var(--gray-900);"><%= o.nama %></td>
+          <td style="font-size:12.5px;color:var(--gray-500);"><%= count %> pengguna</td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost" style="padding:4px 10px;font-size:12.5px;"
+                onclick='openEdit(<%- JSON.stringify({_id:o._id,nama:o.nama}) %>)'>Edit</button>
+              <button class="btn btn-ghost" style="padding:4px 10px;font-size:12.5px;color:var(--red-500);"
+                onclick="hapus('<%= o._id %>','<%= o.nama %>')">Hapus</button>
+            </div>
+          </td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<!-- Modal -->
+<div id="modalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:var(--radius-lg);padding:28px;width:420px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.15);">
+    <div style="font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:18px;" id="modalTitle">Tambah Organisasi</div>
+    <input type="hidden" id="orgId">
+    <div style="margin-bottom:20px;">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:4px;display:block;">Nama Organisasi / Divisi *</label>
+      <input type="text" id="orgNama" class="form-control" placeholder="Contoh: Inspira Tekno, Technical & Operations...">
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" onclick="simpan()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal() {
+  document.getElementById('modalTitle').textContent = 'Tambah Organisasi';
+  document.getElementById('orgId').value = '';
+  document.getElementById('orgNama').value = '';
+  document.getElementById('modalOverlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('orgNama').focus(), 100);
+}
+function openEdit(o) {
+  document.getElementById('modalTitle').textContent = 'Edit Organisasi';
+  document.getElementById('orgId').value = o._id;
+  document.getElementById('orgNama').value = o.nama;
+  document.getElementById('modalOverlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('orgNama').focus(), 100);
+}
+function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+async function simpan() {
+  const nama = document.getElementById('orgNama').value.trim();
+  if (!nama) { alert('Nama organisasi wajib diisi.'); return; }
+  const id  = document.getElementById('orgId').value;
+  const res = await fetch(id ? '/admin/organisasi/' + id : '/admin/organisasi', {
+    method: id ? 'PUT' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nama })
+  });
+  const data = await res.json();
+  if (data.ok) location.reload();
+  else alert(data.message || 'Gagal menyimpan.');
+}
+async function hapus(id, nama) {
+  if (!confirm(`Hapus organisasi "${nama}"?`)) return;
+  const res  = await fetch('/admin/organisasi/' + id, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.ok) location.reload();
+  else alert('Gagal menghapus.');
+}
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('orgNama').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') simpan();
+});
+</script>
+
+<%- include('./partials/footer') %>

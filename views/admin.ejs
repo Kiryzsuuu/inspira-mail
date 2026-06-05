@@ -443,7 +443,10 @@
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Organisasi / Divisi</label>
-        <input id="editOrganization" type="text" class="form-control" placeholder="Nama organisasi" style="font-size:13px;" autocomplete="off">
+        <select id="editOrganization" class="form-control form-select" style="font-size:13px;">
+          <option value="">— Pilih organisasi —</option>
+          <% organisasis.forEach(function(o){ %><option value="<%= o.nama %>"><%= o.nama %></option><% }) %>
+        </select>
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Kode Direktorat</label>
@@ -507,7 +510,10 @@
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Organisasi / Divisi</label>
-        <input id="addOrganization" type="text" class="form-control" placeholder="Inspira Tekno" style="font-size:13px;" autocomplete="off">
+        <select id="addOrganization" class="form-control form-select" style="font-size:13px;">
+          <option value="">— Pilih organisasi —</option>
+          <% organisasis.forEach(function(o){ %><option value="<%= o.nama %>"><%= o.nama %></option><% }) %>
+        </select>
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;">Role</label>

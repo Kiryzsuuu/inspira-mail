@@ -893,7 +893,8 @@
         <div class="form-group">
           <label class="form-label">Tambah Penerima Eksternal</label>
           <div class="ext-recipient-input">
-            <input type="text" id="extName" class="form-control" placeholder="Nama penerima" style="max-width:220px;">
+            <input type="text" id="extName" class="form-control" placeholder="Nama penerima" style="max-width:200px;">
+            <input type="text" id="extJabatan" class="form-control" placeholder="Jabatan (opsional)" style="max-width:200px;">
             <input type="email" id="extEmail" class="form-control" placeholder="email@domain.com">
             <button type="button" class="btn btn-secondary" onclick="addExt()" style="white-space:nowrap;padding:8px 16px;">+ Tambah</button>
           </div>
@@ -1233,12 +1234,15 @@ function setJenis(j) {
 let extList = [];
 function addExt() {
   const n = document.getElementById('extName').value.trim();
+  const j = document.getElementById('extJabatan').value.trim();
   const e = document.getElementById('extEmail').value.trim();
   if (!e) { document.getElementById('extEmail').focus(); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { alert('Format email tidak valid.'); return; }
   if (extList.find(r => r.email === e)) { alert('Email sudah ditambahkan.'); return; }
-  extList.push({ name: n||e, email: e }); renderExtList();
-  document.getElementById('extName').value = ''; document.getElementById('extEmail').value = '';
+  extList.push({ name: n||e, jabatan: j, email: e }); renderExtList();
+  document.getElementById('extName').value = '';
+  document.getElementById('extJabatan').value = '';
+  document.getElementById('extEmail').value = '';
   document.getElementById('extName').focus();
 }
 function removeExt(email) { extList = extList.filter(r => r.email !== email); renderExtList(); }
@@ -1248,7 +1252,8 @@ function renderExtList() {
   list.innerHTML = ''; empty.style.display = extList.length ? 'none' : '';
   extList.forEach(r => {
     const d = document.createElement('div'); d.className = 'ext-item';
-    d.innerHTML = `<span class="ext-item-name">${esc(r.name)}</span><span class="ext-item-email">&lt;${esc(r.email)}&gt;</span><button type="button" class="ext-item-del" onclick="removeExt('${esc(r.email)}')">&times;</button>`;
+    const jabInfo = r.jabatan ? ` <span style="color:var(--gray-400);font-size:11.5px;">— ${esc(r.jabatan)}</span>` : '';
+    d.innerHTML = `<span class="ext-item-name">${esc(r.name)}${jabInfo}</span><span class="ext-item-email">&lt;${esc(r.email)}&gt;</span><button type="button" class="ext-item-del" onclick="removeExt('${esc(r.email)}')">&times;</button>`;
     list.appendChild(d);
   });
   document.getElementById('externalRecipientsHidden').value = JSON.stringify(extList);

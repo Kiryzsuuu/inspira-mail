@@ -22,6 +22,7 @@ const DocCounter = require('./models/DocCounter');
 const SuratMasuk = require('./models/SuratMasuk');
 const Direktorat = require('./models/Direktorat');
 const Jabatan    = require('./models/Jabatan');
+const Organisasi = require('./models/Organisasi');
 const DocumentSignature = require('./models/DocumentSignature');
 const SiteSettings = require('./models/SiteSettings');
 const QRCode = require('qrcode');
@@ -862,6 +863,20 @@ app.post('/email/:id/sign/update-position', requireAuth, async (req, res) => {
   } catch { res.json({ ok: false }); }
 });
 
+app.post('/email/:id/sign/update-lokasi-tanggal', requireAuth, async (req, res) => {
+  try {
+    const { signerId, lokasi, tanggal } = req.body;
+    const update = {};
+    if (lokasi !== undefined) update['signers.$.lokasiTtd'] = lokasi;
+    if (tanggal !== undefined) update['signers.$.tanggalTtd'] = tanggal ? new Date(tanggal) : null;
+    await DocumentSignature.updateOne(
+      { emailId: req.params.id, 'signers._id': signerId },
+      { $set: update }
+    );
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
+});
+
 app.post('/email/:id/sign/update-jabatan', requireAuth, async (req, res) => {
   try {
     const { signerId, jabatan } = req.body;
@@ -1235,7 +1250,7 @@ app.post('/admin/site-settings', requireAuth, requireAdmin, ssUpload.single('log
 
 app.get('/admin', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const [totalUsers, totalSent, totalDraft, users, recentLogs, counters, jabatans, direktorats] = await Promise.all([
+    const [totalUsers, totalSent, totalDraft, users, recentLogs, counters, jabatans, direktorats, organisasis] = await Promise.all([
       User.countDocuments(),
       Email.countDocuments({ status: 'sent' }),
       Email.countDocuments({ status: 'draft' }),
@@ -1243,7 +1258,8 @@ app.get('/admin', requireAuth, requireAdmin, async (req, res) => {
       ActivityLog.find().sort({ createdAt: -1 }).limit(50).lean(),
       DocCounter.find().sort({ key: 1 }).lean(),
       Jabatan.find().sort('nama').lean(),
-      Direktorat.find().sort('kode').lean()
+      Direktorat.find().sort('kode').lean(),
+      Organisasi.find().sort('nama').lean()
     ]);
     const counts = await getMailCounts(req.user._id);
 
@@ -1256,7 +1272,7 @@ app.get('/admin', requireAuth, requireAdmin, async (req, res) => {
       active: 'admin',
       title: 'Admin Dashboard',
       stats: { totalUsers, totalSent, totalDraft, totalEmails: totalSent + totalDraft },
-      users, counters, jabatans, direktorats,
+      users, counters, jabatans, direktorats, organisasis,
       logs: logsFormatted,
       ROLE_LEVEL,
       ...counts
@@ -1539,6 +1555,42 @@ app.put('/admin/jabatan/:id', requireAuth, requireAdmin, async (req, res) => {
 app.delete('/admin/jabatan/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     await Jabatan.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+// ── ORGANISASI ROUTES ──
+app.get('/admin/organisasi', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const [organisasis, users] = await Promise.all([
+      Organisasi.find().sort('nama').lean(),
+      User.find({ isActive: true }, 'name organization').lean()
+    ]);
+    res.render('admin-organisasi', { title: 'Organisasi', active: 'organisasi', organisasis, users, ...counts });
+  } catch (err) { console.error(err); res.redirect('/admin'); }
+});
+
+app.post('/admin/organisasi', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { nama } = req.body;
+    const existing = await Organisasi.findOne({ nama });
+    if (existing) return res.json({ ok: false, message: `Organisasi "${nama}" sudah ada.` });
+    await Organisasi.create({ nama });
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.put('/admin/organisasi/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await Organisasi.findByIdAndUpdate(req.params.id, { nama: req.body.nama });
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.delete('/admin/organisasi/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await Organisasi.findByIdAndDelete(req.params.id);
     res.json({ ok: true });
   } catch (err) { res.json({ ok: false }); }
 });

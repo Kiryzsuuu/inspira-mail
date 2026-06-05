@@ -114,22 +114,40 @@ document.getElementById('adminDeleteOverlay').addEventListener('click', function
       <div style="padding:24px 28px;">
 
         <!-- Meta -->
+        <%
+          const jabatanMap = {};
+          users.forEach(function(u){ jabatanMap[u._id.toString()] = u.jabatan || ''; });
+          function renderPerson(r) {
+            const jab = jabatanMap[r.userId ? r.userId.toString() : ''] || '';
+            return `<span style="font-weight:500;">${r.name}</span>${jab ? `<span style="color:var(--gray-400);font-size:12px;"> — ${jab}</span>` : ''}`;
+          }
+        %>
         <div style="display:grid;grid-template-columns:100px 1fr;gap:0;margin-bottom:20px;font-size:13px;">
           <div style="color:var(--gray-400);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:7px 0;border-bottom:1px solid var(--gray-100);">Dari</div>
-          <div style="padding:7px 0;border-bottom:1px solid var(--gray-100);color:var(--gray-800);font-weight:500;"><%= email.from.name %> &lt;<%= email.from.email %>&gt;</div>
+          <div style="padding:7px 0;border-bottom:1px solid var(--gray-100);color:var(--gray-800);">
+            <%- renderPerson(email.from) %>
+          </div>
 
           <div style="color:var(--gray-400);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:7px 0;border-bottom:1px solid var(--gray-100);">Kepada</div>
           <div style="padding:7px 0;border-bottom:1px solid var(--gray-100);color:var(--gray-800);">
             <% if (email.jenis === 'eksternal' && email.toExternal && email.toExternal.length > 0) { %>
-              <%= email.toExternal.map(r => `${r.name} <${r.email}>`).join(', ') %>
+              <% email.toExternal.forEach(function(r, i) { %>
+                <span style="font-weight:500;"><%= r.name %></span><% if(r.jabatan){ %><span style="color:var(--gray-400);font-size:12px;"> — <%= r.jabatan %></span><% } %><% if(i < email.toExternal.length-1){ %>, <% } %>
+              <% }) %>
             <% } else { %>
-              <%= email.to.map(r => r.name).join(', ') || '—' %>
+              <% email.to.forEach(function(r, i) { %>
+                <%- renderPerson(r) %><% if (i < email.to.length - 1) { %>, <% } %>
+              <% }) %>
             <% } %>
           </div>
 
           <% if (email.cc && email.cc.length > 0) { %>
           <div style="color:var(--gray-400);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:7px 0;border-bottom:1px solid var(--gray-100);">CC</div>
-          <div style="padding:7px 0;border-bottom:1px solid var(--gray-100);color:var(--gray-800);"><%= email.cc.map(r=>r.name).join(', ') %></div>
+          <div style="padding:7px 0;border-bottom:1px solid var(--gray-100);color:var(--gray-800);">
+            <% email.cc.forEach(function(r, i) { %>
+              <%- renderPerson(r) %><% if (i < email.cc.length - 1) { %>, <% } %>
+            <% }) %>
+          </div>
           <% } %>
 
           <div style="color:var(--gray-400);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:7px 0;border-bottom:1px solid var(--gray-100);">Tanggal</div>
