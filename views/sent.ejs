@@ -57,11 +57,11 @@
   </div>
   <% } else { %>
   <div style="overflow-x:auto;">
-    <table class="dok-table" id="mailTable" style="width:100%;table-layout:fixed;">
+    <table class="dok-table" id="mailTable">
       <thead>
         <tr>
           <th style="width:120px;">Jenis</th>
-          <th style="width:185px;">Nomor Surat</th>
+          <th>Nomor Surat</th>
           <th>Perihal / Subjek</th>
           <th style="width:130px;">Penerima</th>
           <th style="width:90px;">Prioritas</th>
@@ -88,9 +88,9 @@
           onclick="window.location='/email/<%= m._id %>'"
           style="cursor:pointer;">
         <td><span class="dok-tipe-badge <%= tipeCls(m.tipeSurat) %>"><%= m.tipeSurat||'—' %></span></td>
-        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= m.nomorSurat||'—' %></td>
-        <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;"><%= m.subject %></td>
-        <td style="font-size:12px;color:var(--gray-500);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= m.to||'—' %></td>
+        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;"><%= m.nomorSurat||'—' %></td>
+        <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;"><%= m.subject %></td>
+        <td style="font-size:12px;color:var(--gray-500);"><%= m.to||'—' %></td>
         <td><span class="mail-tag <%= tagCls[m.tag]||'tag-normal' %>" style="font-size:11px;"><%= m.tag||'Biasa' %></span></td>
         <td style="font-size:12px;color:var(--gray-400);white-space:nowrap;"><%= m.date %></td>
       </tr>
