@@ -118,7 +118,7 @@
         </td>
         <td style="padding:10px 14px;text-align:center;">
           <% if(user.role === 'superadmin'){ %>
-          <button onclick="hapusArsip('<%= d._id %>','<%= (d.nomorArsip||d.judul).replace(/'/g,\"\\\\'\") %>')" style="background:none;border:none;cursor:pointer;color:var(--gray-400);padding:4px;" title="Hapus">
+          <button onclick="hapusArsip(this)" data-id="<%= d._id %>" data-nomor="<%= d.nomorArsip || d.judul %>" style="background:none;border:none;cursor:pointer;color:var(--gray-400);padding:4px;" title="Hapus">
             <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 6h12M8 6V4h4v2M7 6v10h6V6H7z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <% } else { %>—<% } %>
@@ -136,7 +136,9 @@ function toggleForm() {
   const w = document.getElementById('arsipFormWrap');
   w.style.display = w.style.display === 'none' ? 'block' : 'none';
 }
-async function hapusArsip(id, nomor) {
+async function hapusArsip(btn) {
+  const id = btn.dataset.id;
+  const nomor = btn.dataset.nomor;
   const input = prompt('Ketik nomor/judul arsip untuk konfirmasi penghapusan:\n\n' + nomor);
   if (input === null) return;
   if (input.trim() !== nomor.trim()) { alert('Nomor/judul tidak cocok. Hapus dibatalkan.'); return; }
