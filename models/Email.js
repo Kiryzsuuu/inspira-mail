@@ -34,7 +34,10 @@ const emailSchema = new mongoose.Schema({
   suratData:      { type: mongoose.Schema.Types.Mixed, default: {} },
   status:         { type: String, enum: ['draft','sent'], default: 'draft' },
   readBy:      [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  deletedBy:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  deletedBy:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  isDeleted:   { type: Boolean, default: false },
+  deletedAt:   { type: Date },
+  deletedByAdmin: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Email', emailSchema);

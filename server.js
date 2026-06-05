@@ -1011,6 +1011,41 @@ app.post('/email/:id/read', requireAuth, async (req, res) => {
   }
 });
 
+// Admin delete email — soft delete, simpan rekam jejak
+app.delete('/email/:id/admin-delete', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { konfirmasi } = req.body;
+    const email = await Email.findById(req.params.id);
+    if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
+    // Validasi ketik ulang nomor surat
+    if (!konfirmasi || konfirmasi.trim() !== (email.nomorSurat || '').trim()) {
+      return res.json({ ok: false, message: 'Nomor surat tidak cocok. Hapus dibatalkan.' });
+    }
+    // Soft delete — isi dihapus, nomor & metadata dipertahankan
+    await Email.findByIdAndUpdate(email._id, {
+      isDeleted:      true,
+      deletedAt:      new Date(),
+      deletedByAdmin: req.user._id,
+      subject:        `[DIHAPUS] ${email.subject}`,
+      body:           '',
+      to:             [],
+      cc:             [],
+      toExternal:     [],
+      lampiran:       '',
+      lampiranNama:   '',
+      suratData:      {}
+    });
+    await log(req, 'email_deleted', 'email',
+      `Admin ${req.user.name} menghapus surat No. ${email.nomorSurat} — "${email.subject}"`,
+      { emailId: email._id, nomorSurat: email.nomorSurat, subject: email.subject }
+    );
+    res.json({ ok: true, nomorSurat: email.nomorSurat });
+  } catch (err) {
+    console.error(err);
+    res.json({ ok: false, message: 'Terjadi kesalahan.' });
+  }
+});
+
 // ── PROFILE ──
 
 app.get('/profile', requireAuth, async (req, res) => {
@@ -2014,12 +2049,18 @@ app.post('/surat-masuk', requireAuth, (req, res) => {
 
 app.get('/surat-masuk/:id', requireAuth, async (req, res) => {
   try {
-    const surat = await SuratMasuk.findById(req.params.id);
+    const surat  = await SuratMasuk.findById(req.params.id);
     if (!surat) return res.redirect('/surat-masuk');
+    const users  = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email jabatan organization').sort('name');
     const counts = await getMailCounts(req.user._id);
+    // Auto-tandai dibaca
+    if (surat.status === 'baru') {
+      await SuratMasuk.findByIdAndUpdate(req.params.id, { status: 'dibaca' });
+      surat.status = 'dibaca';
+    }
     res.render('surat-masuk-detail', {
       active: 'surat-masuk', title: 'Detail Surat Masuk',
-      surat, formatDate, formatDateTime, ...counts
+      surat, users, formatDate, formatDateTime, ...counts
     });
   } catch (err) {
     res.redirect('/surat-masuk');
@@ -2032,6 +2073,21 @@ app.post('/surat-masuk/:id/status', requireAuth, async (req, res) => {
     const valid = ['baru','dibaca','ditindaklanjuti','selesai'];
     if (!valid.includes(status)) return res.json({ ok: false });
     await SuratMasuk.findByIdAndUpdate(req.params.id, { status });
+    res.json({ ok: true });
+  } catch (err) {
+    res.json({ ok: false });
+  }
+});
+
+app.post('/surat-masuk/:id/disposisi', requireAuth, async (req, res) => {
+  try {
+    const { disposisi, disposisiCatatan } = req.body;
+    await SuratMasuk.findByIdAndUpdate(req.params.id, {
+      disposisi: disposisi || [],
+      disposisiCatatan: disposisiCatatan?.trim() || '',
+      status: 'ditindaklanjuti'
+    });
+    await log(req, 'system', 'email', `Disposisi surat masuk oleh ${req.user.name}`, { suratId: req.params.id });
     res.json({ ok: true });
   } catch (err) {
     res.json({ ok: false });

@@ -8,6 +8,13 @@ const suratMasukSchema = new mongoose.Schema({
   tanggalTerima: { type: Date, required: true },
   klasifikasi:   { type: String, enum: ['Biasa','Penting','Segera','Mendesak'], default: 'Biasa' },
   catatan:       { type: String, trim: true, default: '' },
+  disposisi: [{
+    userId:  mongoose.Schema.Types.ObjectId,
+    nama:    String,
+    jabatan: String,
+    _id:     false
+  }],
+  disposisiCatatan: { type: String, trim: true, default: '' },
 
   // Uploaded scan stored locally
   file: {

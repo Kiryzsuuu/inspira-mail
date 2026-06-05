@@ -26,8 +26,78 @@ const roleLabel  = { admin:'Administrator', direktur:'Direktur', user:'Pengguna'
     <span class="mail-tag <%= tagClass[email.tag] || 'tag-normal' %>" style="font-size:13px;padding:5px 14px;">
       <%= email.tag %>
     </span>
+    <% if (currentUser && currentUser.role === 'admin') { %>
+    <button class="btn btn-secondary" style="color:var(--red-500);" onclick="openAdminDelete()">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M6 4h8M4 6h12M7 6v10h6V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Hapus (Admin)
+    </button>
+    <% } %>
   </div>
 </div>
+
+<% if (currentUser && currentUser.role === 'admin') { %>
+<!-- Modal Konfirmasi Delete Admin -->
+<div id="adminDeleteOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px 32px;width:460px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <div style="font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:6px;">Hapus Dokumen</div>
+    <div style="font-size:13px;color:var(--gray-500);margin-bottom:18px;">
+      Isi surat akan dihapus permanen, namun <strong>nomor surat tetap dipertahankan</strong> sebagai rekam jejak. Tindakan ini tidak dapat dibatalkan.
+    </div>
+    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:13px;color:#991b1b;">
+      Ketik ulang nomor surat untuk konfirmasi:<br>
+      <strong style="font-family:monospace;font-size:14px;"><%= email.nomorSurat || '(tanpa nomor)' %></strong>
+    </div>
+    <input type="text" id="deleteKonfirmasi" class="form-control" placeholder="Ketik nomor surat di sini..." autocomplete="off"
+      style="font-family:monospace;font-size:14px;margin-bottom:16px;" oninput="checkDeleteMatch()">
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn btn-ghost" onclick="document.getElementById('adminDeleteOverlay').style.display='none'">Batal</button>
+      <button id="btnConfirmDelete" class="btn btn-primary" style="background:var(--red-500);opacity:.4;cursor:not-allowed;" disabled onclick="doAdminDelete()">
+        Hapus Permanen
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openAdminDelete() {
+  document.getElementById('deleteKonfirmasi').value = '';
+  document.getElementById('btnConfirmDelete').disabled = true;
+  document.getElementById('btnConfirmDelete').style.opacity = '.4';
+  document.getElementById('btnConfirmDelete').style.cursor = 'not-allowed';
+  document.getElementById('adminDeleteOverlay').style.display = 'flex';
+}
+function checkDeleteMatch() {
+  const val    = document.getElementById('deleteKonfirmasi').value.trim();
+  const nomor  = '<%= (email.nomorSurat||"").replace(/'/g,"\\'") %>';
+  const ok     = val === nomor;
+  const btn    = document.getElementById('btnConfirmDelete');
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '.4';
+  btn.style.cursor  = ok ? 'pointer' : 'not-allowed';
+}
+async function doAdminDelete() {
+  const konfirmasi = document.getElementById('deleteKonfirmasi').value.trim();
+  try {
+    const res  = await fetch('/email/<%= email._id %>/admin-delete', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ konfirmasi })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('adminDeleteOverlay').style.display = 'none';
+      alert(`Surat No. ${data.nomorSurat} berhasil dihapus. Nomor surat tetap tercatat dalam sistem.`);
+      window.location.href = '/sent';
+    } else {
+      alert(data.message || 'Gagal menghapus.');
+    }
+  } catch(e) { alert('Terjadi kesalahan.'); }
+}
+// Klik overlay tutup modal
+document.getElementById('adminDeleteOverlay').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+</script>
+<% } %>
 
 <div class="ag-detail-layout">
 
