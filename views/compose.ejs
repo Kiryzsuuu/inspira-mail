@@ -40,18 +40,6 @@
 .ql-toolbar .ql-formats { margin-right:8px; margin-bottom:4px; }
 .ql-snow .ql-picker { color:var(--gray-600); }
 .ql-snow .ql-picker.ql-size { width:80px; }
-.ql-snow .ql-picker.ql-font { width:140px; }
-.ql-font-times-new-roman { font-family: 'Times New Roman', Times, serif; }
-.ql-snow .ql-picker.ql-font .ql-picker-label[data-value='times-new-roman']::before,
-.ql-snow .ql-picker.ql-font .ql-picker-item[data-value='times-new-roman']::before { content: 'Times New Roman'; font-family: 'Times New Roman', Times, serif; }
-.ql-snow .ql-picker.ql-font .ql-picker-label[data-value='sans-serif']::before,
-.ql-snow .ql-picker.ql-font .ql-picker-item[data-value='sans-serif']::before { content: 'Sans Serif'; }
-.ql-snow .ql-picker.ql-font .ql-picker-label[data-value='serif']::before,
-.ql-snow .ql-picker.ql-font .ql-picker-item[data-value='serif']::before { content: 'Serif'; font-family: Georgia, serif; }
-.ql-snow .ql-picker.ql-font .ql-picker-label[data-value='monospace']::before,
-.ql-snow .ql-picker.ql-font .ql-picker-item[data-value='monospace']::before { content: 'Monospace'; font-family: monospace; }
-.ql-snow .ql-picker.ql-font .ql-picker-label:not([data-value])::before,
-.ql-snow .ql-picker.ql-font .ql-picker-item:not([data-value])::before { content: 'Times New Roman'; font-family: 'Times New Roman', Times, serif; }
 
 /* Tipe surat section badges */
 .sec-header {
@@ -1028,17 +1016,14 @@ document.getElementById('infoDate').textContent = `${today.getDate()} ${mns[toda
 const SizeStyle = Quill.import('attributors/style/size');
 SizeStyle.whitelist = ['10px','12px','14px','16px','18px','20px','24px','28px','32px'];
 Quill.register(SizeStyle, true);
-const FontStyle = Quill.import('formats/font');
-FontStyle.whitelist = ['times-new-roman', 'sans-serif', 'serif', 'monospace'];
-Quill.register(FontStyle, true);
+
 const quill = new Quill('#quillEditor', {
   theme: 'snow',
   placeholder: 'Tulis isi surat / instruksi tambahan di sini...',
   modules: {
     toolbar: {
       container: [
-        [{ font: ['', 'times-new-roman', 'sans-serif', 'serif', 'monospace'] }, { size: ['10px','12px','14px','16px','18px','20px','24px','28px','32px'] }],
-        [{ header: [1,2,3,4,false] }],
+        [{ size: ['10px','12px','14px','16px','18px','20px','24px','28px','32px'] }, { header: [1,2,3,4,false] }],
         ['bold','italic','underline','strike'],
         [{ color: [] }, { background: [] }],
         ['blockquote','code-block'],
