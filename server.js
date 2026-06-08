@@ -1069,9 +1069,10 @@ app.get('/email/:id', requireAuth, async (req, res) => {
       await Email.findByIdAndUpdate(email._id, { $addToSet: { readBy: req.user._id } });
     }
     const counts = await getMailCounts(req.user._id);
-    const [allUsers, direktorats] = await Promise.all([
+    const [allUsers, direktorats, docSigCheck] = await Promise.all([
       User.find({ isActive: true }, 'name jabatan kodeDir _id').sort('name').lean(),
-      Direktorat.find().sort('kode').lean()
+      Direktorat.find().sort('kode').lean(),
+      DocumentSignature.findOne({ emailId: email._id })
     ]);
     res.render('email-detail', {
       title: email.subject, active: isSender ? 'sent' : 'inbox',
