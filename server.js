@@ -1374,7 +1374,7 @@ app.post('/admin/site-settings', requireAuth, requireAdmin, ssUpload.single('log
 
     ss.siteName    = siteName?.trim()    || ss.siteName;
     ss.siteSub     = siteSub?.trim()     || ss.siteSub;
-    ss.siteTagline = siteTagline?.trim() !== undefined ? siteTagline.trim() : ss.siteTagline;
+    if (siteTagline !== undefined) ss.siteTagline = siteTagline.trim();
     ss.siteDesc    = siteDesc?.trim()    !== undefined ? siteDesc.trim()    : ss.siteDesc;
     ss.orgCode     = orgCode?.trim()     || ss.orgCode;
     if (mailerName?.trim()) ss.mailerName = mailerName.trim();
