@@ -249,6 +249,13 @@ async function getMailCounts(userId) {
   return { inboxCount, draftCount, suratMasukCount };
 }
 
+// Cek apakah user berhak edit/akses dokumen sebagai pemilik
+function canEditDoc(email, userId) {
+  const uid = userId.toString();
+  return email.from.userId?.toString() === uid ||
+         email.ownerUserId?.toString() === uid;
+}
+
 // ── AUTH ROUTES ──
 
 app.get('/login', (req, res) => {
@@ -441,7 +448,7 @@ app.get('/inbox', requireAuth, async (req, res) => {
 app.get('/sent', requireAuth, async (req, res) => {
   try {
     const mails = await Email.find({
-      'from.userId': req.user._id,
+      $or: [{ 'from.userId': req.user._id }, { ownerUserId: req.user._id }],
       status: 'sent',
       deletedBy: { $ne: req.user._id }
     }).sort({ createdAt: -1 });
@@ -488,7 +495,7 @@ app.get('/draft', requireAuth, async (req, res) => {
 app.get('/draft/:id/edit', requireAuth, async (req, res) => {
   try {
     const email = await Email.findById(req.params.id);
-    if (!email || email.from.userId?.toString() !== req.user._id.toString())
+    if (!email || !canEditDoc(email, req.user._id))
       return res.redirect('/draft');
     const users  = await User.find({ _id: { $ne: req.user._id }, isActive: true }).select('name email organization enik jabatan').sort('name');
     const counts = await getMailCounts(req.user._id);
@@ -507,8 +514,9 @@ app.post('/draft/:id/update', requireAuth, lampiranUpload.single('lampiran'), as
     const { to, cc, subject, body, tag, berkas, sifat, jenis, externalRecipients,
             kodeDiv, kodeLay, kodeDir, pengirimResmi, sumberTemplate, action, hapusLampiran } = req.body;
     const email = await Email.findById(req.params.id);
-    if (!email || email.from.userId?.toString() !== req.user._id.toString())
+    if (!email || !canEditDoc(email, req.user._id))
       return res.json({ ok: false });
+    if (email.isLocked) return res.json({ ok: false, message: 'Dokumen terkunci karena sudah ditandatangani.' });
 
     // Validasi hierarki kodeDir & sifat
     const allowedKDir2 = getAllowedKodeDir(req.user);
@@ -619,9 +627,8 @@ function getAllowedSifat(user) {
 const TIPE_KHUSUS = ['MoU','MoA','Contract','IA','PKS','SPK','SK'];
 
 const TIPE_COUNTER_KEY = {
-  'Surat Internal': 'SURAT-INTERNAL',
-  'Nota Dinas':  'NOTA',
-  'Surat Dinas': 'SURAT-DINAS',
+  'Nota Dinas':      'NOTA',
+  'Surat Eksternal': 'SURAT-EKSTERNAL',
   'Surat':       'SURAT',
   'MoU':         'MOU',
   'MoA':         'MOA',
@@ -670,7 +677,7 @@ app.get('/compose', requireAuth, async (req, res) => {
       Email.countDocuments({ ...base, status: 'draft' }),
       Email.countDocuments({ ...base, status: 'sent' }),
       Email.countDocuments({ ...base, tipeSurat: 'Nota Dinas' }),
-      Email.countDocuments({ ...base, tipeSurat: 'Surat Dinas' }),
+      Email.countDocuments({ ...base, tipeSurat: 'Surat Eksternal' }),
       Email.countDocuments({ ...base, tipeSurat: { $in: TIPE_KHUSUS } }),
     ]);
 
@@ -685,6 +692,53 @@ app.get('/compose', requireAuth, async (req, res) => {
     console.error(err);
     res.redirect('/inbox');
   }
+});
+
+// Roster Dokumen — dokumen bertanda tangan, dikelompokkan per jenis
+app.get('/roster-dokumen', requireAuth, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const uid = req.user._id;
+
+    // Ambil semua email yang ter-lock (sudah ditandatangani) dan user terlibat
+    const docs = await Email.find({
+      isLocked: true,
+      status: 'sent',
+      $or: [
+        { 'from.userId': uid },
+        { 'to.userId': uid },
+        { 'cc.userId': uid },
+        { 'disposisi.userId': uid }
+      ]
+    }).sort({ createdAt: -1 }).lean();
+
+    // Kelompokkan per tipeSurat
+    const grouped = {};
+    for (const doc of docs) {
+      const tipe = doc.tipeSurat || 'Lainnya';
+      if (!grouped[tipe]) grouped[tipe] = [];
+      grouped[tipe].push(doc);
+    }
+
+    res.render('roster-dokumen', {
+      active: 'roster-dokumen', title: 'Roster Dokumen',
+      grouped, formatDate, ...counts
+    });
+  } catch (err) { console.error(err); res.redirect('/inbox'); }
+});
+
+// Dokumen Tersimpan — dokumen yang dibuat admin untuk user (ownerUserId = user)
+app.get('/dokumen-tersimpan', requireAuth, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const docs = await Email.find({
+      ownerUserId: req.user._id
+    }).sort({ createdAt: -1 }).lean();
+    res.render('dokumen-tersimpan', {
+      active: 'dokumen-tersimpan', title: 'Dokumen Tersimpan',
+      docs, formatDate, ...counts
+    });
+  } catch (err) { console.error(err); res.redirect('/inbox'); }
 });
 
 // Manajemen Dokumen — Form buat dokumen baru
@@ -757,6 +811,19 @@ app.post('/compose', requireAuth, lampiranUpload.single('lampiran'), async (req,
     const nomorSurat = buildNomorSurat(seq, tipe, kodeDir || kodeDiv || 'DIR', jenis || 'internal', ROMAN_M[now.getMonth()+1], year);
 
     const isDraft = action === 'draft';
+
+    // Cari owner: jika pengirimResmi berbeda dengan pembuat, cari user yang namanya cocok
+    const resmiName = pengirimResmi?.trim() || req.user.name;
+    let ownerUserId = null;
+    let builtBy = null;
+    if (resmiName && resmiName !== req.user.name) {
+      const ownerUser = await User.findOne({ name: resmiName, isActive: true }).select('_id name').lean();
+      if (ownerUser) {
+        ownerUserId = ownerUser._id;
+        builtBy = { userId: req.user._id, name: req.user.name };
+      }
+    }
+
     const email = await Email.create({
       from:           { userId: req.user._id, name: req.user.name, email: req.user.email },
       to:             toUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
@@ -770,7 +837,7 @@ app.post('/compose', requireAuth, lampiranUpload.single('lampiran'), async (req,
       jenis:          jenis || 'internal',
       tipeSurat:      tipe,
       sumberTemplate: sumberTemplate || 'internal',
-      pengirimResmi:  pengirimResmi?.trim() || req.user.name,
+      pengirimResmi:  resmiName,
       kodeDir:        kodeDir || kodeDiv || 'DIR',
       kodeDiv:        kodeDiv || 'OPS',
       kodeLay:        kodeLay || 'INT',
@@ -778,7 +845,9 @@ app.post('/compose', requireAuth, lampiranUpload.single('lampiran'), async (req,
       nomorSurat,
       lampiran:       req.file ? '/uploads/' + req.file.filename : '',
       lampiranNama:   req.file ? req.file.originalname : '',
-      status:         'draft'
+      status:         'draft',
+      ownerUserId,
+      builtBy
     });
 
     await log(req, 'email_draft', 'email', `Surat dibuat: "${email.subject}"`, { emailId: email._id });
@@ -802,6 +871,7 @@ app.get('/email/:id/preview', requireAuth, async (req, res) => {
     if (!email) return res.redirect('/inbox');
     const uid = req.user._id.toString();
     const isSender = email.from.userId?.toString() === uid;
+    const isOwner  = email.ownerUserId?.toString() === uid;
     const isReceiver = email.to.some(t => t.userId?.toString() === uid)
                     || email.cc.some(t => t.userId?.toString() === uid);
     const isPrivileged = ['superadmin','admin','direktur'].includes(req.user.role);
@@ -813,7 +883,7 @@ app.get('/email/:id/preview', requireAuth, async (req, res) => {
       s => s.userId.toString() === uid && s.status === 'pending'
     );
 
-    if (!isSender && !isReceiver && !isPrivileged && !isDisposisi && !isPendingCosigner) {
+    if (!isSender && !isOwner && !isReceiver && !isPrivileged && !isDisposisi && !isPendingCosigner) {
       return res.redirect('/inbox');
     }
 
@@ -824,7 +894,7 @@ app.get('/email/:id/preview', requireAuth, async (req, res) => {
     res.render('email-preview', {
       title: 'Preview & Tanda Tangan', email,
       docSig: docSig || { signers: [] },
-      isSender, isPendingCosigner,
+      isSender, isOwner, isPendingCosigner,
       currentUser: req.user, users, formatDate, ...counts
     });
   } catch (err) { console.error(err); res.redirect('/inbox'); }
@@ -868,6 +938,7 @@ app.post('/email/:id/sign/add-self', requireAuth, async (req, res) => {
         { emailId: email._id, 'signers._id': existing._id },
         { $set: { 'signers.$.token': token, 'signers.$.qrDataUrl': qrDataUrl, 'signers.$.status': 'signed', 'signers.$.signedAt': new Date() } }
       );
+      await Email.findByIdAndUpdate(email._id, { isLocked: true });
       await docSig.populate('signers');
       const updated = (await DocumentSignature.findOne({ emailId: email._id })).signers.id(existing._id);
       return res.json({ ok: true, signer: updated, action: 'updated' });
@@ -883,6 +954,7 @@ app.post('/email/:id/sign/add-self', requireAuth, async (req, res) => {
       position: { x: 60 + n * 140, y: 640, width: 120, height: 185 }
     });
     await docSig.save();
+    await Email.findByIdAndUpdate(email._id, { isLocked: true });
     res.json({ ok: true, signer: docSig.signers[docSig.signers.length - 1], action: 'added' });
   } catch (err) { console.error(err); res.json({ ok: false, message: 'Gagal.' }); }
 });
@@ -1067,6 +1139,7 @@ app.get('/email/:id', requireAuth, async (req, res) => {
     if (!email) return res.redirect('/inbox');
     const uid        = req.user._id.toString();
     const isSender   = email.from.userId?.toString() === uid;
+    const isOwner    = email.ownerUserId?.toString() === uid;
     const isReceiver = email.to.some(t => t.userId?.toString() === uid)
                     || email.cc.some(t => t.userId?.toString() === uid);
     const isPrivileged = ['superadmin','admin','direktur'].includes(req.user.role);
@@ -1084,7 +1157,7 @@ app.get('/email/:id', requireAuth, async (req, res) => {
     res.render('email-detail', {
       title: email.subject, active: isSender ? 'sent' : 'inbox',
       email, docSig: docSigCheck || { signers: [] },
-      isSender, currentUser: req.user,
+      isSender, isOwner, currentUser: req.user,
       users: allUsers, direktorats,
       formatDate, formatDateTime, ...counts
     });
@@ -2231,7 +2304,7 @@ app.delete('/perusahaan/:id', requireAuth, requireAdmin, async (req, res) => {
 });
 
 // JSON list untuk compose picker
-app.get('/perusahaan-list', requireAuth, requireDirektur, async (req, res) => {
+app.get('/perusahaan-list', requireAuth, async (req, res) => {
   try {
     const list = await Perusahaan.find({ isActive: true }, 'nama singkatan email alamat kontak').sort({ nama: 1 }).lean();
     res.json(list);

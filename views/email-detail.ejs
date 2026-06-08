@@ -258,9 +258,26 @@ document.getElementById('adminDeleteOverlay').addEventListener('click', function
         <span class="info-val"><%= email.jenis === 'internal' ? 'Internal' : 'Eksternal' %></span>
       </div>
       <div class="info-item"><span class="info-key">Sifat</span><span class="info-val"><%= email.sifat %></span></div>
-      <div class="info-item" style="border-bottom:none;">
+      <div class="info-item">
         <span class="info-key">Penandatangan</span>
         <span class="info-val"><%= docSig?.signers?.length || 0 %></span>
+      </div>
+      <% if (email.builtBy && email.builtBy.name) { %>
+      <div class="info-item">
+        <span class="info-key">Dibuatkan</span>
+        <span class="info-val" style="font-size:11.5px;color:var(--gray-500);">oleh <%= email.builtBy.name %></span>
+      </div>
+      <% } %>
+      <div class="info-item" style="border-bottom:none;">
+        <span class="info-key">Kunci</span>
+        <% if (email.isLocked) { %>
+        <span class="info-val" style="color:var(--red-500);font-weight:600;display:flex;align-items:center;gap:4px;">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9V6a3 3 0 016 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Terkunci
+        </span>
+        <% } else { %>
+        <span class="info-val" style="color:var(--green-600);font-weight:500;">Terbuka</span>
+        <% } %>
       </div>
     </div>
 
@@ -360,7 +377,7 @@ document.getElementById('adminDeleteOverlay').addEventListener('click', function
     </div>
     <% } %>
 
-    <% if (isSender && email.status === 'draft') { %>
+    <% if ((isSender || isOwner) && email.status === 'draft' && !email.isLocked) { %>
     <div class="info-card">
       <div class="info-card-title">Aksi</div>
       <a href="/email/<%= email._id %>/preview" class="btn btn-primary" style="width:100%;justify-content:center;">

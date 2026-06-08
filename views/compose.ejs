@@ -122,15 +122,18 @@
           <div class="select-wrap">
             <select id="tipeSuratSelect" class="form-control form-select" onchange="onTipeChange(this.value)">
               <% if (jenisDefault !== 'eksternal') { %>
-              <optgroup label="— Surat Internal —">
-                <option value="Surat Internal" selected>Surat Internal</option>
-                <option value="Nota Dinas">Nota Dinas</option>
-                <option value="Surat Dinas">Surat Dinas (Eksternal)</option>
+              <optgroup label="— Internal —">
+                <option value="Nota Dinas" selected>Nota Dinas</option>
+              </optgroup>
+              <% } %>
+              <% if (jenisDefault === 'eksternal') { %>
+              <optgroup label="— Eksternal —">
+                <option value="Surat Eksternal" selected>Surat Eksternal</option>
               </optgroup>
               <% } %>
               <% if (jenisDefault === 'eksternal' && user && (['superadmin','admin','direktur'].includes(user.role))) { %>
               <optgroup label="— Perjanjian &amp; Legal —">
-                <option value="MoU" selected>MoU (Memorandum of Understanding)</option>
+                <option value="MoU">MoU (Memorandum of Understanding)</option>
                 <option value="MoA">MoA (Memorandum of Agreement)</option>
                 <option value="Contract">Contract (Kontrak)</option>
                 <option value="IA">IA (Implementation Agreement)</option>
