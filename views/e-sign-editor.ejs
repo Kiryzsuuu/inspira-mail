@@ -1,413 +1,679 @@
-<%- include('./partials/header') %>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Sign — <%= session.title %></title>
+<link rel="icon" type="image/png" href="/img/Group 1597880519.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; min-height: 100vh; }
 
-<div class="page-header">
-  <div class="page-title-group">
-    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / <a href="/e-sign">E-Sign PDF</a> / <%= session.title %></div>
-    <h1 class="page-title" style="font-size:18px;"><%= session.title %></h1>
-    <p class="page-subtitle"><%= session.originalName %></p>
-  </div>
-  <div class="page-header-actions" style="gap:8px;">
-    <a href="/e-sign/<%= session._id %>/download" class="btn btn-secondary" style="font-size:13px;">
-      <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 3v11M6 10l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Unduh
-    </a>
-    <% if (currentUserSigner && currentUserSigner.status === 'pending') { %>
-    <button id="signBtn" onclick="signDocument()" class="btn btn-primary" style="font-size:13px;">
-      <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Tanda Tangani
-    </button>
-    <% } %>
-  </div>
+/* TOOLBAR */
+.pdf-toolbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 54px; background: #071840;
+  display: flex; align-items: center; gap: 12px; padding: 0 20px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.08);
+}
+.toolbar-back {
+  display: flex; align-items: center; gap: 6px;
+  color: rgba(255,255,255,.6); font-size: 13px; text-decoration: none;
+  padding: 5px 10px; border-radius: 6px; transition: background .15s;
+}
+.toolbar-back:hover { background: rgba(255,255,255,.08); color: #fff; }
+.toolbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,.12); }
+.toolbar-title { font-size: 13.5px; font-weight: 500; color: #fff; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.toolbar-hint { font-size: 12px; color: rgba(255,255,255,.4); }
+.btn-toolbar {
+  display: flex; align-items: center; gap: 6px;
+  background: #1a56a8; color: #fff; border: none; border-radius: 7px;
+  padding: 7px 16px; font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background .15s; white-space: nowrap;
+}
+.btn-toolbar:hover { background: #1d63c0; }
+.btn-toolbar:disabled { background: #334155; color: rgba(255,255,255,.3); cursor: not-allowed; }
+.btn-toolbar-outline {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.06); color: rgba(255,255,255,.75);
+  border: 1px solid rgba(255,255,255,.14); border-radius: 7px;
+  padding: 7px 16px; font-size: 13px; cursor: pointer;
+  text-decoration: none; transition: background .15s; white-space: nowrap;
+}
+.btn-toolbar-outline:hover { background: rgba(255,255,255,.12); }
+
+/* LAYOUT */
+.pdf-shell { display: flex; height: 100vh; padding-top: 54px; }
+
+/* CANVAS AREA */
+.pdf-canvas-area {
+  flex: 1; overflow: auto; background: #1e293b;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 40px 24px;
+}
+
+/* PDF WRAP — same width concept as A4 */
+.pdf-page-wrap {
+  position: relative; width: 794px; flex-shrink: 0;
+  background: #fff;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5);
+  overflow: hidden;
+  line-height: 0;
+}
+#pdfCanvas { display: block; width: 794px; height: auto; }
+
+/* Page controls */
+.page-controls {
+  position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(0,0,0,.5); border-radius: 20px; padding: 5px 14px;
+}
+.page-controls span { font-size: 12px; color: rgba(255,255,255,.7); }
+.page-btn {
+  background: none; border: none; color: rgba(255,255,255,.6); cursor: pointer;
+  padding: 2px 6px; border-radius: 4px; transition: color .1s;
+}
+.page-btn:hover { color: #fff; }
+
+/* QR STAMP — identical to surat-pdf-editor */
+.qr-stamp {
+  position: absolute; cursor: move; user-select: none; z-index: 50;
+  border: none; outline: 2px dashed transparent; outline-offset: 3px;
+  border-radius: 4px; transition: outline-color .15s;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 0; text-align: center; overflow: hidden;
+}
+.qr-stamp:hover, .qr-stamp.active { outline-color: #1a56a8; }
+.qr-stamp img { width: 100%; flex: 1; min-height: 0; object-fit: contain; display: block; }
+.qr-stamp-sig { width: 95%; border-top: 1.5px solid #111; margin: 5px 0 3px; flex-shrink: 0; }
+.qr-stamp-name {
+  font-size: 9.5px; font-weight: 700; text-align: center; color: #111;
+  padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%; line-height: 1.5; flex-shrink: 0;
+}
+.qr-stamp-role {
+  font-size: 8.5px; color: #111; text-align: center; padding: 1px 4px 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%; flex-shrink: 0;
+}
+.qr-signed-badge {
+  position: absolute; top: 2px; left: 2px;
+  background: #16a34a; color: #fff; font-size: 8px; font-weight: 700;
+  padding: 1px 5px; border-radius: 3px;
+}
+.qr-resize {
+  position: absolute; bottom: 0; right: 0; width: 12px; height: 12px;
+  cursor: se-resize; background: #1a56a8; border-radius: 2px 0 0 0; opacity: 0;
+  transition: opacity .15s;
+}
+.qr-stamp:hover .qr-resize, .qr-stamp.active .qr-resize { opacity: 1; }
+.qr-delete {
+  position: absolute; top: -10px; right: -10px; width: 20px; height: 20px;
+  border-radius: 50%; background: #ef4444; color: #fff; border: none; cursor: pointer;
+  font-size: 12px; line-height: 20px; text-align: center; opacity: 0;
+  transition: opacity .15s; display: flex; align-items: center; justify-content: center;
+}
+.qr-stamp:hover .qr-delete, .qr-stamp.active .qr-delete { opacity: 1; }
+
+/* RIGHT PANEL */
+.pdf-panel {
+  width: 280px; flex-shrink: 0; background: #0f172a;
+  border-left: 1px solid rgba(255,255,255,.06);
+  overflow-y: auto; display: flex; flex-direction: column;
+}
+.panel-section { padding: 20px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.panel-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 14px; }
+.panel-hint { font-size: 12px; color: rgba(255,255,255,.4); line-height: 1.6; margin-bottom: 14px; }
+.btn-add-self {
+  width: 100%; padding: 9px; border-radius: 8px;
+  background: #1a56a8; color: #fff; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background .15s;
+}
+.btn-add-self:hover { background: #1d63c0; }
+.btn-add-self:disabled { background: #334155; color: rgba(255,255,255,.35); cursor: not-allowed; }
+.btn-sign {
+  width: 100%; padding: 9px; border-radius: 8px;
+  background: #16a34a; color: #fff; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background .15s; margin-top: 8px;
+}
+.btn-sign:hover { background: #15803d; }
+.btn-sign:disabled { background: #334155; color: rgba(255,255,255,.35); cursor: not-allowed; }
+.cosign-toggle {
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04); color: rgba(255,255,255,.75); font-size: 13px;
+  transition: background .15s, border-color .15s;
+}
+.cosign-toggle input { accent-color: #1a56a8; width: 15px; height: 15px; }
+.cosign-toggle:hover { background: rgba(255,255,255,.07); }
+.cosign-panel { margin-top: 12px; display: none; }
+.cosign-panel.open { display: block; }
+.panel-select {
+  width: 100%; padding: 8px 10px; border-radius: 6px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  color: #fff; font-size: 13px; margin-bottom: 8px; outline: none;
+}
+.panel-select option { background: #1e293b; color: #fff; }
+.btn-add-cosign {
+  width: 100%; padding: 8px; border-radius: 6px;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.8); font-size: 13px; cursor: pointer; transition: background .15s;
+}
+.btn-add-cosign:hover { background: rgba(255,255,255,.14); }
+.signer-list { display: flex; flex-direction: column; gap: 8px; }
+.signer-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+}
+.signer-av {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg,#0f3270,#1a56a8);
+  color: #fff; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.signer-av.signed { background: linear-gradient(135deg,#14532d,#16a34a); }
+.signer-info { flex: 1; min-width: 0; }
+.signer-name { font-size: 12.5px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.signer-role { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 1px; }
+.signer-del {
+  width: 24px; height: 24px; border-radius: 5px;
+  background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.2);
+  color: #ef4444; font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background .15s;
+}
+.signer-del:hover { background: rgba(239,68,68,.3); }
+.empty-signers { text-align: center; padding: 20px 0; color: rgba(255,255,255,.25); font-size: 12px; line-height: 1.7; }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 12px;
+}
+.status-draft   { background: rgba(255,255,255,.07); color: rgba(255,255,255,.5); }
+.status-partial { background: rgba(251,191,36,.12); color: #fbbf24; }
+.status-signed  { background: rgba(22,163,74,.15); color: #4ade80; }
+</style>
+</head>
+<body>
+
+<!-- Toolbar -->
+<div class="pdf-toolbar">
+  <a href="/e-sign" class="toolbar-back">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M12 4l-8 8 8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Kembali
+  </a>
+  <div class="toolbar-sep"></div>
+  <div class="toolbar-title">E-Sign — <%= session.title %></div>
+  <span class="toolbar-hint" id="toolbarHint">Drag QR untuk memindahkan · Tarik sudut kanan bawah untuk resize</span>
+  <button class="btn-sign" id="btnSignToolbar" onclick="signDocument()"
+    <% if (!session.signers.some(s => s.userId.toString() === currentUser._id.toString())) { %>style="display:none"<% } %>
+    <% if (session.signers.some(s => s.userId.toString() === currentUser._id.toString() && s.status === 'signed')) { %>disabled<% } %>>
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <% const mySig = session.signers.find(s => s.userId.toString() === currentUser._id.toString()); %>
+    <%= mySig && mySig.status === 'signed' ? 'Sudah Ditandatangani' : 'Tanda Tangani' %>
+  </button>
+  <a href="/e-sign/<%= session._id %>/download" class="btn-toolbar-outline">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 9l4 4 4-4M3 17h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Download PDF
+  </a>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 280px;gap:18px;align-items:flex-start;">
+<div class="pdf-shell">
 
-  <!-- LEFT: PDF Viewer -->
-  <div>
-    <!-- Page controls -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:8px 14px;">
-      <button onclick="changePage(-1)" id="prevBtn" style="background:none;border:none;cursor:pointer;color:var(--gray-600);padding:2px 6px;border-radius:4px;" title="Halaman sebelumnya">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M13 4l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <span style="font-size:12.5px;color:var(--gray-600);">Halaman <strong id="pageNum">1</strong> / <strong id="totalPages">—</strong></span>
-      <button onclick="changePage(1)" id="nextBtn" style="background:none;border:none;cursor:pointer;color:var(--gray-600);padding:2px 6px;border-radius:4px;" title="Halaman berikutnya">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <div style="margin-left:auto;font-size:11.5px;color:var(--gray-400);">
-        <% if (currentUserSigner && currentUserSigner.status === 'pending') { %>
-        <span style="color:#2563eb;">Seret kotak biru untuk memposisikan tanda tangan Anda</span>
-        <% } %>
-      </div>
-    </div>
-
-    <!-- PDF Canvas + Signature boxes -->
-    <div id="pdfWrap" style="position:relative;display:inline-block;width:100%;background:#e2e8f0;border-radius:var(--radius-md);overflow:hidden;min-height:400px;line-height:0;">
-      <canvas id="pdfCanvas" style="display:block;width:100%;height:auto;"></canvas>
-      <!-- Sig boxes injected by JS -->
-    </div>
-  </div>
-
-  <!-- RIGHT: Panel -->
-  <div style="display:flex;flex-direction:column;gap:14px;">
-
-    <!-- Status -->
-    <div class="compose-card" style="padding:16px 18px;">
-      <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Status Dokumen</div>
-      <% if (session.status === 'signed') { %>
-      <div style="display:flex;align-items:center;gap:8px;color:#16a34a;">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M6 10l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span style="font-size:13.5px;font-weight:600;">Semua sudah tanda tangan</span>
-      </div>
-      <% } else if (session.status === 'partial') { %>
-      <div style="display:flex;align-items:center;gap:8px;color:#b45309;">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <span style="font-size:13.5px;font-weight:600;">Sebagian sudah tanda tangan</span>
-      </div>
-      <% } else { %>
-      <div style="display:flex;align-items:center;gap:8px;color:var(--gray-500);">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4M10 13h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <span style="font-size:13.5px;font-weight:600;">Menunggu tanda tangan</span>
-      </div>
-      <% } %>
-    </div>
-
-    <!-- Signers list -->
-    <div class="compose-card" style="padding:16px 18px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Penandatangan</div>
-        <% if (isCreator) { %>
-        <button onclick="toggleAddSigner()" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:3px;padding:0;">
-          <svg width="11" height="11" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          Tambah
-        </button>
-        <% } %>
-      </div>
-
-      <div id="signersList">
-        <% session.signers.forEach((signer, i) => {
-          const isMe = signer.userId.toString() === currentUser._id.toString();
+  <!-- PDF Canvas Area -->
+  <div class="pdf-canvas-area">
+    <div style="position:relative;">
+      <div class="pdf-page-wrap" id="pdfPageWrap">
+        <canvas id="pdfCanvas"></canvas>
+        <!-- QR stamps injected dynamically -->
+        <% session.signers.forEach(function(s) {
+          const rl = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
+          const jabatan = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
         %>
-        <div class="signer-row" id="sigrow-<%= signer._id %>" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--gray-100);">
-          <div style="width:28px;height:28px;border-radius:50%;background:<%= isMe ? '#eff6ff' : '#f1f5f9' %>;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <span style="font-size:10px;font-weight:700;color:<%= isMe ? '#2563eb' : '#64748b' %>"><%= signer.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase() %></span>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:12.5px;font-weight:600;color:var(--gray-700);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= signer.name %><%= isMe ? ' (Anda)' : '' %></div>
-            <div style="font-size:11px;color:var(--gray-400);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= signer.email %></div>
-          </div>
-          <div style="flex-shrink:0;">
-            <% if (signer.status === 'signed') { %>
-            <span style="background:#dcfce7;color:#15803d;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;">✓</span>
-            <% } else { %>
-            <span style="background:#f1f5f9;color:#94a3b8;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;">○</span>
-            <% } %>
-          </div>
-          <% if (isCreator && !isMe && signer.status === 'pending') { %>
-          <button onclick="removeSigner('<%= session._id %>', '<%= signer._id %>')" style="background:none;border:none;cursor:pointer;color:var(--gray-300);padding:2px;" title="Hapus">
-            <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <div class="qr-stamp" id="stamp-<%= s._id %>"
+          data-id="<%= s._id %>"
+          data-mine="<%= s.userId.toString() === currentUser._id.toString() && s.status !== 'signed' ? '1' : '0' %>"
+          style="left:<%= s.position.x %>px;top:<%= s.position.y %>px;width:<%= s.position.width %>px;height:<%= s.position.height %>px;">
+          <img src="<%= s.qrDataUrl %>" alt="QR" draggable="false">
+          <div class="qr-stamp-sig"></div>
+          <div class="qr-stamp-name"><%= s.userName %></div>
+          <div class="qr-stamp-role"><%= jabatan %></div>
+          <% if (s.status === 'signed') { %><div class="qr-signed-badge">✓ Signed</div><% } %>
+          <% if (s.status !== 'signed') { %><div class="qr-resize"></div><% } %>
+          <% if (isCreator && s.status === 'pending') { %>
+          <button class="qr-delete" onclick="removeSigner('<%= s._id %>', event)" title="Hapus">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           </button>
           <% } %>
         </div>
         <% }) %>
       </div>
-
-      <!-- Add signer form -->
-      <% if (isCreator) { %>
-      <div id="addSignerForm" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-100);">
-        <div style="font-size:12px;color:var(--gray-600);margin-bottom:8px;font-weight:600;">Pilih pengguna untuk co-sign:</div>
-        <select id="coSignerSelect" class="form-control form-select" style="font-size:12.5px;margin-bottom:8px;">
-          <option value="">— Pilih pengguna —</option>
-          <% users.forEach(u => { %>
-          <% const already = session.signers.some(s => s.userId.toString() === u._id.toString()); %>
-          <option value="<%= u._id %>" <%= already ? 'disabled' : '' %>><%= u.name %> <%= already ? '(sudah)' : '' %></option>
-          <% }) %>
-        </select>
-        <button onclick="addCoSigner()" class="btn btn-primary" style="font-size:12px;padding:6px 14px;width:100%;">
-          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          Tambahkan
+      <!-- Page controls below the page -->
+      <div class="page-controls" id="pageControls" style="display:none;">
+        <button class="page-btn" onclick="changePage(-1)" id="prevBtn">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M13 4l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span>Hal <span id="pageNumDisp">1</span> / <span id="totalPagesDisp">—</span></span>
+        <button class="page-btn" onclick="changePage(1)" id="nextBtn">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="pdf-panel">
+
+    <!-- Status -->
+    <div class="panel-section">
+      <div class="panel-title">Status</div>
+      <span class="status-badge status-<%= session.status %>" id="statusBadge">
+        <% if (session.status === 'signed') { %>
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Semua Sudah Tanda Tangan
+        <% } else if (session.status === 'partial') { %>
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5"/></svg> Sebagian Ditandatangani
+        <% } else { %>
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5"/></svg> Menunggu
+        <% } %>
+      </span>
+    </div>
+
+    <!-- My Signature -->
+    <div class="panel-section">
+      <div class="panel-title">Tanda Tangan Saya</div>
+      <div class="panel-hint">Tambahkan QR tanda tangan Anda ke dokumen ini. Setiap dokumen memiliki QR unik tersendiri.</div>
+      <button class="btn-add-self" id="btnAddSelf" onclick="addSelf()"
+        <% if (session.signers.some(s => s.userId.toString() === currentUser._id.toString())) { %>disabled<% } %>>
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <% if (session.signers.some(s => s.userId.toString() === currentUser._id.toString())) { %>
+          Sudah Ditambahkan
+        <% } else { %>
+          Tambah Tanda Tangan Saya
+        <% } %>
+      </button>
+      <% const mySigner = session.signers.find(s => s.userId.toString() === currentUser._id.toString()); %>
+      <% if (mySigner && mySigner.status === 'pending') { %>
+      <button class="btn-sign" id="btnSign" onclick="signDocument()">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Tanda Tangani Sekarang
+      </button>
       <% } %>
     </div>
 
-    <!-- Actions -->
-    <div class="compose-card" style="padding:16px 18px;">
-      <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">Tindakan</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <% if (currentUserSigner && currentUserSigner.status === 'pending') { %>
-        <button id="signBtnPanel" onclick="signDocument()" class="btn btn-primary" style="font-size:12.5px;justify-content:center;">
-          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Tanda Tangani Dokumen
-        </button>
+    <!-- Co-sign -->
+    <% if (isCreator) { %>
+    <div class="panel-section">
+      <div class="panel-title">Co-Sign</div>
+      <label class="cosign-toggle">
+        <input type="checkbox" id="coSignCheck" onchange="toggleCoSign(this)">
+        Aktifkan Multi Penandatangan
+      </label>
+      <div class="cosign-panel" id="coSignPanel">
+        <div style="margin-top:12px;">
+          <select class="panel-select" id="coSignSelect">
+            <option value="">— Pilih pengguna —</option>
+            <% users.forEach(u => { %>
+            <% if (u._id.toString() !== currentUser._id.toString()) { %>
+            <% const alreadyIn = session.signers.some(s => s.userId.toString() === u._id.toString()); %>
+            <option value="<%= u._id %>" <%= alreadyIn ? 'disabled' : '' %>><%= u.name %></option>
+            <% } %>
+            <% }) %>
+          </select>
+          <button class="btn-add-cosign" onclick="addCoSigner()">+ Tambah Co-Signer</button>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Signer list -->
+    <div class="panel-section" style="flex:1;">
+      <div class="panel-title">Penandatangan (<span id="signerCount"><%= session.signers.length %></span>)</div>
+      <div class="signer-list" id="signerList">
+        <% if (session.signers.length === 0) { %>
+        <div class="empty-signers" id="emptySig">Belum ada penandatangan.<br>Tambahkan di atas.</div>
         <% } %>
-        <button onclick="saveToPersonalDocs()" class="btn btn-secondary" style="font-size:12.5px;justify-content:center;">
-          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M3 3h14v14H3zM3 8h14M7 3v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          Simpan ke Dok. Pribadi
-        </button>
-        <a href="/e-sign/<%= session._id %>/download" class="btn btn-secondary" style="font-size:12.5px;justify-content:center;text-decoration:none;">
-          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 3v11M6 10l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          Unduh PDF
-        </button>
+        <% session.signers.forEach(function(s) {
+          const initials = (s.userName||'?').split(' ').slice(0,2).map(w => w[0]||'').join('').toUpperCase();
+          const rl = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
+          const roleLabel = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
+        %>
+        <div class="signer-item" id="si-<%= s._id %>">
+          <div class="signer-av <%= s.status === 'signed' ? 'signed' : '' %>"><%= initials %></div>
+          <div class="signer-info">
+            <div class="signer-name"><%= s.userName %></div>
+            <div class="signer-role"><%= roleLabel %> <%= s.status === 'signed' ? '· ✓' : '' %></div>
+          </div>
+          <% if (isCreator && s.status === 'pending' && s.userId.toString() !== currentUser._id.toString()) { %>
+          <button class="signer-del" onclick="removeSigner('<%= s._id %>', event)" title="Hapus">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+          <% } %>
+        </div>
+        <% }) %>
       </div>
     </div>
 
+    <!-- Actions -->
+    <div class="panel-section" style="border-bottom:none;">
+      <div class="panel-title">Simpan</div>
+      <button onclick="saveToPersonalDocs()" style="width:100%;padding:9px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.8);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><rect x="3" y="2" width="14" height="17" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Simpan ke Dok. Pribadi
+      </button>
+    </div>
   </div>
+
 </div>
 
-<div class="admin-toast" id="esignToast"></div>
+<!-- Toast -->
+<div id="esignToast" style="position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:9999;display:none;"></div>
 
-<!-- PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const SESSION_ID  = '<%= session._id %>';
-const CURRENT_PAGE_SETTING = <%- JSON.stringify(currentUserSigner ? currentUserSigner.position.page : 0) %>;
-const MY_SIGNER_STATUS = '<%- currentUserSigner ? currentUserSigner.status : "none" %>';
-
-const signersData = <%- JSON.stringify(session.signers.map(s => ({
-  _id: s._id,
-  userId: s.userId,
-  name: s.name,
-  status: s.status,
-  isMe: s.userId.toString() === currentUser._id.toString(),
-  position: s.position
-}))) %>;
+const SESSION_ID     = '<%= session._id %>';
+const CURRENT_USER_ID = '<%= currentUser._id %>';
+const IS_CREATOR     = <%- isCreator ? 'true' : 'false' %>;
 
 let pdfDoc = null, currentPage = 0, totalPages = 0, renderTask = null;
-const canvas  = document.getElementById('pdfCanvas');
-const ctx     = canvas.getContext('2d');
-const pdfWrap = document.getElementById('pdfWrap');
+const canvas = document.getElementById('pdfCanvas');
+const ctx    = canvas.getContext('2d');
+const wrap   = document.getElementById('pdfPageWrap');
 
-// My draggable box
-let myBox = null, isDragging = false, dragOffX = 0, dragOffY = 0;
-
-function showToast(msg, ok) {
-  const t = document.getElementById('esignToast');
-  t.textContent = msg;
-  t.className = 'admin-toast admin-toast-' + (ok ? 'success' : 'error') + ' admin-toast-show';
-  setTimeout(() => t.className = 'admin-toast', 3500);
-}
-
+// ── PDF LOAD & RENDER ──
 async function loadPDF() {
   try {
     const pdf = await pdfjsLib.getDocument('/e-sign/' + SESSION_ID + '/pdf').promise;
     pdfDoc    = pdf;
     totalPages = pdf.numPages;
-    document.getElementById('totalPages').textContent = totalPages;
-    currentPage = Math.min(CURRENT_PAGE_SETTING, totalPages - 1);
-    await renderPage(currentPage);
-  } catch (e) {
-    pdfWrap.innerHTML = '<div style="padding:40px;text-align:center;color:#94a3b8;font-size:13px;">Gagal memuat PDF</div>';
+    document.getElementById('totalPagesDisp').textContent = totalPages;
+    if (totalPages > 1) document.getElementById('pageControls').style.display = 'flex';
+    await renderPage(0);
+  } catch(e) {
+    wrap.style.minHeight = '400px';
+    wrap.style.display = 'flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.justifyContent = 'center';
+    canvas.style.display = 'none';
+    const msg = document.createElement('div');
+    msg.style.cssText = 'color:#94a3b8;font-size:13px;padding:40px;text-align:center;';
+    msg.textContent = 'Gagal memuat PDF';
+    wrap.appendChild(msg);
   }
 }
 
 async function renderPage(pageNum) {
-  if (renderTask) { renderTask.cancel(); renderTask = null; }
+  if (renderTask) { try { renderTask.cancel(); } catch {} renderTask = null; }
   const page     = await pdfDoc.getPage(pageNum + 1);
-  const scale    = pdfWrap.clientWidth / page.getViewport({ scale: 1 }).width;
-  const viewport = page.getViewport({ scale });
+  const viewport = page.getViewport({ scale: 794 / page.getViewport({ scale: 1 }).width });
   canvas.width   = viewport.width;
   canvas.height  = viewport.height;
-
   renderTask = page.render({ canvasContext: ctx, viewport });
-  await renderTask.promise;
+  try { await renderTask.promise; } catch {}
   renderTask = null;
-
-  document.getElementById('pageNum').textContent = pageNum + 1;
-  updateSigBoxes();
+  document.getElementById('pageNumDisp').textContent = pageNum + 1;
+  currentPage = pageNum;
 }
 
-function updateSigBoxes() {
-  // Remove old boxes
-  pdfWrap.querySelectorAll('.esign-box').forEach(el => el.remove());
-  myBox = null;
+async function changePage(delta) {
+  const next = currentPage + delta;
+  if (next < 0 || next >= totalPages) return;
+  await renderPage(next);
+}
 
-  const W = canvas.width;
-  const H = canvas.height;
+// ── DRAG & RESIZE — identical to surat-pdf-editor ──
+let dragState = null;
 
-  signersData.forEach(s => {
-    if (s.position.page !== currentPage) return;
+function initStamp(el) {
+  if (el.dataset.mine !== '1') return; // only drag own pending stamps
 
-    const x = s.position.xPct * W;
-    const y = s.position.yPct * H;
-    const w = s.position.wPct * W;
-    const h = s.position.hPct * H;
+  el.addEventListener('pointerdown', function(e) {
+    if (e.target.classList.contains('qr-resize') || e.target.closest('.qr-delete')) return;
+    e.preventDefault();
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('active');
+    dragState = { type:'drag', el,
+      startX: e.clientX, startY: e.clientY,
+      origX: parseInt(el.style.left)||0, origY: parseInt(el.style.top)||0 };
+  });
+  el.addEventListener('pointermove', function(e) {
+    if (!dragState || dragState.el !== el || dragState.type !== 'drag') return;
+    const dx = e.clientX - dragState.startX, dy = e.clientY - dragState.startY;
+    const maxX = wrap.offsetWidth  - el.offsetWidth;
+    const maxY = wrap.offsetHeight - el.offsetHeight;
+    el.style.left = Math.max(0, Math.min(dragState.origX + dx, maxX)) + 'px';
+    el.style.top  = Math.max(0, Math.min(dragState.origY + dy, maxY)) + 'px';
+  });
+  el.addEventListener('pointerup', function() {
+    if (!dragState || dragState.el !== el) return;
+    el.classList.remove('active');
+    savePosition(el);
+    dragState = null;
+  });
+  el.addEventListener('pointercancel', () => { dragState = null; });
 
-    const box = document.createElement('div');
-    box.className = 'esign-box';
-    box.dataset.signerId = s._id;
-    box.style.cssText = `
-      position:absolute;
-      left:${x}px; top:${y}px;
-      width:${w}px; height:${h}px;
-      border:2px ${s.status === 'signed' ? 'solid' : 'dashed'} ${s.isMe ? '#2563eb' : '#64748b'};
-      background:${s.isMe ? 'rgba(37,99,235,0.07)' : 'rgba(100,116,139,0.05)'};
-      border-radius:4px;
-      display:flex; align-items:flex-start; padding:4px 6px;
-      box-sizing:border-box;
-      ${s.isMe && s.status === 'pending' ? 'cursor:move;' : 'pointer-events:none;'}
-      user-select:none;
-      transition: box-shadow .15s;
-    `;
+  const rh = el.querySelector('.qr-resize');
+  if (rh) {
+    rh.addEventListener('pointerdown', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      rh.setPointerCapture(e.pointerId);
+      el.classList.add('active');
+      dragState = { type:'resize', el,
+        startX: e.clientX, startY: e.clientY,
+        origX: parseInt(el.style.left)||0, origY: parseInt(el.style.top)||0,
+        origW: el.offsetWidth, origH: el.offsetHeight };
+    });
+    rh.addEventListener('pointermove', function(e) {
+      if (!dragState || dragState.type !== 'resize' || dragState.el !== el) return;
+      el.style.width  = Math.max(60, Math.min(dragState.origW + (e.clientX - dragState.startX), wrap.offsetWidth  - dragState.origX)) + 'px';
+      el.style.height = Math.max(60, dragState.origH + (e.clientY - dragState.startY)) + 'px';
+    });
+    rh.addEventListener('pointerup', function() {
+      if (!dragState || dragState.el !== el) return;
+      el.classList.remove('active');
+      savePosition(el);
+      dragState = null;
+    });
+    rh.addEventListener('pointercancel', () => { dragState = null; });
+  }
+}
 
-    const label = document.createElement('div');
-    label.style.cssText = `font-size:10px;font-weight:600;color:${s.isMe ? '#2563eb' : '#64748b'};line-height:1.3;pointer-events:none;`;
-    label.innerHTML = (s.status === 'signed' ? '✓ ' : '○ ') + s.name.split(' ')[0];
-    if (s.isMe && s.status === 'pending') {
-      label.innerHTML += '<br><span style="font-size:9px;font-weight:400;opacity:.7;">seret untuk pindah</span>';
-    }
-    box.appendChild(label);
-    pdfWrap.appendChild(box);
+// Init existing stamps
+document.querySelectorAll('.qr-stamp').forEach(initStamp);
 
-    if (s.isMe && s.status === 'pending') {
-      myBox = box;
-      setupDrag(box);
-    }
+async function savePosition(el) {
+  await fetch(`/e-sign/${SESSION_ID}/update-position`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      signerId: el.dataset.id,
+      page:   currentPage,
+      x:      parseInt(el.style.left)  || 0,
+      y:      parseInt(el.style.top)   || 0,
+      width:  el.offsetWidth,
+      height: el.offsetHeight
+    })
   });
 }
 
-function setupDrag(box) {
-  box.addEventListener('mousedown', e => {
-    isDragging = true;
-    const rect = pdfWrap.getBoundingClientRect();
-    dragOffX = e.clientX - rect.left - box.offsetLeft;
-    dragOffY = e.clientY - rect.top  - box.offsetTop;
-    box.style.boxShadow = '0 4px 20px rgba(37,99,235,.25)';
-    e.preventDefault();
+// ── ADD SELF ──
+async function addSelf() {
+  const btn = document.getElementById('btnAddSelf');
+  btn.disabled = true; btn.textContent = 'Memproses...';
+  const res  = await fetch(`/e-sign/${SESSION_ID}/add-signer`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: CURRENT_USER_ID })
   });
-  box.addEventListener('touchstart', e => {
-    isDragging = true;
-    const rect = pdfWrap.getBoundingClientRect();
-    const t = e.touches[0];
-    dragOffX = t.clientX - rect.left - box.offsetLeft;
-    dragOffY = t.clientY - rect.top  - box.offsetTop;
-    e.preventDefault();
-  }, { passive: false });
+  const data = await res.json();
+  if (data.ok) {
+    addStampToPage(data.signer);
+    addSignerToPanel(data.signer, true);
+    btn.textContent = 'Sudah Ditambahkan';
+    // Show sign button
+    document.getElementById('btnSignToolbar').style.display = '';
+    document.getElementById('btnSignToolbar').disabled = false;
+    document.getElementById('btnSignToolbar').innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Tanda Tangani`;
+    // Add sign button in panel
+    const panelSign = document.getElementById('btnSign');
+    if (!panelSign) {
+      const div = btn.closest('.panel-section');
+      const sb = document.createElement('button');
+      sb.className = 'btn-sign'; sb.id = 'btnSign'; sb.onclick = signDocument;
+      sb.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Tanda Tangani Sekarang`;
+      div.appendChild(sb);
+    }
+  } else {
+    showToast(data.message || 'Gagal menambahkan tanda tangan.', false);
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Tambah Tanda Tangan Saya`;
+  }
 }
 
-document.addEventListener('mousemove', e => {
-  if (!isDragging || !myBox) return;
-  const rect = pdfWrap.getBoundingClientRect();
-  const maxX = canvas.width  - myBox.offsetWidth;
-  const maxY = canvas.height - myBox.offsetHeight;
-  const newX = Math.max(0, Math.min(maxX, e.clientX - rect.left - dragOffX));
-  const newY = Math.max(0, Math.min(maxY, e.clientY - rect.top  - dragOffY));
-  myBox.style.left = newX + 'px';
-  myBox.style.top  = newY + 'px';
-});
-document.addEventListener('touchmove', e => {
-  if (!isDragging || !myBox) return;
-  const rect = pdfWrap.getBoundingClientRect();
-  const t = e.touches[0];
-  const maxX = canvas.width  - myBox.offsetWidth;
-  const maxY = canvas.height - myBox.offsetHeight;
-  const newX = Math.max(0, Math.min(maxX, t.clientX - rect.left - dragOffX));
-  const newY = Math.max(0, Math.min(maxY, t.clientY - rect.top  - dragOffY));
-  myBox.style.left = newX + 'px';
-  myBox.style.top  = newY + 'px';
-  e.preventDefault();
-}, { passive: false });
-document.addEventListener('mouseup', () => { isDragging = false; if (myBox) myBox.style.boxShadow = ''; });
-document.addEventListener('touchend', () => { isDragging = false; if (myBox) myBox.style.boxShadow = ''; });
+// ── CO-SIGN ──
+function toggleCoSign(cb) { document.getElementById('coSignPanel').classList.toggle('open', cb.checked); }
 
-function getMyPosition() {
-  if (!myBox) return null;
-  return {
-    page: currentPage,
-    xPct: myBox.offsetLeft / canvas.width,
-    yPct: myBox.offsetTop  / canvas.height,
-    wPct: myBox.offsetWidth  / canvas.width,
-    hPct: myBox.offsetHeight / canvas.height,
-  };
+async function addCoSigner() {
+  const sel    = document.getElementById('coSignSelect');
+  const userId = sel.value;
+  if (!userId) { showToast('Pilih pengguna terlebih dahulu.', false); return; }
+  const res  = await fetch(`/e-sign/${SESSION_ID}/add-signer`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    addStampToPage(data.signer);
+    addSignerToPanel(data.signer, false);
+    sel.querySelector(`option[value="${userId}"]`)?.remove();
+    sel.value = '';
+    showToast('Co-signer ditambahkan!', true);
+  } else {
+    showToast(data.message || 'Gagal menambahkan penandatangan.', false);
+  }
 }
 
+// ── ADD STAMP TO PAGE ──
+function addStampToPage(signer) {
+  document.getElementById('sigHint')?.remove();
+  const rl = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
+  const jabatan = signer.jabatanDisplay || (signer.userRole ? (rl[signer.userRole]||signer.userRole) : (signer.userOrg||''));
+  const isMe    = signer.userId?.toString() === CURRENT_USER_ID;
+
+  const div = document.createElement('div');
+  div.className = 'qr-stamp';
+  div.id = `stamp-${signer._id}`;
+  div.dataset.id   = signer._id;
+  div.dataset.mine = isMe ? '1' : '0';
+  div.style.cssText = `left:${signer.position.x}px;top:${signer.position.y}px;width:${signer.position.width}px;height:${signer.position.height}px;`;
+  div.innerHTML = `
+    <img src="${signer.qrDataUrl}" alt="QR" draggable="false">
+    <div class="qr-stamp-sig"></div>
+    <div class="qr-stamp-name">${signer.userName}</div>
+    <div class="qr-stamp-role">${jabatan}</div>
+    <div class="qr-resize"></div>
+    ${(IS_CREATOR && signer.status === 'pending') ? `
+    <button class="qr-delete" onclick="removeSigner('${signer._id}', event)" title="Hapus">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>` : ''}
+  `;
+  wrap.appendChild(div);
+  initStamp(div);
+}
+
+// ── ADD SIGNER TO PANEL ──
+function addSignerToPanel(signer, isMe) {
+  document.getElementById('emptySig')?.remove();
+  const rl = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
+  const roleText = signer.jabatanDisplay || (signer.userRole ? (rl[signer.userRole]||signer.userRole) : (signer.userOrg||''));
+  const initials = (signer.userName||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  const list = document.getElementById('signerList');
+  const item = document.createElement('div');
+  item.className = 'signer-item'; item.id = `si-${signer._id}`;
+  item.innerHTML = `
+    <div class="signer-av">${initials}</div>
+    <div class="signer-info">
+      <div class="signer-name">${signer.userName}</div>
+      <div class="signer-role">${roleText}</div>
+    </div>
+    ${(IS_CREATOR && !isMe) ? `
+    <button class="signer-del" onclick="removeSigner('${signer._id}', event)" title="Hapus">
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>` : ''}
+  `;
+  list.appendChild(item);
+  updateCount(1);
+}
+
+// ── REMOVE SIGNER ──
+async function removeSigner(signerId, e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  if (!await showConfirm('Hapus penandatangan ini dari dokumen?', { title:'Hapus Penandatangan', type:'danger', confirmLabel:'Hapus' })) return;
+  const res  = await fetch(`/e-sign/${SESSION_ID}/signers/${signerId}`, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.ok) {
+    document.getElementById(`stamp-${signerId}`)?.remove();
+    document.getElementById(`si-${signerId}`)?.remove();
+    updateCount(-1);
+    const list = document.getElementById('signerList');
+    if (!list.querySelector('.signer-item')) {
+      const h = document.createElement('div');
+      h.className = 'empty-signers'; h.id = 'emptySig';
+      h.innerHTML = 'Belum ada penandatangan.<br>Tambahkan di atas.';
+      list.appendChild(h);
+    }
+  }
+}
+
+function updateCount(d) {
+  const el = document.getElementById('signerCount');
+  el.textContent = parseInt(el.textContent) + d;
+}
+
+// ── SIGN DOCUMENT ──
 async function signDocument() {
-  if (MY_SIGNER_STATUS !== 'pending') { showToast('Anda sudah menandatangani dokumen ini.', false); return; }
-  const pos = getMyPosition();
-  if (!pos) { showToast('Tidak ada kotak tanda tangan untuk Anda.', false); return; }
-
-  if (!await showConfirm('Tanda tangani dokumen ini sekarang? Tindakan tidak dapat dibatalkan.', {
+  const btns = [document.getElementById('btnSign'), document.getElementById('btnSignToolbar')].filter(Boolean);
+  if (!await showConfirm('Tanda tangani dokumen ini? Posisi QR yang sudah diseret akan disimpan. Tindakan tidak dapat dibatalkan.', {
     title: 'Konfirmasi Tanda Tangan', type: 'primary', confirmLabel: 'Tanda Tangani'
   })) return;
-
-  const btns = document.querySelectorAll('#signBtn, #signBtnPanel');
   btns.forEach(b => { b.disabled = true; b.textContent = 'Memproses...'; });
-
   try {
-    const r = await fetch('/e-sign/' + SESSION_ID + '/sign', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(pos)
-    });
-    const d = await r.json();
-    if (d.ok) {
-      showToast(d.allSigned ? 'Dokumen selesai ditandatangani oleh semua pihak!' : 'Berhasil ditandatangani!', true);
+    const res  = await fetch(`/e-sign/${SESSION_ID}/sign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+    const data = await res.json();
+    if (data.ok) {
+      showToast(data.allSigned ? 'Semua pihak sudah menandatangani!' : 'Berhasil ditandatangani!', true);
       setTimeout(() => location.reload(), 1200);
     } else {
-      showToast(d.message || 'Gagal menandatangani.', false);
-      btns.forEach(b => { b.disabled = false; b.textContent = 'Tanda Tangani'; });
+      showToast(data.message || 'Gagal menandatangani.', false);
+      btns.forEach(b => { b.disabled = false; b.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Tanda Tangani`; });
     }
   } catch {
     showToast('Kesalahan koneksi.', false);
-    btns.forEach(b => { b.disabled = false; b.textContent = 'Tanda Tangani'; });
+    btns.forEach(b => { b.disabled = false; });
   }
 }
 
 async function saveToPersonalDocs() {
-  const r = await fetch('/e-sign/' + SESSION_ID + '/save', { method: 'POST' });
-  const d = await r.json();
-  if (d.ok) showToast('Disimpan ke Dokumen Pribadi!', true);
-  else showToast(d.message || 'Gagal menyimpan.', false);
+  const res  = await fetch(`/e-sign/${SESSION_ID}/save`, { method: 'POST' });
+  const data = await res.json();
+  showToast(data.ok ? 'Disimpan ke Dokumen Pribadi!' : (data.message || 'Gagal.'), data.ok);
 }
 
-function toggleAddSigner() {
-  const f = document.getElementById('addSignerForm');
-  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+// ── TOAST ──
+function showToast(msg, ok) {
+  const t = document.getElementById('esignToast');
+  t.textContent = msg;
+  t.style.background  = ok ? '#166534' : '#991b1b';
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
 }
-
-async function addCoSigner() {
-  const sel = document.getElementById('coSignerSelect');
-  const userId = sel.value;
-  if (!userId) { showToast('Pilih pengguna terlebih dahulu.', false); return; }
-
-  const r = await fetch('/e-sign/' + SESSION_ID + '/add-signer', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId })
-  });
-  const d = await r.json();
-  if (d.ok) {
-    showToast('Co-signer ditambahkan!', true);
-    setTimeout(() => location.reload(), 800);
-  } else {
-    showToast(d.message || 'Gagal menambahkan.', false);
-  }
-}
-
-async function removeSigner(sessionId, signerId) {
-  if (!await showConfirm('Hapus penandatangan ini dari dokumen?', { title: 'Hapus Co-Signer', type: 'danger', confirmLabel: 'Hapus' })) return;
-  const r = await fetch('/e-sign/' + sessionId + '/signers/' + signerId, { method: 'DELETE' });
-  const d = await r.json();
-  if (d.ok) { document.getElementById('sigrow-' + signerId)?.remove(); showToast('Co-signer dihapus.', true); }
-  else showToast(d.message || 'Gagal.', false);
-}
-
-async function changePage(delta) {
-  const newPage = currentPage + delta;
-  if (newPage < 0 || newPage >= totalPages) return;
-  currentPage = newPage;
-  await renderPage(currentPage);
-}
-
-// Re-render on resize
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { if (pdfDoc) renderPage(currentPage); }, 200);
-});
 
 loadPDF();
 </script>
-
-<%- include('./partials/footer') %>
+</body>
+</html>

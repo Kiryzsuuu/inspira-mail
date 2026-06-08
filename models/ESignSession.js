@@ -1,16 +1,20 @@
 const mongoose = require('mongoose');
 
 const signerSchema = new mongoose.Schema({
-  userId:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  name:     { type: String, default: '' },
-  email:    { type: String, default: '' },
-  status:   { type: String, enum: ['pending', 'signed'], default: 'pending' },
+  userId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  userName:       { type: String, default: '' },
+  userRole:       { type: String, default: '' },
+  userOrg:        { type: String, default: '' },
+  jabatanDisplay: { type: String, default: '' },
+  token:          { type: String, default: '' },
+  qrDataUrl:      { type: String, default: '' },
+  status:         { type: String, enum: ['pending', 'signed'], default: 'pending' },
   position: {
-    page: { type: Number, default: 0 },
-    xPct: { type: Number, default: 0.05 },
-    yPct: { type: Number, default: 0.82 },
-    wPct: { type: Number, default: 0.28 },
-    hPct: { type: Number, default: 0.10 },
+    page:   { type: Number, default: 0 },
+    x:      { type: Number, default: 60 },
+    y:      { type: Number, default: 680 },
+    width:  { type: Number, default: 110 },
+    height: { type: Number, default: 110 },
   },
   signedAt: { type: Date },
 }, { _id: true });

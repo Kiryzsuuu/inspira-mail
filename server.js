@@ -2735,82 +2735,70 @@ const esignUpload = multer({
   limits: { fileSize: 20 * 1024 * 1024 }
 });
 
-async function rebuildSignedPdf(session, newSignerUserId) {
-  const toApplyIds = session.signers
-    .filter(s => s.status === 'signed' || s.userId.toString() === newSignerUserId.toString())
-    .map(s => s.userId);
+// Helper: generate QR stamp for a signer (same pattern as DocumentSignature)
+async function generateESignQR(sessionId, signerId) {
+  const appUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || 3005}`;
+  const token  = crypto.randomBytes(32).toString('hex');
+  const verifyUrl = `${appUrl}/verify/esign/${token}`;
+  const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+    errorCorrectionLevel: 'H', margin: 2, width: 200,
+    color: { dark: '#000000', light: '#ffffff' }
+  });
+  return { token, qrDataUrl };
+}
 
-  const sigRecords = await Signature.find({ userId: { $in: toApplyIds } });
-  const sigMap = {};
-  sigRecords.forEach(s => { sigMap[s.userId.toString()] = s; });
-
+// Rebuild signed PDF — embeds all signed QR stamps using stored qrDataUrl (pixel positions)
+// The editor renders PDF at ~794px wide (A4 72dpi). We scale positions to actual PDF pt dimensions.
+async function rebuildSignedPdf(session) {
   const originalPath = path.join(__dirname, session.originalFile);
   const pdfBytes = fs.readFileSync(originalPath);
-  const pdfDoc = await PDFDocument.load(pdfBytes);
-  const pages = pdfDoc.getPages();
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const pdfDoc   = await PDFDocument.load(pdfBytes);
+  const pages    = pdfDoc.getPages();
+  const font     = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  const toApply = session.signers.filter(
-    s => s.status === 'signed' || s.userId.toString() === newSignerUserId.toString()
-  );
+  const RENDER_W = 794; // px width used in the editor canvas
 
-  for (const signer of toApply) {
+  for (const signer of session.signers) {
+    if (signer.status !== 'signed' || !signer.qrDataUrl) continue;
     const page = pages[signer.position.page] || pages[0];
     const { width: pw, height: ph } = page.getSize();
+    const scale = pw / RENDER_W;
 
-    const stampW = signer.position.wPct * pw;
-    const stampH = signer.position.hPct * ph;
-    const pdfX = signer.position.xPct * pw;
-    const pdfY = ph - (signer.position.yPct * ph) - stampH;
+    const pdfX = signer.position.x * scale;
+    const pdfW = signer.position.width  * scale;
+    const pdfH = signer.position.height * scale;
+    // Convert from top-left origin (browser) to bottom-left origin (PDF)
+    const pdfY = ph - (signer.position.y * scale) - pdfH;
 
+    // Background
     page.drawRectangle({
-      x: pdfX, y: pdfY, width: stampW, height: stampH,
-      color: rgb(0.97, 0.97, 1),
-      borderColor: rgb(0.18, 0.38, 0.78),
-      borderWidth: 0.7,
+      x: pdfX, y: pdfY, width: pdfW, height: pdfH,
+      color: rgb(1, 1, 1),
+      borderColor: rgb(0.1, 0.33, 0.67),
+      borderWidth: 0.75,
     });
 
-    const sigRec = sigMap[signer.userId.toString()];
-    const qrAreaW = Math.min(stampH, stampW * 0.35);
+    // QR image (square, left side)
+    try {
+      const qrBase64 = signer.qrDataUrl.split(',')[1];
+      const qrBytes  = Buffer.from(qrBase64, 'base64');
+      const qrImage  = await pdfDoc.embedPng(qrBytes);
+      const qrSize   = pdfH - 4;
+      page.drawImage(qrImage, { x: pdfX + 2, y: pdfY + 2, width: qrSize, height: qrSize });
 
-    if (sigRec && sigRec.qrCodeDataUrl) {
-      try {
-        const qrBase64 = sigRec.qrCodeDataUrl.split(',')[1];
-        const qrBytes = Buffer.from(qrBase64, 'base64');
-        const qrImage = await pdfDoc.embedPng(qrBytes);
-        page.drawImage(qrImage, {
-          x: pdfX + 2, y: pdfY + 2,
-          width: qrAreaW - 4, height: stampH - 4
-        });
-      } catch {}
-    }
+      // Text to the right of QR
+      const textX = pdfX + qrSize + 5;
+      const textW = pdfW - qrSize - 8;
+      const lh    = Math.max(5, Math.min(9, pdfH / 5));
+      const name  = (signer.userName || '').slice(0, 30);
+      const jabat = (signer.jabatanDisplay || signer.userOrg || '').slice(0, 32);
 
-    const textX = pdfX + qrAreaW + 4;
-    const textW  = stampW - qrAreaW - 8;
-    const lh = Math.max(6, Math.min(10, stampH / 5));
-
-    page.drawText((signer.name || '').slice(0, 32), {
-      x: textX, y: pdfY + stampH - lh - 3,
-      size: lh, font: boldFont, color: rgb(0, 0, 0), maxWidth: textW
-    });
-    if (sigRec && sigRec.position) {
-      page.drawText(sigRec.position.slice(0, 35), {
-        x: textX, y: pdfY + stampH - lh * 2 - 5,
-        size: lh - 1, font, color: rgb(0.3, 0.3, 0.3), maxWidth: textW
-      });
-    }
-    if (sigRec && sigRec.organization) {
-      page.drawText(sigRec.organization.slice(0, 35), {
-        x: textX, y: pdfY + stampH - lh * 3 - 7,
-        size: lh - 1, font, color: rgb(0.3, 0.3, 0.3), maxWidth: textW
-      });
-    }
-    const dateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-    page.drawText(dateStr, {
-      x: textX, y: pdfY + 3,
-      size: lh - 1, font, color: rgb(0.4, 0.4, 0.4), maxWidth: textW
-    });
+      page.drawText(name, { x: textX, y: pdfY + pdfH - lh - 3, size: lh, font: boldFont, color: rgb(0,0,0), maxWidth: textW });
+      if (jabat) page.drawText(jabat, { x: textX, y: pdfY + pdfH - lh*2 - 5, size: lh - 1, font, color: rgb(0.3,0.3,0.3), maxWidth: textW });
+      const dateStr = new Date(signer.signedAt || Date.now()).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+      page.drawText(dateStr, { x: textX, y: pdfY + 3, size: lh - 1, font, color: rgb(0.45,0.45,0.45), maxWidth: textW });
+    } catch {}
   }
 
   const signedBytes = await pdfDoc.save();
@@ -2847,15 +2835,8 @@ app.post('/e-sign/upload', requireAuth, esignUpload.single('pdf'), async (req, r
       title: (title || req.file.originalname.replace(/\.pdf$/i, '')).trim() || 'Dokumen',
       originalFile: 'uploads/esign/' + req.file.filename,
       originalName: req.file.originalname,
-      fileSize: req.file.size,
       createdBy: req.user._id,
-      signers: [{
-        userId: req.user._id,
-        name: req.user.name,
-        email: req.user.email,
-        status: 'pending',
-        position: { page: 0, xPct: 0.05, yPct: 0.82, wPct: 0.28, hPct: 0.10 }
-      }]
+      signers: []
     });
     await log(req, 'ESIGN_UPLOAD', 'document', `Upload PDF untuk e-sign: ${session.title}`);
     res.redirect('/e-sign/' + session._id);
@@ -2882,19 +2863,17 @@ app.get('/e-sign/:id', requireAuth, async (req, res) => {
   try {
     const session = await ESignSession.findById(req.params.id);
     if (!session) return res.redirect('/e-sign');
-    const ok = session.createdBy.toString() === req.user._id.toString() ||
-      session.signers.some(s => s.userId.toString() === req.user._id.toString());
-    if (!ok) return res.redirect('/e-sign');
+    const isCreator = session.createdBy.toString() === req.user._id.toString();
+    const isSigner  = session.signers.some(s => s.userId.toString() === req.user._id.toString());
+    if (!isCreator && !isSigner) return res.redirect('/e-sign');
     const [users, counts] = await Promise.all([
       User.find({ isActive: true }, 'name email _id').sort({ name: 1 }),
       getMailCounts(req.user._id)
     ]);
-    const currentUserSigner = session.signers.find(s => s.userId.toString() === req.user._id.toString());
-    const isCreator = session.createdBy.toString() === req.user._id.toString();
     res.render('e-sign-editor', {
       title: 'E-Sign: ' + session.title,
-      session, users, currentUserSigner, isCreator,
-      currentUser: req.user, active: 'e-sign',
+      session, users, isCreator,
+      user: req.user, currentUser: req.user, active: 'e-sign',
       ...counts
     });
   } catch (err) { console.error(err); res.redirect('/e-sign'); }
@@ -2906,20 +2885,34 @@ app.post('/e-sign/:id/add-signer', requireAuth, async (req, res) => {
     if (!session) return res.json({ ok: false, message: 'Sesi tidak ditemukan' });
     if (session.createdBy.toString() !== req.user._id.toString())
       return res.json({ ok: false, message: 'Hanya pembuat yang dapat menambah penandatangan' });
-    const { userId } = req.body;
+
+    const userId = req.body.userId || req.user._id.toString();
     if (session.signers.some(s => s.userId.toString() === userId))
       return res.json({ ok: false, message: 'Penandatangan sudah ditambahkan' });
+
     const targetUser = await User.findById(userId);
     if (!targetUser) return res.json({ ok: false, message: 'Pengguna tidak ditemukan' });
-    const xOffset = (session.signers.length % 3) * 0.31;
+
+    const { token, qrDataUrl } = await generateESignQR(session._id, userId);
+    const signerCount = session.signers.length;
+    const xOffset = (signerCount % 3) * 130;
+
+    const jabatanDisplay = targetUser.jabatan || targetUser.organization || '';
+
     session.signers.push({
-      userId: targetUser._id, name: targetUser.name, email: targetUser.email,
-      status: 'pending',
-      position: { page: 0, xPct: Math.min(0.05 + xOffset, 0.68), yPct: 0.82, wPct: 0.28, hPct: 0.10 }
+      userId:         targetUser._id,
+      userName:       targetUser.name,
+      userRole:       targetUser.role || '',
+      userOrg:        targetUser.organization || '',
+      jabatanDisplay,
+      token,
+      qrDataUrl,
+      status:         'pending',
+      position: { page: 0, x: 60 + xOffset, y: 680, width: 110, height: 110 }
     });
     await session.save();
     const newSigner = session.signers[session.signers.length - 1];
-    res.json({ ok: true, signer: { _id: newSigner._id, name: newSigner.name, email: newSigner.email, status: newSigner.status } });
+    res.json({ ok: true, signer: newSigner });
   } catch (err) { res.json({ ok: false, message: err.message }); }
 });
 
@@ -2942,15 +2935,16 @@ app.post('/e-sign/:id/update-position', requireAuth, async (req, res) => {
   try {
     const session = await ESignSession.findById(req.params.id);
     if (!session) return res.json({ ok: false });
-    const idx = session.signers.findIndex(s => s.userId.toString() === req.user._id.toString());
-    if (idx === -1) return res.json({ ok: false });
-    const { page, xPct, yPct, wPct, hPct } = req.body;
-    session.signers[idx].position = {
-      page: parseInt(page) || 0,
-      xPct: parseFloat(xPct) || 0.05,
-      yPct: parseFloat(yPct) || 0.82,
-      wPct: parseFloat(wPct) || 0.28,
-      hPct: parseFloat(hPct) || 0.10,
+    const { signerId, page, x, y, width, height } = req.body;
+    const signer = session.signers.id(signerId);
+    if (!signer) return res.json({ ok: false });
+    if (signer.userId.toString() !== req.user._id.toString()) return res.json({ ok: false });
+    signer.position = {
+      page:   parseInt(page)   || 0,
+      x:      parseFloat(x)    || 0,
+      y:      parseFloat(y)    || 0,
+      width:  parseFloat(width) || 110,
+      height: parseFloat(height)|| 110,
     };
     await session.save();
     res.json({ ok: true });
@@ -2965,17 +2959,9 @@ app.post('/e-sign/:id/sign', requireAuth, async (req, res) => {
     if (idx === -1) return res.json({ ok: false, message: 'Anda bukan penandatangan dokumen ini' });
     if (session.signers[idx].status === 'signed')
       return res.json({ ok: false, message: 'Anda sudah menandatangani dokumen ini' });
-    const { page, xPct, yPct, wPct, hPct } = req.body;
-    session.signers[idx].position = {
-      page: parseInt(page) || 0,
-      xPct: parseFloat(xPct) || 0.05,
-      yPct: parseFloat(yPct) || 0.82,
-      wPct: parseFloat(wPct) || 0.28,
-      hPct: parseFloat(hPct) || 0.10,
-    };
-    session.signers[idx].status  = 'signed';
+    session.signers[idx].status   = 'signed';
     session.signers[idx].signedAt = new Date();
-    const signedFilePath = await rebuildSignedPdf(session, req.user._id);
+    const signedFilePath = await rebuildSignedPdf(session);
     session.signedFile = signedFilePath;
     const allSigned = session.signers.every(s => s.status === 'signed');
     session.status = allSigned ? 'signed' : 'partial';
@@ -3009,7 +2995,7 @@ app.post('/e-sign/:id/save', requireAuth, async (req, res) => {
       session.signers.some(s => s.userId.toString() === req.user._id.toString());
     if (!ok) return res.json({ ok: false });
     const filePath    = session.signedFile || session.originalFile;
-    const signerNames = session.signers.filter(s => s.status === 'signed').map(s => s.name);
+    const signerNames = session.signers.filter(s => s.status === 'signed').map(s => s.userName);
     const doc = await PersonalDocument.create({
       title: session.title, filePath,
       originalName: session.originalName,
