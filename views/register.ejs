@@ -61,6 +61,19 @@
         >
       </div>
       <div class="auth-field">
+        <label class="auth-label" for="enik">Nomor Enik <span class="auth-req">*</span></label>
+        <input
+          type="text"
+          id="enik"
+          name="enik"
+          class="auth-input"
+          placeholder="Nomor enik Anda"
+          value="<%= data.enik || '' %>"
+          required
+          autocomplete="username"
+        >
+      </div>
+      <div class="auth-field">
         <label class="auth-label" for="organization">Instansi / Organisasi</label>
         <input
           type="text"

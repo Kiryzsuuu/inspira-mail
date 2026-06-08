@@ -27,13 +27,16 @@ const DocumentSignature = require('./models/DocumentSignature');
 const SiteSettings = require('./models/SiteSettings');
 const NomorSaja   = require('./models/NomorSaja');
 const Arsip       = require('./models/Arsip');
-const Perusahaan  = require('./models/Perusahaan');
+const Perusahaan       = require('./models/Perusahaan');
+const ESignSession     = require('./models/ESignSession');
+const PersonalDocument = require('./models/PersonalDocument');
 const QRCode = require('qrcode');
+const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 
 const app = express();
 
 // Pastikan folder uploads tersedia saat server mulai
-['uploads', 'uploads/suratmasuk'].forEach(dir => {
+['uploads', 'uploads/suratmasuk', 'uploads/esign', 'uploads/esign/signed'].forEach(dir => {
   fs.mkdirSync(path.join(__dirname, dir), { recursive: true });
 });
 
@@ -250,20 +253,21 @@ async function getMailCounts(userId) {
 app.get('/login', (req, res) => {
   if (req.user) return res.redirect('/inbox');
   const error = req.query.timeout === '1' ? 'Sesi Anda berakhir karena tidak aktif. Silakan masuk kembali.' : null;
-  res.render('login', { title: 'Masuk', error, savedEmail: '' });
+  res.render('login', { title: 'Masuk', error, savedEnik: '' });
 });
 
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { enik, password } = req.body;
+  const enikTrimmed = enik?.trim();
   try {
-    const user = await User.findOne({ email: email?.toLowerCase()?.trim() });
+    const user = await User.findOne({ enik: enikTrimmed });
     if (!user || !(await user.matchPassword(password))) {
-      await log(req, 'login_failed', 'auth', `Percobaan login gagal untuk email: ${email}`, { email }, 'failed');
-      return res.render('login', { title: 'Masuk', error: 'Email atau kata sandi salah.', savedEmail: email });
+      await log(req, 'login_failed', 'auth', `Percobaan login gagal untuk enik: ${enikTrimmed}`, { enik: enikTrimmed }, 'failed');
+      return res.render('login', { title: 'Masuk', error: 'Enik atau kata sandi salah.', savedEnik: enikTrimmed });
     }
     if (!user.isActive) {
-      await log(req, 'login_failed', 'auth', `Login ditolak - akun dinonaktifkan: ${email}`, { email }, 'failed');
-      return res.render('login', { title: 'Masuk', error: 'Akun Anda telah dinonaktifkan.', savedEmail: email });
+      await log(req, 'login_failed', 'auth', `Login ditolak - akun dinonaktifkan: ${enikTrimmed}`, { enik: enikTrimmed }, 'failed');
+      return res.render('login', { title: 'Masuk', error: 'Akun Anda telah dinonaktifkan.', savedEnik: enikTrimmed });
     }
     req.session.userId = user._id;
     user.lastLogin = new Date();
@@ -275,7 +279,7 @@ app.post('/login', async (req, res) => {
     res.redirect(to);
   } catch (err) {
     console.error(err);
-    res.render('login', { title: 'Masuk', error: 'Terjadi kesalahan, coba lagi.', savedEmail: email });
+    res.render('login', { title: 'Masuk', error: 'Terjadi kesalahan, coba lagi.', savedEnik: enikTrimmed });
   }
 });
 
@@ -285,9 +289,9 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', async (req, res) => {
-  const { name, email, password, password2, organization } = req.body;
-  const data = { name, email, organization };
-  if (!name?.trim() || !email?.trim() || !password) {
+  const { name, email, enik, password, password2, organization } = req.body;
+  const data = { name, email, enik, organization };
+  if (!name?.trim() || !email?.trim() || !enik?.trim() || !password) {
     return res.render('register', { title: 'Daftar', error: 'Semua kolom wajib diisi.', data });
   }
   if (password !== password2) {
@@ -300,10 +304,14 @@ app.post('/register', async (req, res) => {
     if (await User.findOne({ email: email.toLowerCase().trim() })) {
       return res.render('register', { title: 'Daftar', error: 'Email sudah terdaftar.', data });
     }
+    if (await User.findOne({ enik: enik.trim() })) {
+      return res.render('register', { title: 'Daftar', error: 'Nomor enik sudah digunakan.', data });
+    }
     const hashed = await bcrypt.hash(password, 12);
     const user = await User.create({
       name: name.trim(),
       email: email.toLowerCase().trim(),
+      enik: enik.trim(),
       password: hashed,
       organization: organization?.trim() || 'Inspira Tekno',
       role: 'user'
@@ -2708,6 +2716,357 @@ app.delete('/surat-masuk/:id/pdf/signers/:signerId', requireAuth, async (req, re
   } catch (err) {
     res.json({ ok: false });
   }
+});
+
+// ── E-SIGN PDF ──
+
+const esignUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, path.join(__dirname, 'uploads/esign')),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname);
+      cb(null, Date.now() + '-' + crypto.randomBytes(6).toString('hex') + ext);
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') cb(null, true);
+    else cb(new Error('Hanya file PDF yang diizinkan'));
+  },
+  limits: { fileSize: 20 * 1024 * 1024 }
+});
+
+async function rebuildSignedPdf(session, newSignerUserId) {
+  const toApplyIds = session.signers
+    .filter(s => s.status === 'signed' || s.userId.toString() === newSignerUserId.toString())
+    .map(s => s.userId);
+
+  const sigRecords = await Signature.find({ userId: { $in: toApplyIds } });
+  const sigMap = {};
+  sigRecords.forEach(s => { sigMap[s.userId.toString()] = s; });
+
+  const originalPath = path.join(__dirname, session.originalFile);
+  const pdfBytes = fs.readFileSync(originalPath);
+  const pdfDoc = await PDFDocument.load(pdfBytes);
+  const pages = pdfDoc.getPages();
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  const toApply = session.signers.filter(
+    s => s.status === 'signed' || s.userId.toString() === newSignerUserId.toString()
+  );
+
+  for (const signer of toApply) {
+    const page = pages[signer.position.page] || pages[0];
+    const { width: pw, height: ph } = page.getSize();
+
+    const stampW = signer.position.wPct * pw;
+    const stampH = signer.position.hPct * ph;
+    const pdfX = signer.position.xPct * pw;
+    const pdfY = ph - (signer.position.yPct * ph) - stampH;
+
+    page.drawRectangle({
+      x: pdfX, y: pdfY, width: stampW, height: stampH,
+      color: rgb(0.97, 0.97, 1),
+      borderColor: rgb(0.18, 0.38, 0.78),
+      borderWidth: 0.7,
+    });
+
+    const sigRec = sigMap[signer.userId.toString()];
+    const qrAreaW = Math.min(stampH, stampW * 0.35);
+
+    if (sigRec && sigRec.qrCodeDataUrl) {
+      try {
+        const qrBase64 = sigRec.qrCodeDataUrl.split(',')[1];
+        const qrBytes = Buffer.from(qrBase64, 'base64');
+        const qrImage = await pdfDoc.embedPng(qrBytes);
+        page.drawImage(qrImage, {
+          x: pdfX + 2, y: pdfY + 2,
+          width: qrAreaW - 4, height: stampH - 4
+        });
+      } catch {}
+    }
+
+    const textX = pdfX + qrAreaW + 4;
+    const textW  = stampW - qrAreaW - 8;
+    const lh = Math.max(6, Math.min(10, stampH / 5));
+
+    page.drawText((signer.name || '').slice(0, 32), {
+      x: textX, y: pdfY + stampH - lh - 3,
+      size: lh, font: boldFont, color: rgb(0, 0, 0), maxWidth: textW
+    });
+    if (sigRec && sigRec.position) {
+      page.drawText(sigRec.position.slice(0, 35), {
+        x: textX, y: pdfY + stampH - lh * 2 - 5,
+        size: lh - 1, font, color: rgb(0.3, 0.3, 0.3), maxWidth: textW
+      });
+    }
+    if (sigRec && sigRec.organization) {
+      page.drawText(sigRec.organization.slice(0, 35), {
+        x: textX, y: pdfY + stampH - lh * 3 - 7,
+        size: lh - 1, font, color: rgb(0.3, 0.3, 0.3), maxWidth: textW
+      });
+    }
+    const dateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    page.drawText(dateStr, {
+      x: textX, y: pdfY + 3,
+      size: lh - 1, font, color: rgb(0.4, 0.4, 0.4), maxWidth: textW
+    });
+  }
+
+  const signedBytes = await pdfDoc.save();
+  const signedName  = 'signed-' + path.basename(session.originalFile);
+  const signedPath  = path.join(__dirname, 'uploads/esign/signed', signedName);
+  fs.writeFileSync(signedPath, signedBytes);
+  return 'uploads/esign/signed/' + signedName;
+}
+
+app.get('/e-sign', requireAuth, async (req, res) => {
+  try {
+    const [sessions, personalDocs, users, counts] = await Promise.all([
+      ESignSession.find({
+        $or: [{ createdBy: req.user._id }, { 'signers.userId': req.user._id }]
+      }).sort({ updatedAt: -1 }),
+      PersonalDocument.find({ createdBy: req.user._id }).sort({ createdAt: -1 }),
+      User.find({ isActive: true }, 'name email _id').sort({ name: 1 }),
+      getMailCounts(req.user._id)
+    ]);
+    res.render('e-sign', {
+      title: 'E-Sign PDF',
+      sessions, personalDocs, users,
+      currentUser: req.user, active: 'e-sign',
+      ...counts
+    });
+  } catch (err) { console.error(err); res.redirect('/inbox'); }
+});
+
+app.post('/e-sign/upload', requireAuth, esignUpload.single('pdf'), async (req, res) => {
+  try {
+    if (!req.file) return res.redirect('/e-sign?error=nofile');
+    const { title } = req.body;
+    const session = await ESignSession.create({
+      title: (title || req.file.originalname.replace(/\.pdf$/i, '')).trim() || 'Dokumen',
+      originalFile: 'uploads/esign/' + req.file.filename,
+      originalName: req.file.originalname,
+      fileSize: req.file.size,
+      createdBy: req.user._id,
+      signers: [{
+        userId: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        status: 'pending',
+        position: { page: 0, xPct: 0.05, yPct: 0.82, wPct: 0.28, hPct: 0.10 }
+      }]
+    });
+    await log(req, 'ESIGN_UPLOAD', 'document', `Upload PDF untuk e-sign: ${session.title}`);
+    res.redirect('/e-sign/' + session._id);
+  } catch (err) { console.error(err); res.redirect('/e-sign?error=1'); }
+});
+
+app.get('/e-sign/:id/pdf', requireAuth, async (req, res) => {
+  try {
+    const session = await ESignSession.findById(req.params.id);
+    if (!session) return res.status(404).send('Not found');
+    const ok = session.createdBy.toString() === req.user._id.toString() ||
+      session.signers.some(s => s.userId.toString() === req.user._id.toString());
+    if (!ok) return res.status(403).send('Forbidden');
+    const filePath = session.signedFile
+      ? path.join(__dirname, session.signedFile)
+      : path.join(__dirname, session.originalFile);
+    if (!fs.existsSync(filePath)) return res.status(404).send('File tidak ditemukan');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.sendFile(filePath);
+  } catch (err) { res.status(500).send('Error'); }
+});
+
+app.get('/e-sign/:id', requireAuth, async (req, res) => {
+  try {
+    const session = await ESignSession.findById(req.params.id);
+    if (!session) return res.redirect('/e-sign');
+    const ok = session.createdBy.toString() === req.user._id.toString() ||
+      session.signers.some(s => s.userId.toString() === req.user._id.toString());
+    if (!ok) return res.redirect('/e-sign');
+    const [users, counts] = await Promise.all([
+      User.find({ isActive: true }, 'name email _id').sort({ name: 1 }),
+      getMailCounts(req.user._id)
+    ]);
+    const currentUserSigner = session.signers.find(s => s.userId.toString() === req.user._id.toString());
+    const isCreator = session.createdBy.toString() === req.user._id.toString();
+    res.render('e-sign-editor', {
+      title: 'E-Sign: ' + session.title,
+      session, users, currentUserSigner, isCreator,
+      currentUser: req.user, active: 'e-sign',
+      ...counts
+    });
+  } catch (err) { console.error(err); res.redirect('/e-sign'); }
+});
+
+app.post('/e-sign/:id/add-signer', requireAuth, async (req, res) => {
+  try {
+    const session = await ESignSession.findById(req.params.id);
+    if (!session) return res.json({ ok: false, message: 'Sesi tidak ditemukan' });
+    if (session.createdBy.toString() !== req.user._id.toString())
+      return res.json({ ok: false, message: 'Hanya pembuat yang dapat menambah penandatangan' });
+    const { userId } = req.body;
+    if (session.signers.some(s => s.userId.toString() === userId))
+      return res.json({ ok: false, message: 'Penandatangan sudah ditambahkan' });
+    const targetUser = await User.findById(userId);
+    if (!targetUser) return res.json({ ok: false, message: 'Pengguna tidak ditemukan' });
+    const xOffset = (session.signers.length % 3) * 0.31;
+    session.signers.push({
+      userId: targetUser._id, name: targetUser.name, email: targetUser.email,
+      status: 'pending',
+      position: { page: 0, xPct: Math.min(0.05 + xOffset, 0.68), yPct: 0.82, wPct: 0.28, hPct: 0.10 }
+    });
+    await session.save();
+    const newSigner = session.signers[session.signers.length - 1];
+    res.json({ ok: true, signer: { _id: newSigner._id, name: newSigner.name, email: newSigner.email, status: newSigner.status } });
+  } catch (err) { res.json({ ok: false, message: err.message }); }
+});
+
+app.delete('/e-sign/:id/signers/:sid', requireAuth, async (req, res) => {
+  try {
+    const session = await ESignSession.findById(req.params.id);
+    if (!session) return res.json({ ok: false });
+    if (session.createdBy.toString() !== req.user._id.toString())
+      return res.json({ ok: false, message: 'Hanya pembuat yang dapat menghapus penandatangan' });
+    const signer = session.signers.id(req.params.sid);
+    if (!signer) return res.json({ ok: false });
+    if (signer.userId.toString() === req.user._id.toString())
+      return res.json({ ok: false, message: 'Tidak dapat menghapus diri sendiri' });
+    await ESignSession.updateOne({ _id: session._id }, { $pull: { signers: { _id: req.params.sid } } });
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.post('/e-sign/:id/update-position', requireAuth, async (req, res) => {
+  try {
+    const session = await ESignSession.findById(req.params.id);
+    if (!session) return res.json({ ok: false });
+    const idx = session.signers.findIndex(s => s.userId.toString() === req.user._id.toString());
+    if (idx === -1) return res.json({ ok: false });
+    const { page, xPct, yPct, wPct, hPct } = req.body;
+    session.signers[idx].position = {
+      page: parseInt(page) || 0,
+      xPct: parseFloat(xPct) || 0.05,
+      yPct: parseFloat(yPct) || 0.82,
+      wPct: parseFloat(wPct) || 0.28,
+      hPct: parseFloat(hPct) || 0.10,
+    };
+    await session.save();
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.post('/e-sign/:id/sign', requireAuth, async (req, res) => {
+  try {
+    const session = await ESignSession.findById(req.params.id);
+    if (!session) return res.json({ ok: false, message: 'Sesi tidak ditemukan' });
+    const idx = session.signers.findIndex(s => s.userId.toString() === req.user._id.toString());
+    if (idx === -1) return res.json({ ok: false, message: 'Anda bukan penandatangan dokumen ini' });
+    if (session.signers[idx].status === 'signed')
+      return res.json({ ok: false, message: 'Anda sudah menandatangani dokumen ini' });
+    const { page, xPct, yPct, wPct, hPct } = req.body;
+    session.signers[idx].position = {
+      page: parseInt(page) || 0,
+      xPct: parseFloat(xPct) || 0.05,
+      yPct: parseFloat(yPct) || 0.82,
+      wPct: parseFloat(wPct) || 0.28,
+      hPct: parseFloat(hPct) || 0.10,
+    };
+    session.signers[idx].status  = 'signed';
+    session.signers[idx].signedAt = new Date();
+    const signedFilePath = await rebuildSignedPdf(session, req.user._id);
+    session.signedFile = signedFilePath;
+    const allSigned = session.signers.every(s => s.status === 'signed');
+    session.status = allSigned ? 'signed' : 'partial';
+    await session.save();
+    await log(req, 'ESIGN_SIGN', 'document', `Menandatangani e-sign: ${session.title}`);
+    res.json({ ok: true, allSigned, status: session.status });
+  } catch (err) { console.error(err); res.json({ ok: false, message: 'Gagal: ' + err.message }); }
+});
+
+app.get('/e-sign/:id/download', requireAuth, async (req, res) => {
+  try {
+    const session = await ESignSession.findById(req.params.id);
+    if (!session) return res.status(404).send('Not found');
+    const ok = session.createdBy.toString() === req.user._id.toString() ||
+      session.signers.some(s => s.userId.toString() === req.user._id.toString());
+    if (!ok) return res.status(403).send('Forbidden');
+    const filePath = session.signedFile
+      ? path.join(__dirname, session.signedFile)
+      : path.join(__dirname, session.originalFile);
+    if (!fs.existsSync(filePath)) return res.status(404).send('File tidak ditemukan');
+    const dlName = session.signedFile ? 'signed-' + session.originalName : session.originalName;
+    res.download(filePath, dlName || 'document.pdf');
+  } catch (err) { res.status(500).send('Error'); }
+});
+
+app.post('/e-sign/:id/save', requireAuth, async (req, res) => {
+  try {
+    const session = await ESignSession.findById(req.params.id);
+    if (!session) return res.json({ ok: false, message: 'Sesi tidak ditemukan' });
+    const ok = session.createdBy.toString() === req.user._id.toString() ||
+      session.signers.some(s => s.userId.toString() === req.user._id.toString());
+    if (!ok) return res.json({ ok: false });
+    const filePath    = session.signedFile || session.originalFile;
+    const signerNames = session.signers.filter(s => s.status === 'signed').map(s => s.name);
+    const doc = await PersonalDocument.create({
+      title: session.title, filePath,
+      originalName: session.originalName,
+      type: session.signedFile ? 'esigned' : 'uploaded',
+      signerNames, createdBy: req.user._id, esignSessionId: session._id
+    });
+    await log(req, 'ESIGN_SAVE', 'document', `Simpan ke dokumen pribadi: ${session.title}`);
+    res.json({ ok: true, docId: doc._id });
+  } catch (err) { res.json({ ok: false, message: err.message }); }
+});
+
+app.delete('/e-sign/:id', requireAuth, async (req, res) => {
+  try {
+    const session = await ESignSession.findById(req.params.id);
+    if (!session) return res.json({ ok: false });
+    if (session.createdBy.toString() !== req.user._id.toString())
+      return res.json({ ok: false, message: 'Hanya pembuat yang dapat menghapus' });
+    [session.originalFile, session.signedFile].filter(Boolean).forEach(fp => {
+      const full = path.join(__dirname, fp);
+      if (fs.existsSync(full)) try { fs.unlinkSync(full); } catch {}
+    });
+    await ESignSession.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.get('/personal-docs', requireAuth, async (req, res) => {
+  try {
+    const [docs, counts] = await Promise.all([
+      PersonalDocument.find({ createdBy: req.user._id }).sort({ createdAt: -1 }),
+      getMailCounts(req.user._id)
+    ]);
+    res.render('personal-docs', {
+      title: 'Dokumen Pribadi', docs, currentUser: req.user, active: 'personal-docs', ...counts
+    });
+  } catch (err) { res.redirect('/inbox'); }
+});
+
+app.get('/personal-docs/:id/download', requireAuth, async (req, res) => {
+  try {
+    const doc = await PersonalDocument.findById(req.params.id);
+    if (!doc) return res.status(404).send('Not found');
+    if (doc.createdBy.toString() !== req.user._id.toString()) return res.status(403).send('Forbidden');
+    const filePath = path.join(__dirname, doc.filePath);
+    if (!fs.existsSync(filePath)) return res.status(404).send('File tidak ditemukan');
+    res.download(filePath, doc.originalName || 'document.pdf');
+  } catch (err) { res.status(500).send('Error'); }
+});
+
+app.delete('/personal-docs/:id', requireAuth, async (req, res) => {
+  try {
+    const doc = await PersonalDocument.findById(req.params.id);
+    if (!doc) return res.json({ ok: false });
+    if (doc.createdBy.toString() !== req.user._id.toString()) return res.json({ ok: false });
+    await PersonalDocument.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
 });
 
 // ── START ──

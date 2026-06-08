@@ -1,0 +1,177 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / E-Sign PDF</div>
+    <h1 class="page-title">E-Sign PDF</h1>
+    <p class="page-subtitle">Upload, tanda tangani, dan kelola dokumen PDF digital</p>
+  </div>
+  <div class="page-header-actions">
+    <button onclick="document.getElementById('uploadModal').style.display='flex'" class="btn btn-primary">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Upload PDF
+    </button>
+  </div>
+</div>
+
+<% if (sessions.length === 0 && personalDocs.length === 0) { %>
+<div style="text-align:center;padding:60px 20px;color:var(--gray-400);">
+  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="margin:0 auto 16px;display:block;opacity:.4"><rect x="8" y="4" width="28" height="38" rx="3" stroke="currentColor" stroke-width="2"/><path d="M14 14h16M14 20h16M14 26h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M30 32l6 6M34 32l2 6-6-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <p style="font-size:15px;font-weight:600;color:var(--gray-600);margin-bottom:6px;">Belum ada dokumen</p>
+  <p style="font-size:13px;">Upload PDF untuk mulai menandatangani secara digital</p>
+</div>
+<% } %>
+
+<% if (sessions.length > 0) { %>
+<div style="margin-bottom:28px;">
+  <div style="font-size:13px;font-weight:700;color:var(--gray-700);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 3l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Sesi Penandatanganan (<%= sessions.length %>)
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">
+    <% sessions.forEach(session => {
+      const mySign = session.signers.find(s => s.userId.toString() === currentUser._id.toString());
+      const signedCount = session.signers.filter(s => s.status === 'signed').length;
+    %>
+    <div class="compose-card" style="padding:0;overflow:hidden;">
+      <div style="padding:16px 18px 12px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;">
+          <div style="font-size:13.5px;font-weight:600;color:var(--gray-800);line-height:1.4;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= session.title %>"><%= session.title %></div>
+          <% if (session.status === 'signed') { %>
+          <span style="background:#dcfce7;color:#16a34a;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;">SIGNED</span>
+          <% } else if (session.status === 'partial') { %>
+          <span style="background:#fef9c3;color:#b45309;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;">PARTIAL</span>
+          <% } else { %>
+          <span style="background:#f1f5f9;color:#64748b;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;">DRAFT</span>
+          <% } %>
+        </div>
+        <div style="font-size:11.5px;color:var(--gray-500);margin-bottom:10px;">
+          <%= session.originalName %> &nbsp;·&nbsp; <%= signedCount %>/<%= session.signers.length %> tanda tangan
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">
+          <% session.signers.forEach(s => { %>
+          <span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 7px;border-radius:12px;background:<%= s.status==='signed' ? '#dcfce7' : '#f1f5f9' %>;color:<%= s.status==='signed' ? '#15803d' : '#64748b' %>;">
+            <% if (s.status === 'signed') { %>
+            <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <% } else { %>
+            <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5"/></svg>
+            <% } %>
+            <%= s.name.split(' ')[0] %>
+          </span>
+          <% }) %>
+        </div>
+      </div>
+      <div style="padding:10px 18px;border-top:1px solid var(--gray-100);background:var(--gray-50);display:flex;gap:8px;align-items:center;">
+        <a href="/e-sign/<%= session._id %>" class="btn btn-primary" style="font-size:12px;padding:5px 12px;">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <% if (mySign && mySign.status === 'pending') { %>Tanda Tangani<% } else { %>Lihat<% } %>
+        </a>
+        <a href="/e-sign/<%= session._id %>/download" class="btn btn-secondary" style="font-size:12px;padding:5px 12px;">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 3v11M6 10l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Unduh
+        </a>
+        <% if (session.createdBy.toString() === currentUser._id.toString()) { %>
+        <button onclick="deleteSession('<%= session._id %>')" style="margin-left:auto;background:none;border:none;color:var(--gray-400);cursor:pointer;padding:4px;" title="Hapus">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <% } %>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<% if (personalDocs.length > 0) { %>
+<div>
+  <div style="font-size:13px;font-weight:700;color:var(--gray-700);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="3" y="2" width="14" height="17" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Dokumen Pribadi (<%= personalDocs.length %>)
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">
+    <% personalDocs.forEach(doc => { %>
+    <div style="background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:14px 16px;display:flex;align-items:center;gap:12px;">
+      <div style="flex-shrink:0;width:36px;height:36px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="3" y="2" width="14" height="17" rx="2" stroke="#2563eb" stroke-width="1.5"/><path d="M7 7h6M7 11h4" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--gray-800);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= doc.title %>"><%= doc.title %></div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+          <%= doc.type === 'esigned' ? 'E-signed' : 'Uploaded' %>
+          <% if (doc.signerNames && doc.signerNames.length) { %> &nbsp;·&nbsp; <%= doc.signerNames.join(', ') %><% } %>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+        <a href="/personal-docs/<%= doc._id %>/download" style="color:var(--primary);padding:4px;" title="Unduh">
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M10 3v11M6 10l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </a>
+        <button onclick="deletePersonalDoc('<%= doc._id %>')" style="background:none;border:none;color:var(--gray-400);cursor:pointer;padding:4px;" title="Hapus">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<!-- Upload Modal -->
+<div id="uploadModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:var(--radius-lg);padding:28px 32px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.18);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+      <div style="font-size:15px;font-weight:700;color:var(--gray-800);">Upload PDF untuk Ditandatangani</div>
+      <button onclick="document.getElementById('uploadModal').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--gray-400);padding:2px;">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 4l12 12M16 4L4 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <form method="POST" action="/e-sign/upload" enctype="multipart/form-data">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">Judul Dokumen</label>
+        <input type="text" name="title" class="form-control" placeholder="Opsional — diambil dari nama file jika kosong">
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label class="form-label">File PDF <span style="color:red;">*</span></label>
+        <input type="file" name="pdf" accept=".pdf,application/pdf" class="form-control" required style="padding:6px;">
+        <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">Maks. 20 MB</div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button type="button" onclick="document.getElementById('uploadModal').style.display='none'" class="btn btn-secondary">Batal</button>
+        <button type="submit" class="btn btn-primary">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 15V5M6 9l4-4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Upload & Lanjut
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="admin-toast" id="esignToast"></div>
+
+<script>
+function showToast(msg, ok) {
+  const t = document.getElementById('esignToast');
+  t.textContent = msg;
+  t.className = 'admin-toast admin-toast-' + (ok ? 'success' : 'error') + ' admin-toast-show';
+  setTimeout(() => t.className = 'admin-toast', 3500);
+}
+
+async function deleteSession(id) {
+  if (!await showConfirm('Hapus sesi penandatanganan ini? File PDF yang diunggah juga akan dihapus.', { title: 'Hapus Sesi', type: 'danger', confirmLabel: 'Hapus' })) return;
+  const r = await fetch('/e-sign/' + id, { method: 'DELETE' });
+  const d = await r.json();
+  if (d.ok) location.reload(); else showToast('Gagal menghapus.', false);
+}
+
+async function deletePersonalDoc(id) {
+  if (!await showConfirm('Hapus dokumen dari daftar pribadi?', { title: 'Hapus Dokumen', type: 'danger', confirmLabel: 'Hapus' })) return;
+  const r = await fetch('/personal-docs/' + id, { method: 'DELETE' });
+  const d = await r.json();
+  if (d.ok) location.reload(); else showToast('Gagal menghapus.', false);
+}
+
+document.getElementById('uploadModal').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+</script>
+
+<%- include('./partials/footer') %>

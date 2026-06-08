@@ -34,17 +34,17 @@
 
     <form action="/login" method="POST" class="auth-form" autocomplete="on">
       <div class="auth-field">
-        <label class="auth-label" for="email">Alamat Email</label>
+        <label class="auth-label" for="enik">Nomor Enik</label>
         <input
-          type="email"
-          id="email"
-          name="email"
+          type="text"
+          id="enik"
+          name="enik"
           class="auth-input"
-          placeholder="nama@perusahaan.com"
-          value="<%= savedEmail || '' %>"
+          placeholder="Masukkan nomor enik Anda"
+          value="<%= savedEnik || '' %>"
           required
           autofocus
-          autocomplete="email"
+          autocomplete="username"
         >
       </div>
       <div class="auth-field">

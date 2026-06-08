@@ -1,0 +1,78 @@
+<%- include('./partials/header') %>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Dokumen Pribadi</div>
+    <h1 class="page-title">Dokumen Pribadi</h1>
+    <p class="page-subtitle">Dokumen yang disimpan dari sesi E-Sign</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="/e-sign" class="btn btn-primary">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      E-Sign PDF
+    </a>
+  </div>
+</div>
+
+<% if (docs.length === 0) { %>
+<div style="text-align:center;padding:60px 20px;color:var(--gray-400);">
+  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="margin:0 auto 16px;display:block;opacity:.4"><rect x="8" y="4" width="28" height="38" rx="3" stroke="currentColor" stroke-width="2"/><path d="M14 14h16M14 20h16M14 26h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  <p style="font-size:15px;font-weight:600;color:var(--gray-600);margin-bottom:6px;">Belum ada dokumen pribadi</p>
+  <p style="font-size:13px;">Simpan dokumen dari sesi E-Sign untuk menyimpannya di sini</p>
+  <a href="/e-sign" class="btn btn-primary" style="margin-top:16px;">Mulai E-Sign</a>
+</div>
+<% } else { %>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+  <% docs.forEach(doc => { %>
+  <div style="background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:16px 18px;">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
+      <div style="flex-shrink:0;width:38px;height:38px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="2" width="14" height="17" rx="2" stroke="#2563eb" stroke-width="1.5"/><path d="M7 7h6M7 11h4" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13.5px;font-weight:600;color:var(--gray-800);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= doc.title %>"><%= doc.title %></div>
+        <div style="font-size:11.5px;color:var(--gray-500);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= doc.originalName %></div>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <span style="display:inline-block;background:<%= doc.type==='esigned' ? '#dcfce7' : '#f1f5f9' %>;color:<%= doc.type==='esigned' ? '#15803d' : '#64748b' %>;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:12px;">
+        <%= doc.type === 'esigned' ? 'E-Signed' : 'Uploaded' %>
+      </span>
+      <% if (doc.signerNames && doc.signerNames.length) { %>
+      <span style="font-size:11px;color:var(--gray-400);margin-left:8px;"><%= doc.signerNames.join(', ') %></span>
+      <% } %>
+    </div>
+    <div style="font-size:11px;color:var(--gray-400);margin-bottom:12px;">
+      <%= new Date(doc.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <a href="/personal-docs/<%= doc._id %>/download" class="btn btn-primary" style="font-size:12px;padding:5px 14px;flex:1;justify-content:center;text-decoration:none;">
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 3v11M6 10l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Unduh
+      </a>
+      <button onclick="deleteDoc('<%= doc._id %>')" class="btn btn-secondary" style="font-size:12px;padding:5px 12px;">
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+  <% }) %>
+</div>
+<% } %>
+
+<div class="admin-toast" id="pdToast"></div>
+<script>
+function showToast(msg, ok) {
+  const t = document.getElementById('pdToast');
+  t.textContent = msg;
+  t.className = 'admin-toast admin-toast-' + (ok ? 'success' : 'error') + ' admin-toast-show';
+  setTimeout(() => t.className = 'admin-toast', 3500);
+}
+async function deleteDoc(id) {
+  if (!await showConfirm('Hapus dokumen ini dari daftar pribadi?', { title: 'Hapus Dokumen', type: 'danger', confirmLabel: 'Hapus' })) return;
+  const r = await fetch('/personal-docs/' + id, { method: 'DELETE' });
+  const d = await r.json();
+  if (d.ok) location.reload(); else showToast('Gagal menghapus.', false);
+}
+</script>
+
+<%- include('./partials/footer') %>
