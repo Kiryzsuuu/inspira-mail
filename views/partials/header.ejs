@@ -18,7 +18,7 @@
         <img src="<%= siteSettings && siteSettings.logoBase64 ? siteSettings.logoBase64 : '/img/Group 1597880519.png' %>" alt="Logo" class="brand-logo">
         <div class="brand-text">
           <span class="brand-name"><%= siteSettings && siteSettings.siteName ? siteSettings.siteName : 'Inspira' %></span>
-          <% if (siteSettings && siteSettings.siteTagline) { %><span class="brand-sub"><%= siteSettings.siteTagline %></span><% } %>
+          <% if (siteSettings && siteSettings.siteSub) { %><span class="brand-sub"><%= siteSettings.siteSub %></span><% } %>
         </div>
       </a>
       <button class="sidebar-close" id="sidebarClose" aria-label="Tutup">
