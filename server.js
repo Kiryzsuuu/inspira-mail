@@ -618,6 +618,7 @@ function getAllowedSifat(user) {
 const TIPE_KHUSUS = ['MoU','MoA','Contract','IA','PKS','SPK','SK'];
 
 const TIPE_COUNTER_KEY = {
+  'Surat Internal': 'SURAT-INTERNAL',
   'Nota Dinas':  'NOTA',
   'Surat Dinas': 'SURAT-DINAS',
   'Surat':       'SURAT',
