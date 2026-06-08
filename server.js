@@ -802,6 +802,10 @@ app.get('/email/:id/preview', requireAuth, async (req, res) => {
     if (!email) return res.redirect('/inbox');
     const uid = req.user._id.toString();
     const isSender = email.from.userId?.toString() === uid;
+    const isReceiver = email.to.some(t => t.userId?.toString() === uid)
+                    || email.cc.some(t => t.userId?.toString() === uid);
+    const isPrivileged = ['superadmin','admin','direktur'].includes(req.user.role);
+    const isDisposisi  = email.disposisi?.some(d => d.userId?.toString() === uid);
 
     // Izinkan juga co-signer yang diundang
     const docSig = await DocumentSignature.findOne({ emailId: email._id });
@@ -809,7 +813,9 @@ app.get('/email/:id/preview', requireAuth, async (req, res) => {
       s => s.userId.toString() === uid && s.status === 'pending'
     );
 
-    if (!isSender && !isPendingCosigner) return res.redirect('/inbox');
+    if (!isSender && !isReceiver && !isPrivileged && !isDisposisi && !isPendingCosigner) {
+      return res.redirect('/inbox');
+    }
 
     const [users, counts] = await Promise.all([
       User.find({ isActive: true }, 'name email role organization _id').sort({ name: 1 }),
