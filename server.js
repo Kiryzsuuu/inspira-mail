@@ -1031,13 +1031,20 @@ app.post('/email/:id/send', requireAuth, async (req, res) => {
           </p>
         </div></div>`;
 
-      await transporter.sendMail({
+      const mailOptions = {
         from: `"${email.from.name} via ${mailerName}" <${process.env.SMTP_USER}>`,
         to: allEmails.join(', '),
         replyTo: email.from.email,
         subject: `[${email.nomorSurat}] ${email.subject}`,
         html: htmlBody
-      });
+      };
+      if (email.lampiran) {
+        mailOptions.attachments = [{
+          filename: email.lampiranNama || path.basename(email.lampiran),
+          path: path.join(__dirname, email.lampiran)
+        }];
+      }
+      await transporter.sendMail(mailOptions);
     }
 
     const toNames = [...email.to.map(r=>r.name),...(email.toExternal||[]).map(r=>r.name||r.email)].join(', ')||'-';
@@ -1056,9 +1063,7 @@ app.get('/email/:id', requireAuth, async (req, res) => {
     const isReceiver = email.to.some(t => t.userId?.toString() === uid)
                     || email.cc.some(t => t.userId?.toString() === uid);
     const isPrivileged = ['superadmin','admin','direktur'].includes(req.user.role);
-    // Cek disposisi — user yang menerima disposisi juga boleh akses
-    const docSigCheck = await DocumentSignature.findOne({ emailId: email._id });
-    const isDisposisi  = docSigCheck?.signers.some(s => s.userId?.toString() === uid);
+    const isDisposisi  = email.disposisi?.some(d => d.userId?.toString() === uid);
     if (!isSender && !isReceiver && !isPrivileged && !isDisposisi) return res.redirect('/inbox');
     if (isReceiver && !email.readBy.map(String).includes(String(req.user._id))) {
       await Email.findByIdAndUpdate(email._id, { $addToSet: { readBy: req.user._id } });
@@ -1097,8 +1102,23 @@ app.post('/email/:id/disposisi', requireAuth, async (req, res) => {
     const { disposisi, disposisiCatatan } = req.body;
     const email = await Email.findById(req.params.id);
     if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
-    email.disposisi = disposisi || [];
+
+    const disposisiList = disposisi || [];
+    email.disposisi = disposisiList;
     email.disposisiCatatan = disposisiCatatan || '';
+
+    // Tambahkan penerima disposisi ke email.to agar muncul di inbox mereka
+    if (disposisiList.length > 0) {
+      const userIds = disposisiList.map(d => d.userId).filter(Boolean);
+      const users = await User.find({ _id: { $in: userIds } }).select('name email').lean();
+      const existingToIds = email.to.map(t => t.userId?.toString());
+      for (const u of users) {
+        if (!existingToIds.includes(u._id.toString())) {
+          email.to.push({ userId: u._id, name: u.name, email: u.email });
+        }
+      }
+    }
+
     await email.save();
     res.json({ ok: true });
   } catch (e) { console.error(e); res.json({ ok: false }); }
