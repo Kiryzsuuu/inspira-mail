@@ -56,7 +56,7 @@
             <% } else { %>
             <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5"/></svg>
             <% } %>
-            <%= s.name.split(' ')[0] %>
+            <%= (s.userName || s.name || '?').split(' ')[0] %>
           </span>
           <% }) %>
         </div>
