@@ -232,7 +232,7 @@ function formatDateTime(d) {
 }
 
 async function getMailCounts(userId) {
-  const [inboxCount, draftCount] = await Promise.all([
+  const [inboxCount, draftCount, suratMasukCount] = await Promise.all([
     Email.countDocuments({
       'to.userId': userId,
       status: 'sent',
@@ -243,9 +243,10 @@ async function getMailCounts(userId) {
       'from.userId': userId,
       status: 'draft',
       deletedBy: { $ne: userId }
-    })
+    }),
+    SuratMasuk.countDocuments({ status: 'baru' })
   ]);
-  return { inboxCount, draftCount };
+  return { inboxCount, draftCount, suratMasukCount };
 }
 
 // ── AUTH ROUTES ──
