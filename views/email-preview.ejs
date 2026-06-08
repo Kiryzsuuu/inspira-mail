@@ -288,12 +288,13 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 %>
 
 <div class="pdf-toolbar">
-  <a href="/compose" class="toolbar-back">
+  <a href="<%= isSender ? '/compose' : '/email/' + email._id %>" class="toolbar-back">
     <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M12 4l-8 8 8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Kembali
   </a>
   <div class="toolbar-sep"></div>
   <div class="toolbar-title">Preview — <%= tipe %>: <%= email.subject %></div>
+  <% if (isSender || isPendingCosigner) { %>
   <span class="toolbar-hint">Tanda tangan, lalu kirim</span>
   <button class="btn-dl" onclick="window.print()">
     <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 9l4 4 4-4M3 17h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -303,6 +304,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
     <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Kirim Surat
   </button>
+  <% } %>
 </div>
 
 <div class="pdf-shell">
