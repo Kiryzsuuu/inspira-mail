@@ -9,6 +9,10 @@ const signerSchema = new mongoose.Schema({
   token:          { type: String, default: '' },
   qrDataUrl:      { type: String, default: '' },
   status:         { type: String, enum: ['pending', 'signed'], default: 'pending' },
+  displayMode:    { type: String, enum: ['full', 'name_only', 'qr_only'], default: 'full' },
+  showDate:       { type: Boolean, default: true },
+  lokasiTtd:     { type: String, default: '' },
+  tanggalTtd:    { type: Date },
   position: {
     page:   { type: Number, default: 0 },
     x:      { type: Number, default: 60 },

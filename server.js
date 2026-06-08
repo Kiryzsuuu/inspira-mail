@@ -2779,25 +2779,47 @@ async function rebuildSignedPdf(session) {
       borderWidth: 0.75,
     });
 
-    // QR image (square, left side)
+    const dm       = signer.displayMode || 'full';
+    const showDate = signer.showDate !== false;
+    const showName = dm !== 'qr_only';
+    const showRole = dm === 'full';
+    const lokasi   = signer.lokasiTtd || '';
+    const tglDate  = signer.tanggalTtd || signer.signedAt || new Date();
+    const dateStr  = new Date(tglDate).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+    const fullDate = lokasi ? `${lokasi}, ${dateStr}` : dateStr;
+
     try {
       const qrBase64 = signer.qrDataUrl.split(',')[1];
       const qrBytes  = Buffer.from(qrBase64, 'base64');
       const qrImage  = await pdfDoc.embedPng(qrBytes);
-      const qrSize   = pdfH - 4;
-      page.drawImage(qrImage, { x: pdfX + 2, y: pdfY + 2, width: qrSize, height: qrSize });
+      const lh       = Math.max(5, Math.min(9, pdfH / 5));
 
-      // Text to the right of QR
-      const textX = pdfX + qrSize + 5;
-      const textW = pdfW - qrSize - 8;
-      const lh    = Math.max(5, Math.min(9, pdfH / 5));
-      const name  = (signer.userName || '').slice(0, 30);
-      const jabat = (signer.jabatanDisplay || signer.userOrg || '').slice(0, 32);
+      // Date line above QR (if showDate)
+      let yOffset = 0;
+      if (showDate) {
+        yOffset = lh + 3;
+        page.drawText(fullDate.slice(0, 45), {
+          x: pdfX + 2, y: pdfY + pdfH - yOffset,
+          size: lh - 1, font, color: rgb(0.2, 0.2, 0.2), maxWidth: pdfW - 4
+        });
+      }
 
-      page.drawText(name, { x: textX, y: pdfY + pdfH - lh - 3, size: lh, font: boldFont, color: rgb(0,0,0), maxWidth: textW });
-      if (jabat) page.drawText(jabat, { x: textX, y: pdfY + pdfH - lh*2 - 5, size: lh - 1, font, color: rgb(0.3,0.3,0.3), maxWidth: textW });
-      const dateStr = new Date(signer.signedAt || Date.now()).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
-      page.drawText(dateStr, { x: textX, y: pdfY + 3, size: lh - 1, font, color: rgb(0.45,0.45,0.45), maxWidth: textW });
+      // QR image
+      const qrTop = pdfH - yOffset;
+      const qrBot = showName ? lh * 2 + 8 : 2;
+      const qrSize = qrTop - qrBot;
+      if (qrSize > 0) {
+        page.drawImage(qrImage, { x: pdfX + (pdfW - qrSize) / 2, y: pdfY + qrBot, width: qrSize, height: qrSize });
+      }
+
+      // Separator line + name
+      if (showName) {
+        const name  = (signer.userName || '').slice(0, 30);
+        const jabat = (signer.jabatanDisplay || signer.userOrg || '').slice(0, 32);
+        page.drawLine({ start: { x: pdfX + 4, y: pdfY + lh * 2 + 5 }, end: { x: pdfX + pdfW - 4, y: pdfY + lh * 2 + 5 }, thickness: 0.75, color: rgb(0,0,0) });
+        page.drawText(name, { x: pdfX + 2, y: pdfY + lh + 3, size: lh, font: boldFont, color: rgb(0,0,0), maxWidth: pdfW - 4 });
+        if (showRole && jabat) page.drawText(jabat, { x: pdfX + 2, y: pdfY + 2, size: lh - 1, font, color: rgb(0.3,0.3,0.3), maxWidth: pdfW - 4 });
+      }
     } catch {}
   }
 
@@ -2929,6 +2951,45 @@ app.delete('/e-sign/:id/signers/:sid', requireAuth, async (req, res) => {
     await ESignSession.updateOne({ _id: session._id }, { $pull: { signers: { _id: req.params.sid } } });
     res.json({ ok: true });
   } catch (err) { res.json({ ok: false }); }
+});
+
+app.post('/e-sign/:id/update-display-mode', requireAuth, async (req, res) => {
+  try {
+    const { signerId, displayMode } = req.body;
+    const valid = ['full', 'name_only', 'qr_only'];
+    if (!valid.includes(displayMode)) return res.json({ ok: false });
+    await ESignSession.updateOne(
+      { _id: req.params.id, 'signers._id': signerId },
+      { $set: { 'signers.$.displayMode': displayMode } }
+    );
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
+});
+
+app.post('/e-sign/:id/update-jabatan', requireAuth, async (req, res) => {
+  try {
+    const { signerId, jabatan } = req.body;
+    await ESignSession.updateOne(
+      { _id: req.params.id, 'signers._id': signerId },
+      { $set: { 'signers.$.jabatanDisplay': jabatan || '' } }
+    );
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
+});
+
+app.post('/e-sign/:id/update-lokasi-tanggal', requireAuth, async (req, res) => {
+  try {
+    const { signerId, lokasi, tanggal, showDate } = req.body;
+    const update = {};
+    if (lokasi    !== undefined) update['signers.$.lokasiTtd']  = lokasi;
+    if (tanggal   !== undefined) update['signers.$.tanggalTtd'] = tanggal ? new Date(tanggal) : null;
+    if (showDate  !== undefined) update['signers.$.showDate']   = showDate;
+    await ESignSession.updateOne(
+      { _id: req.params.id, 'signers._id': signerId },
+      { $set: update }
+    );
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
 });
 
 app.post('/e-sign/:id/update-position', requireAuth, async (req, res) => {

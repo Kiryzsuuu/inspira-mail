@@ -36,6 +36,14 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 }
 .btn-toolbar:hover { background: #1d63c0; }
 .btn-toolbar:disabled { background: #334155; color: rgba(255,255,255,.3); cursor: not-allowed; }
+.btn-toolbar-green {
+  display: flex; align-items: center; gap: 6px;
+  background: #16a34a; color: #fff; border: none; border-radius: 7px;
+  padding: 7px 16px; font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background .15s; white-space: nowrap;
+}
+.btn-toolbar-green:hover { background: #15803d; }
+.btn-toolbar-green:disabled { background: #334155; color: rgba(255,255,255,.3); cursor: not-allowed; }
 .btn-toolbar-outline {
   display: flex; align-items: center; gap: 6px;
   background: rgba(255,255,255,.06); color: rgba(255,255,255,.75);
@@ -52,33 +60,28 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 .pdf-canvas-area {
   flex: 1; overflow: auto; background: #1e293b;
   display: flex; align-items: flex-start; justify-content: center;
-  padding: 40px 24px;
+  padding: 40px 24px 80px;
 }
 
-/* PDF WRAP — same width concept as A4 */
+/* PDF WRAP */
 .pdf-page-wrap {
   position: relative; width: 794px; flex-shrink: 0;
-  background: #fff;
-  box-shadow: 0 8px 40px rgba(0,0,0,.5);
-  overflow: hidden;
-  line-height: 0;
+  background: #fff; box-shadow: 0 8px 40px rgba(0,0,0,.5);
+  overflow: hidden; line-height: 0;
 }
 #pdfCanvas { display: block; width: 794px; height: auto; }
 
 /* Page controls */
 .page-controls {
-  position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: -44px; left: 50%; transform: translateX(-50%);
   display: flex; align-items: center; gap: 10px;
-  background: rgba(0,0,0,.5); border-radius: 20px; padding: 5px 14px;
+  background: rgba(0,0,0,.55); border-radius: 20px; padding: 6px 14px;
 }
 .page-controls span { font-size: 12px; color: rgba(255,255,255,.7); }
-.page-btn {
-  background: none; border: none; color: rgba(255,255,255,.6); cursor: pointer;
-  padding: 2px 6px; border-radius: 4px; transition: color .1s;
-}
+.page-btn { background: none; border: none; color: rgba(255,255,255,.6); cursor: pointer; padding: 2px 6px; border-radius: 4px; }
 .page-btn:hover { color: #fff; }
 
-/* QR STAMP — identical to surat-pdf-editor */
+/* QR STAMP — identical to email-preview */
 .qr-stamp {
   position: absolute; cursor: move; user-select: none; z-index: 50;
   border: none; outline: 2px dashed transparent; outline-offset: 3px;
@@ -88,45 +91,25 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 }
 .qr-stamp:hover, .qr-stamp.active { outline-color: #1a56a8; }
 .qr-stamp img { width: 100%; flex: 1; min-height: 0; object-fit: contain; display: block; }
-.qr-stamp-sig { width: 95%; border-top: 1.5px solid #111; margin: 5px 0 3px; flex-shrink: 0; }
-.qr-stamp-name {
-  font-size: 9.5px; font-weight: 700; text-align: center; color: #111;
-  padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 100%; line-height: 1.5; flex-shrink: 0;
-}
-.qr-stamp-role {
-  font-size: 8.5px; color: #111; text-align: center; padding: 1px 4px 3px;
+.qr-stamp-date {
+  width: 100%; font-size: 7px; color: #222; text-align: center;
+  padding: 2px 3px; line-height: 1.3; flex-shrink: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 100%; flex-shrink: 0;
 }
-.qr-signed-badge {
-  position: absolute; top: 2px; left: 2px;
-  background: #16a34a; color: #fff; font-size: 8px; font-weight: 700;
-  padding: 1px 5px; border-radius: 3px;
-}
-.qr-resize {
-  position: absolute; bottom: 0; right: 0; width: 12px; height: 12px;
-  cursor: se-resize; background: #1a56a8; border-radius: 2px 0 0 0; opacity: 0;
-  transition: opacity .15s;
-}
+.qr-stamp-sig { width: 95%; border-top: 1.5px solid #111; margin: 5px 0 3px; flex-shrink: 0; }
+.qr-stamp-name { font-size: 9.5px; font-weight: 700; color: #111; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; line-height: 1.5; flex-shrink: 0; }
+.qr-stamp-role { font-size: 8.5px; color: #111; padding: 1px 4px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; flex-shrink: 0; }
+.qr-signed-badge { position: absolute; top: 2px; left: 2px; background: #16a34a; color: #fff; font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 3px; }
+.qr-resize { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; cursor: se-resize; background: #1a56a8; border-radius: 2px 0 0 0; opacity: 0; transition: opacity .15s; }
 .qr-stamp:hover .qr-resize, .qr-stamp.active .qr-resize { opacity: 1; }
-.qr-delete {
-  position: absolute; top: -10px; right: -10px; width: 20px; height: 20px;
-  border-radius: 50%; background: #ef4444; color: #fff; border: none; cursor: pointer;
-  font-size: 12px; line-height: 20px; text-align: center; opacity: 0;
-  transition: opacity .15s; display: flex; align-items: center; justify-content: center;
-}
+.qr-delete { position: absolute; top: -10px; right: -10px; width: 20px; height: 20px; border-radius: 50%; background: #ef4444; color: #fff; border: none; cursor: pointer; opacity: 0; transition: opacity .15s; display: flex; align-items: center; justify-content: center; }
 .qr-stamp:hover .qr-delete, .qr-stamp.active .qr-delete { opacity: 1; }
 
 /* RIGHT PANEL */
-.pdf-panel {
-  width: 280px; flex-shrink: 0; background: #0f172a;
-  border-left: 1px solid rgba(255,255,255,.06);
-  overflow-y: auto; display: flex; flex-direction: column;
-}
-.panel-section { padding: 20px; border-bottom: 1px solid rgba(255,255,255,.06); }
-.panel-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 14px; }
-.panel-hint { font-size: 12px; color: rgba(255,255,255,.4); line-height: 1.6; margin-bottom: 14px; }
+.pdf-panel { width: 290px; flex-shrink: 0; background: #0f172a; border-left: 1px solid rgba(255,255,255,.06); overflow-y: auto; display: flex; flex-direction: column; }
+.panel-section { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.panel-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 12px; }
+.panel-hint { font-size: 12px; color: rgba(255,255,255,.4); line-height: 1.6; margin-bottom: 12px; }
 .btn-add-self {
   width: 100%; padding: 9px; border-radius: 8px;
   background: #1a56a8; color: #fff; border: none; cursor: pointer;
@@ -143,57 +126,43 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 }
 .btn-sign:hover { background: #15803d; }
 .btn-sign:disabled { background: #334155; color: rgba(255,255,255,.35); cursor: not-allowed; }
-.cosign-toggle {
-  display: flex; align-items: center; gap: 10px; cursor: pointer;
-  padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1);
-  background: rgba(255,255,255,.04); color: rgba(255,255,255,.75); font-size: 13px;
-  transition: background .15s, border-color .15s;
-}
+.cosign-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04); color: rgba(255,255,255,.75); font-size: 13px; }
 .cosign-toggle input { accent-color: #1a56a8; width: 15px; height: 15px; }
-.cosign-toggle:hover { background: rgba(255,255,255,.07); }
 .cosign-panel { margin-top: 12px; display: none; }
 .cosign-panel.open { display: block; }
-.panel-select {
-  width: 100%; padding: 8px 10px; border-radius: 6px;
-  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
-  color: #fff; font-size: 13px; margin-bottom: 8px; outline: none;
-}
+.panel-select { width: 100%; padding: 8px 10px; border-radius: 6px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); color: #fff; font-size: 13px; margin-bottom: 8px; outline: none; }
 .panel-select option { background: #1e293b; color: #fff; }
-.btn-add-cosign {
-  width: 100%; padding: 8px; border-radius: 6px;
-  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
-  color: rgba(255,255,255,.8); font-size: 13px; cursor: pointer; transition: background .15s;
-}
+.btn-add-cosign { width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); color: rgba(255,255,255,.8); font-size: 13px; cursor: pointer; transition: background .15s; }
 .btn-add-cosign:hover { background: rgba(255,255,255,.14); }
-.signer-list { display: flex; flex-direction: column; gap: 8px; }
-.signer-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; border-radius: 8px;
-  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
-}
-.signer-av {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: linear-gradient(135deg,#0f3270,#1a56a8);
-  color: #fff; font-size: 11px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
+.signer-list { display: flex; flex-direction: column; gap: 10px; }
+.signer-item { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 12px; border-radius: 8px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); }
+.signer-item-top { display: flex; align-items: center; gap: 10px; }
+.signer-av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,#0f3270,#1a56a8); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .signer-av.signed { background: linear-gradient(135deg,#14532d,#16a34a); }
 .signer-info { flex: 1; min-width: 0; }
 .signer-name { font-size: 12.5px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .signer-role { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 1px; }
-.signer-del {
-  width: 24px; height: 24px; border-radius: 5px;
-  background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.2);
-  color: #ef4444; font-size: 13px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  transition: background .15s;
-}
+.signer-del { width: 24px; height: 24px; border-radius: 5px; background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.2); color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
 .signer-del:hover { background: rgba(239,68,68,.3); }
-.empty-signers { text-align: center; padding: 20px 0; color: rgba(255,255,255,.25); font-size: 12px; line-height: 1.7; }
-.status-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 12px;
+
+/* Display mode / options */
+.jabatan-input {
+  width: 100%; padding: 5px 8px; border-radius: 5px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  color: #fff; font-size: 12px; outline: none; font-family: inherit;
 }
+.jabatan-input:focus { border-color: rgba(255,255,255,.25); }
+.display-mode-row { display: flex; gap: 5px; flex-wrap: wrap; }
+.dm-btn {
+  padding: 5px 9px; border-radius: 5px; font-size: 11px; font-weight: 500; cursor: pointer;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.5); transition: all .15s; text-align: center; line-height: 1.4;
+}
+.dm-btn:hover { background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); }
+.dm-btn.active { background: #1a56a8; border-color: #1a56a8; color: #fff; }
+.opts-label { font-size: 10px; color: rgba(255,255,255,.3); margin-bottom: 4px; margin-top: 8px; }
+.empty-signers { text-align: center; padding: 20px 0; color: rgba(255,255,255,.25); font-size: 12px; line-height: 1.7; }
+.status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 12px; }
 .status-draft   { background: rgba(255,255,255,.07); color: rgba(255,255,255,.5); }
 .status-partial { background: rgba(251,191,36,.12); color: #fbbf24; }
 .status-signed  { background: rgba(22,163,74,.15); color: #4ade80; }
@@ -209,14 +178,14 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
   </a>
   <div class="toolbar-sep"></div>
   <div class="toolbar-title">E-Sign — <%= session.title %></div>
-  <span class="toolbar-hint" id="toolbarHint">Drag QR untuk memindahkan · Tarik sudut kanan bawah untuk resize</span>
-  <button class="btn-sign" id="btnSignToolbar" onclick="signDocument()"
-    <% if (!session.signers.some(s => s.userId.toString() === currentUser._id.toString())) { %>style="display:none"<% } %>
-    <% if (session.signers.some(s => s.userId.toString() === currentUser._id.toString() && s.status === 'signed')) { %>disabled<% } %>>
+  <span class="toolbar-hint">Drag QR untuk memindahkan · Tarik sudut kanan bawah untuk resize</span>
+  <% const mySignerTb = session.signers.find(s => s.userId.toString() === currentUser._id.toString()); %>
+  <% if (mySignerTb) { %>
+  <button class="btn-toolbar-green" id="btnSignToolbar" onclick="signDocument()" <%= mySignerTb.status === 'signed' ? 'disabled' : '' %>>
     <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <% const mySig = session.signers.find(s => s.userId.toString() === currentUser._id.toString()); %>
-    <%= mySig && mySig.status === 'signed' ? 'Sudah Ditandatangani' : 'Tanda Tangani' %>
+    <%= mySignerTb.status === 'signed' ? 'Sudah Ditandatangani' : 'Tanda Tangani' %>
   </button>
+  <% } %>
   <a href="/e-sign/<%= session._id %>/download" class="btn-toolbar-outline">
     <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 9l4 4 4-4M3 17h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Download PDF
@@ -230,21 +199,37 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
     <div style="position:relative;">
       <div class="pdf-page-wrap" id="pdfPageWrap">
         <canvas id="pdfCanvas"></canvas>
-        <!-- QR stamps injected dynamically -->
+
+        <!-- QR Stamps rendered from DB -->
         <% session.signers.forEach(function(s) {
           const rl = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
-          const jabatan = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
+          const jabatan  = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
+          const dm       = s.displayMode || 'full';
+          const showDate = s.showDate !== false;
+          const lokasi   = s.lokasiTtd || '';
+          const tglDate  = s.tanggalTtd || new Date();
+          const dateStr  = new Date(tglDate).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+          const fullDate = lokasi ? lokasi+', '+dateStr : dateStr;
+          const isMe = s.userId.toString() === currentUser._id.toString();
+          const canDrag = isMe && s.status !== 'signed';
         %>
         <div class="qr-stamp" id="stamp-<%= s._id %>"
           data-id="<%= s._id %>"
-          data-mine="<%= s.userId.toString() === currentUser._id.toString() && s.status !== 'signed' ? '1' : '0' %>"
+          data-mine="<%= canDrag ? '1' : '0' %>"
+          data-dm="<%= dm %>"
+          data-show-date="<%= showDate ? '1' : '0' %>"
+          data-date-str="<%= dateStr %>"
+          data-lokasi="<%= lokasi %>"
           style="left:<%= s.position.x %>px;top:<%= s.position.y %>px;width:<%= s.position.width %>px;height:<%= s.position.height %>px;">
+          <% if (showDate) { %><div class="qr-stamp-date"><%= fullDate %></div><% } %>
           <img src="<%= s.qrDataUrl %>" alt="QR" draggable="false">
+          <% if (dm !== 'qr_only') { %>
           <div class="qr-stamp-sig"></div>
           <div class="qr-stamp-name"><%= s.userName %></div>
-          <div class="qr-stamp-role"><%= jabatan %></div>
+          <% if (dm === 'full') { %><div class="qr-stamp-role"><%= jabatan %></div><% } %>
+          <% } %>
           <% if (s.status === 'signed') { %><div class="qr-signed-badge">✓ Signed</div><% } %>
-          <% if (s.status !== 'signed') { %><div class="qr-resize"></div><% } %>
+          <% if (canDrag) { %><div class="qr-resize"></div><% } %>
           <% if (isCreator && s.status === 'pending') { %>
           <button class="qr-delete" onclick="removeSigner('<%= s._id %>', event)" title="Hapus">
             <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -252,14 +237,15 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
           <% } %>
         </div>
         <% }) %>
+
       </div>
-      <!-- Page controls below the page -->
+      <!-- Page controls -->
       <div class="page-controls" id="pageControls" style="display:none;">
-        <button class="page-btn" onclick="changePage(-1)" id="prevBtn">
+        <button class="page-btn" onclick="changePage(-1)">
           <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M13 4l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <span>Hal <span id="pageNumDisp">1</span> / <span id="totalPagesDisp">—</span></span>
-        <button class="page-btn" onclick="changePage(1)" id="nextBtn">
+        <button class="page-btn" onclick="changePage(1)">
           <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
@@ -272,31 +258,22 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
     <!-- Status -->
     <div class="panel-section">
       <div class="panel-title">Status</div>
-      <span class="status-badge status-<%= session.status %>" id="statusBadge">
-        <% if (session.status === 'signed') { %>
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Semua Sudah Tanda Tangan
-        <% } else if (session.status === 'partial') { %>
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5"/></svg> Sebagian Ditandatangani
-        <% } else { %>
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5"/></svg> Menunggu
-        <% } %>
+      <span class="status-badge status-<%= session.status %>">
+        <% if (session.status === 'signed') { %>✓ Semua Sudah Tanda Tangan
+        <% } else if (session.status === 'partial') { %>○ Sebagian Ditandatangani
+        <% } else { %>○ Menunggu<% } %>
       </span>
     </div>
 
     <!-- My Signature -->
     <div class="panel-section">
       <div class="panel-title">Tanda Tangan Saya</div>
-      <div class="panel-hint">Tambahkan QR tanda tangan Anda ke dokumen ini. Setiap dokumen memiliki QR unik tersendiri.</div>
-      <button class="btn-add-self" id="btnAddSelf" onclick="addSelf()"
-        <% if (session.signers.some(s => s.userId.toString() === currentUser._id.toString())) { %>disabled<% } %>>
-        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        <% if (session.signers.some(s => s.userId.toString() === currentUser._id.toString())) { %>
-          Sudah Ditambahkan
-        <% } else { %>
-          Tambah Tanda Tangan Saya
-        <% } %>
-      </button>
+      <div class="panel-hint">Tambahkan QR tanda tangan Anda. Setiap dokumen memiliki QR unik tersendiri.</div>
       <% const mySigner = session.signers.find(s => s.userId.toString() === currentUser._id.toString()); %>
+      <button class="btn-add-self" id="btnAddSelf" onclick="addSelf()" <%= mySigner ? 'disabled' : '' %>>
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <%= mySigner ? 'Sudah Ditambahkan' : 'Tambah Tanda Tangan Saya' %>
+      </button>
       <% if (mySigner && mySigner.status === 'pending') { %>
       <button class="btn-sign" id="btnSign" onclick="signDocument()">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -314,23 +291,21 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         Aktifkan Multi Penandatangan
       </label>
       <div class="cosign-panel" id="coSignPanel">
-        <div style="margin-top:12px;">
-          <select class="panel-select" id="coSignSelect">
-            <option value="">— Pilih pengguna —</option>
-            <% users.forEach(u => { %>
-            <% if (u._id.toString() !== currentUser._id.toString()) { %>
-            <% const alreadyIn = session.signers.some(s => s.userId.toString() === u._id.toString()); %>
-            <option value="<%= u._id %>" <%= alreadyIn ? 'disabled' : '' %>><%= u.name %></option>
-            <% } %>
-            <% }) %>
-          </select>
-          <button class="btn-add-cosign" onclick="addCoSigner()">+ Tambah Co-Signer</button>
-        </div>
+        <select class="panel-select" id="coSignSelect" style="margin-top:12px;">
+          <option value="">— Pilih pengguna —</option>
+          <% users.forEach(u => { %>
+          <% const alreadyIn = session.signers.some(s => s.userId.toString() === u._id.toString()); %>
+          <% if (u._id.toString() !== currentUser._id.toString()) { %>
+          <option value="<%= u._id %>" <%= alreadyIn ? 'disabled' : '' %>><%= u.name %></option>
+          <% } %>
+          <% }) %>
+        </select>
+        <button class="btn-add-cosign" onclick="addCoSigner()">+ Tambah Co-Signer</button>
       </div>
     </div>
     <% } %>
 
-    <!-- Signer list -->
+    <!-- Signer list with full options -->
     <div class="panel-section" style="flex:1;">
       <div class="panel-title">Penandatangan (<span id="signerCount"><%= session.signers.length %></span>)</div>
       <div class="signer-list" id="signerList">
@@ -338,168 +313,310 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
         <div class="empty-signers" id="emptySig">Belum ada penandatangan.<br>Tambahkan di atas.</div>
         <% } %>
         <% session.signers.forEach(function(s) {
-          const initials = (s.userName||'?').split(' ').slice(0,2).map(w => w[0]||'').join('').toUpperCase();
+          const initials = (s.userName||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
           const rl = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
-          const roleLabel = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
+          const jabatanNow = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
+          const dm = s.displayMode || 'full';
+          const signed = s.status === 'signed';
+          const tglVal = s.tanggalTtd ? new Date(s.tanggalTtd).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+          const isMe = s.userId.toString() === currentUser._id.toString();
         %>
         <div class="signer-item" id="si-<%= s._id %>">
-          <div class="signer-av <%= s.status === 'signed' ? 'signed' : '' %>"><%= initials %></div>
-          <div class="signer-info">
-            <div class="signer-name"><%= s.userName %></div>
-            <div class="signer-role"><%= roleLabel %> <%= s.status === 'signed' ? '· ✓' : '' %></div>
+          <!-- Top row -->
+          <div class="signer-item-top">
+            <div class="signer-av <%= signed ? 'signed' : '' %>"><%= initials %></div>
+            <div class="signer-info">
+              <div class="signer-name"><%= s.userName %></div>
+              <div class="signer-role" id="jlbl-<%= s._id %>"><%= jabatanNow || '—' %></div>
+            </div>
+            <% if (signed) { %>
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="color:#22c55e;flex-shrink:0;"><path d="M4 10l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <% } else { %>
+            <span style="font-size:9px;color:rgba(255,200,0,.7);font-weight:600;flex-shrink:0;">MENUNGGU</span>
+            <% } %>
+            <% if (isCreator && !signed && !isMe) { %>
+            <button class="signer-del" onclick="removeSigner('<%= s._id %>',event)" title="Hapus">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
+            <% } %>
           </div>
-          <% if (isCreator && s.status === 'pending' && s.userId.toString() !== currentUser._id.toString()) { %>
-          <button class="signer-del" onclick="removeSigner('<%= s._id %>', event)" title="Hapus">
-            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          </button>
-          <% } %>
+
+          <!-- Jabatan edit -->
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:3px;">Jabatan / Gelar</div>
+          <input type="text" class="jabatan-input" id="jab-<%= s._id %>"
+            placeholder="Jabatan atau gelar"
+            value="<%= jabatanNow %>"
+            <%= signed ? 'disabled' : '' %>
+            oninput="debounceJabatan('<%= s._id %>', this.value)">
+
+          <!-- Lokasi & Tanggal -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div>
+              <div class="opts-label" style="margin-top:0;">Lokasi</div>
+              <input type="text" class="jabatan-input" id="lokasi-<%= s._id %>"
+                placeholder="Jakarta"
+                value="<%= s.lokasiTtd || '' %>"
+                <%= signed ? 'disabled' : '' %>
+                oninput="debounceLokasi('<%= s._id %>', this.value)">
+            </div>
+            <div>
+              <div class="opts-label" style="margin-top:0;">Tanggal</div>
+              <input type="date" class="jabatan-input" id="tgl-<%= s._id %>"
+                value="<%= tglVal %>"
+                <%= signed ? 'disabled' : '' %>
+                oninput="debounceTanggal('<%= s._id %>', this.value)">
+            </div>
+          </div>
+
+          <!-- Display mode -->
+          <div>
+            <div class="opts-label">Tampilan:</div>
+            <div class="display-mode-row" id="dm-<%= s._id %>">
+              <button type="button" class="dm-btn <%= dm==='full'?'active':'' %>"
+                onclick="setDisplayMode('<%= s._id %>','full',this.closest('.display-mode-row'))"
+                <%= signed ? 'disabled' : '' %>>QR + Nama<br>+ Jabatan</button>
+              <button type="button" class="dm-btn <%= dm==='name_only'?'active':'' %>"
+                onclick="setDisplayMode('<%= s._id %>','name_only',this.closest('.display-mode-row'))"
+                <%= signed ? 'disabled' : '' %>>QR +<br>Nama</button>
+              <button type="button" class="dm-btn <%= dm==='qr_only'?'active':'' %>"
+                onclick="setDisplayMode('<%= s._id %>','qr_only',this.closest('.display-mode-row'))"
+                <%= signed ? 'disabled' : '' %>>QR<br>Saja</button>
+            </div>
+            <div class="opts-label">Opsi:</div>
+            <div class="display-mode-row">
+              <button type="button" class="dm-btn <%= s.showDate !== false ? 'active' : '' %>"
+                id="btnDate-<%= s._id %>"
+                onclick="toggleDate('<%= s._id %>',this)"
+                <%= signed ? 'disabled' : '' %>>Tanggal &amp; Lokasi</button>
+            </div>
+          </div>
         </div>
         <% }) %>
       </div>
     </div>
 
-    <!-- Actions -->
+    <!-- Save -->
     <div class="panel-section" style="border-bottom:none;">
       <div class="panel-title">Simpan</div>
-      <button onclick="saveToPersonalDocs()" style="width:100%;padding:9px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.8);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+      <button onclick="saveToPersonalDocs()" style="width:100%;padding:9px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.8);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;">
         <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><rect x="3" y="2" width="14" height="17" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Simpan ke Dok. Pribadi
       </button>
+      <div style="font-size:11px;color:rgba(255,255,255,.22);line-height:1.9;margin-top:12px;">
+        • Seret QR untuk ubah posisi<br>
+        • Tarik sudut kanan bawah untuk resize<br>
+        • Pilih tampilan: QR saja / + Nama / + Jabatan<br>
+        • Setiap QR unik per dokumen &amp; penandatangan
+      </div>
     </div>
   </div>
 
 </div>
 
 <!-- Toast -->
-<div id="esignToast" style="position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:9999;display:none;"></div>
+<div id="esignToast" style="position:fixed;bottom:24px;right:24px;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:9999;display:none;"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="/js/app.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const SESSION_ID     = '<%= session._id %>';
+const SESSION_ID      = '<%= session._id %>';
 const CURRENT_USER_ID = '<%= currentUser._id %>';
-const IS_CREATOR     = <%- isCreator ? 'true' : 'false' %>;
+const IS_CREATOR      = <%- isCreator ? 'true' : 'false' %>;
 
 let pdfDoc = null, currentPage = 0, totalPages = 0, renderTask = null;
 const canvas = document.getElementById('pdfCanvas');
 const ctx    = canvas.getContext('2d');
 const wrap   = document.getElementById('pdfPageWrap');
 
-// ── PDF LOAD & RENDER ──
+// ── PDF ──
 async function loadPDF() {
   try {
-    const pdf = await pdfjsLib.getDocument('/e-sign/' + SESSION_ID + '/pdf').promise;
-    pdfDoc    = pdf;
+    const pdf  = await pdfjsLib.getDocument('/e-sign/' + SESSION_ID + '/pdf').promise;
+    pdfDoc     = pdf;
     totalPages = pdf.numPages;
     document.getElementById('totalPagesDisp').textContent = totalPages;
     if (totalPages > 1) document.getElementById('pageControls').style.display = 'flex';
     await renderPage(0);
-  } catch(e) {
-    wrap.style.minHeight = '400px';
-    wrap.style.display = 'flex';
-    wrap.style.alignItems = 'center';
-    wrap.style.justifyContent = 'center';
+  } catch {
     canvas.style.display = 'none';
     const msg = document.createElement('div');
-    msg.style.cssText = 'color:#94a3b8;font-size:13px;padding:40px;text-align:center;';
+    msg.style.cssText = 'padding:60px;text-align:center;color:#94a3b8;font-size:13px;';
     msg.textContent = 'Gagal memuat PDF';
     wrap.appendChild(msg);
   }
 }
 
-async function renderPage(pageNum) {
+async function renderPage(n) {
   if (renderTask) { try { renderTask.cancel(); } catch {} renderTask = null; }
-  const page     = await pdfDoc.getPage(pageNum + 1);
+  const page     = await pdfDoc.getPage(n + 1);
   const viewport = page.getViewport({ scale: 794 / page.getViewport({ scale: 1 }).width });
   canvas.width   = viewport.width;
   canvas.height  = viewport.height;
-  renderTask = page.render({ canvasContext: ctx, viewport });
+  renderTask     = page.render({ canvasContext: ctx, viewport });
   try { await renderTask.promise; } catch {}
   renderTask = null;
-  document.getElementById('pageNumDisp').textContent = pageNum + 1;
-  currentPage = pageNum;
+  currentPage = n;
+  document.getElementById('pageNumDisp').textContent = n + 1;
 }
 
-async function changePage(delta) {
-  const next = currentPage + delta;
-  if (next < 0 || next >= totalPages) return;
-  await renderPage(next);
+async function changePage(d) {
+  const n = currentPage + d;
+  if (n < 0 || n >= totalPages) return;
+  await renderPage(n);
 }
 
-// ── DRAG & RESIZE — identical to surat-pdf-editor ──
+// ── DRAG & RESIZE (same as surat-pdf-editor) ──
 let dragState = null;
 
 function initStamp(el) {
-  if (el.dataset.mine !== '1') return; // only drag own pending stamps
-
-  el.addEventListener('pointerdown', function(e) {
+  if (el.dataset.mine !== '1') return;
+  el.addEventListener('pointerdown', e => {
     if (e.target.classList.contains('qr-resize') || e.target.closest('.qr-delete')) return;
-    e.preventDefault();
-    el.setPointerCapture(e.pointerId);
-    el.classList.add('active');
-    dragState = { type:'drag', el,
-      startX: e.clientX, startY: e.clientY,
-      origX: parseInt(el.style.left)||0, origY: parseInt(el.style.top)||0 };
+    e.preventDefault(); el.setPointerCapture(e.pointerId); el.classList.add('active');
+    dragState = { type:'drag', el, startX:e.clientX, startY:e.clientY,
+      origX:parseInt(el.style.left)||0, origY:parseInt(el.style.top)||0 };
   });
-  el.addEventListener('pointermove', function(e) {
+  el.addEventListener('pointermove', e => {
     if (!dragState || dragState.el !== el || dragState.type !== 'drag') return;
-    const dx = e.clientX - dragState.startX, dy = e.clientY - dragState.startY;
-    const maxX = wrap.offsetWidth  - el.offsetWidth;
-    const maxY = wrap.offsetHeight - el.offsetHeight;
-    el.style.left = Math.max(0, Math.min(dragState.origX + dx, maxX)) + 'px';
-    el.style.top  = Math.max(0, Math.min(dragState.origY + dy, maxY)) + 'px';
+    const dx = e.clientX-dragState.startX, dy = e.clientY-dragState.startY;
+    el.style.left = Math.max(0, Math.min(dragState.origX+dx, wrap.offsetWidth-el.offsetWidth)) + 'px';
+    el.style.top  = Math.max(0, Math.min(dragState.origY+dy, wrap.offsetHeight-el.offsetHeight)) + 'px';
   });
-  el.addEventListener('pointerup', function() {
+  el.addEventListener('pointerup', () => {
     if (!dragState || dragState.el !== el) return;
-    el.classList.remove('active');
-    savePosition(el);
-    dragState = null;
+    el.classList.remove('active'); savePosition(el); dragState = null;
   });
   el.addEventListener('pointercancel', () => { dragState = null; });
 
   const rh = el.querySelector('.qr-resize');
-  if (rh) {
-    rh.addEventListener('pointerdown', function(e) {
-      e.preventDefault(); e.stopPropagation();
-      rh.setPointerCapture(e.pointerId);
-      el.classList.add('active');
-      dragState = { type:'resize', el,
-        startX: e.clientX, startY: e.clientY,
-        origX: parseInt(el.style.left)||0, origY: parseInt(el.style.top)||0,
-        origW: el.offsetWidth, origH: el.offsetHeight };
-    });
-    rh.addEventListener('pointermove', function(e) {
-      if (!dragState || dragState.type !== 'resize' || dragState.el !== el) return;
-      el.style.width  = Math.max(60, Math.min(dragState.origW + (e.clientX - dragState.startX), wrap.offsetWidth  - dragState.origX)) + 'px';
-      el.style.height = Math.max(60, dragState.origH + (e.clientY - dragState.startY)) + 'px';
-    });
-    rh.addEventListener('pointerup', function() {
-      if (!dragState || dragState.el !== el) return;
-      el.classList.remove('active');
-      savePosition(el);
-      dragState = null;
-    });
-    rh.addEventListener('pointercancel', () => { dragState = null; });
-  }
+  if (!rh) return;
+  rh.addEventListener('pointerdown', e => {
+    e.preventDefault(); e.stopPropagation(); rh.setPointerCapture(e.pointerId); el.classList.add('active');
+    dragState = { type:'resize', el, startX:e.clientX, startY:e.clientY,
+      origX:parseInt(el.style.left)||0, origY:parseInt(el.style.top)||0,
+      origW:el.offsetWidth, origH:el.offsetHeight };
+  });
+  rh.addEventListener('pointermove', e => {
+    if (!dragState || dragState.type !== 'resize' || dragState.el !== el) return;
+    el.style.width  = Math.max(60, Math.min(dragState.origW+(e.clientX-dragState.startX), wrap.offsetWidth-dragState.origX)) + 'px';
+    el.style.height = Math.max(60, dragState.origH+(e.clientY-dragState.startY)) + 'px';
+  });
+  rh.addEventListener('pointerup', () => {
+    if (!dragState || dragState.el !== el) return;
+    el.classList.remove('active'); savePosition(el); dragState = null;
+  });
+  rh.addEventListener('pointercancel', () => { dragState = null; });
 }
 
-// Init existing stamps
 document.querySelectorAll('.qr-stamp').forEach(initStamp);
 
 async function savePosition(el) {
   await fetch(`/e-sign/${SESSION_ID}/update-position`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      signerId: el.dataset.id,
-      page:   currentPage,
-      x:      parseInt(el.style.left)  || 0,
-      y:      parseInt(el.style.top)   || 0,
-      width:  el.offsetWidth,
-      height: el.offsetHeight
-    })
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ signerId:el.dataset.id, page:currentPage,
+      x:parseInt(el.style.left)||0, y:parseInt(el.style.top)||0,
+      width:el.offsetWidth, height:el.offsetHeight })
   });
+}
+
+// ── REBUILD STAMP INNER HTML ──
+function rebuildStamp(id) {
+  const stamp = document.getElementById('stamp-'+id);
+  if (!stamp) return;
+  const dm      = stamp.dataset.dm || 'full';
+  const showDt  = stamp.dataset.showDate !== '0';
+  const lokasi  = stamp.dataset.lokasi || '';
+  const dateStr = stamp.dataset.dateStr || '';
+  const fullDate = lokasi ? lokasi+', '+dateStr : dateStr;
+  const src     = stamp.querySelector('img')?.src || '';
+  const name    = stamp.querySelector('.qr-stamp-name')?.textContent || stamp.dataset.name || '';
+  const role    = stamp.querySelector('.qr-stamp-role')?.textContent || stamp.dataset.role || '';
+
+  const dateHtml = showDt ? `<div class="qr-stamp-date">${fullDate}</div>` : '';
+  const imgHtml  = `<img src="${src}" draggable="false">`;
+  const nameHtml = dm !== 'qr_only' ? `<div class="qr-stamp-sig"></div><div class="qr-stamp-name">${name}</div>` : '';
+  const roleHtml = dm === 'full' ? `<div class="qr-stamp-role">${role}</div>` : '';
+  const resizeHtml = stamp.dataset.mine === '1' ? '<div class="qr-resize"></div>' : '';
+  const delHtml = (IS_CREATOR && stamp.dataset.mine !== undefined)
+    ? `<button class="qr-delete" onclick="removeSigner('${id}',event)" title="Hapus"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>`
+    : '';
+  stamp.innerHTML = dateHtml + imgHtml + nameHtml + roleHtml + resizeHtml + delHtml;
+  initStamp(stamp);
+}
+
+// ── DISPLAY MODE ──
+async function setDisplayMode(id, mode, row) {
+  row.querySelectorAll('.dm-btn').forEach(b => b.classList.remove('active'));
+  row.querySelector(`.dm-btn:nth-child(${mode==='full'?1:mode==='name_only'?2:3})`).classList.add('active');
+  const stamp = document.getElementById('stamp-'+id);
+  if (stamp) { stamp.dataset.dm = mode; rebuildStamp(id); }
+  await fetch(`/e-sign/${SESSION_ID}/update-display-mode`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ signerId:id, displayMode:mode })
+  });
+}
+
+function toggleDate(id, btn) {
+  const stamp = document.getElementById('stamp-'+id);
+  if (!stamp) return;
+  const isOn = stamp.dataset.showDate !== '0';
+  stamp.dataset.showDate = isOn ? '0' : '1';
+  btn.classList.toggle('active', !isOn);
+  rebuildStamp(id);
+  fetch(`/e-sign/${SESSION_ID}/update-lokasi-tanggal`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ signerId:id, showDate: !isOn })
+  });
+}
+
+// ── JABATAN / LOKASI / TANGGAL ──
+const jabatanTimers = {}, lokasiTimers = {}, tglTimers = {};
+
+function debounceJabatan(id, val) {
+  clearTimeout(jabatanTimers[id]);
+  jabatanTimers[id] = setTimeout(async () => {
+    const res  = await fetch(`/e-sign/${SESSION_ID}/update-jabatan`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ signerId:id, jabatan:val })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      const lbl = document.getElementById('jlbl-'+id);
+      if (lbl) lbl.textContent = val;
+      const stamp = document.getElementById('stamp-'+id);
+      if (stamp) { stamp.dataset.role = val; const r = stamp.querySelector('.qr-stamp-role'); if (r) r.textContent = val; }
+    }
+  }, 600);
+}
+
+function debounceLokasi(id, val) {
+  clearTimeout(lokasiTimers[id]);
+  lokasiTimers[id] = setTimeout(async () => {
+    await fetch(`/e-sign/${SESSION_ID}/update-lokasi-tanggal`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ signerId:id, lokasi:val })
+    });
+    const stamp = document.getElementById('stamp-'+id);
+    if (stamp) { stamp.dataset.lokasi = val; rebuildStamp(id); }
+  }, 600);
+}
+
+function debounceTanggal(id, val) {
+  clearTimeout(tglTimers[id]);
+  tglTimers[id] = setTimeout(async () => {
+    await fetch(`/e-sign/${SESSION_ID}/update-lokasi-tanggal`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ signerId:id, tanggal:val })
+    });
+    if (val) {
+      const d = new Date(val);
+      const dateStr = d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+      const stamp = document.getElementById('stamp-'+id);
+      if (stamp) { stamp.dataset.dateStr = dateStr; rebuildStamp(id); }
+    }
+  }, 600);
 }
 
 // ── ADD SELF ──
@@ -507,7 +624,7 @@ async function addSelf() {
   const btn = document.getElementById('btnAddSelf');
   btn.disabled = true; btn.textContent = 'Memproses...';
   const res  = await fetch(`/e-sign/${SESSION_ID}/add-signer`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ userId: CURRENT_USER_ID })
   });
   const data = await res.json();
@@ -515,21 +632,23 @@ async function addSelf() {
     addStampToPage(data.signer);
     addSignerToPanel(data.signer, true);
     btn.textContent = 'Sudah Ditambahkan';
-    // Show sign button
-    document.getElementById('btnSignToolbar').style.display = '';
-    document.getElementById('btnSignToolbar').disabled = false;
-    document.getElementById('btnSignToolbar').innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Tanda Tangani`;
-    // Add sign button in panel
-    const panelSign = document.getElementById('btnSign');
-    if (!panelSign) {
-      const div = btn.closest('.panel-section');
+    // Show sign btn
+    const parent = btn.closest('.panel-section');
+    if (!document.getElementById('btnSign')) {
       const sb = document.createElement('button');
       sb.className = 'btn-sign'; sb.id = 'btnSign'; sb.onclick = signDocument;
       sb.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Tanda Tangani Sekarang`;
-      div.appendChild(sb);
+      parent.appendChild(sb);
+    }
+    const tb = document.getElementById('btnSignToolbar');
+    if (!tb) {
+      const b = document.createElement('button');
+      b.className = 'btn-toolbar-green'; b.id = 'btnSignToolbar'; b.onclick = signDocument;
+      b.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 17l4-4L14 6l3 3-7 7-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Tanda Tangani`;
+      document.querySelector('.pdf-toolbar').insertBefore(b, document.querySelector('.btn-toolbar-outline'));
     }
   } else {
-    showToast(data.message || 'Gagal menambahkan tanda tangan.', false);
+    showToast(data.message || 'Gagal.', false);
     btn.disabled = false;
     btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Tambah Tanda Tangan Saya`;
   }
@@ -539,93 +658,106 @@ async function addSelf() {
 function toggleCoSign(cb) { document.getElementById('coSignPanel').classList.toggle('open', cb.checked); }
 
 async function addCoSigner() {
-  const sel    = document.getElementById('coSignSelect');
-  const userId = sel.value;
-  if (!userId) { showToast('Pilih pengguna terlebih dahulu.', false); return; }
+  const sel = document.getElementById('coSignSelect');
+  if (!sel.value) { showToast('Pilih pengguna terlebih dahulu.', false); return; }
   const res  = await fetch(`/e-sign/${SESSION_ID}/add-signer`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId })
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ userId: sel.value })
   });
   const data = await res.json();
   if (data.ok) {
     addStampToPage(data.signer);
     addSignerToPanel(data.signer, false);
-    sel.querySelector(`option[value="${userId}"]`)?.remove();
+    sel.querySelector(`option[value="${sel.value}"]`)?.remove();
     sel.value = '';
     showToast('Co-signer ditambahkan!', true);
   } else {
-    showToast(data.message || 'Gagal menambahkan penandatangan.', false);
+    showToast(data.message || 'Gagal.', false);
   }
 }
 
-// ── ADD STAMP TO PAGE ──
-function addStampToPage(signer) {
-  document.getElementById('sigHint')?.remove();
+function addStampToPage(s) {
   const rl = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
-  const jabatan = signer.jabatanDisplay || (signer.userRole ? (rl[signer.userRole]||signer.userRole) : (signer.userOrg||''));
-  const isMe    = signer.userId?.toString() === CURRENT_USER_ID;
-
-  const div = document.createElement('div');
+  const jabatan = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
+  const isMe    = s.userId?.toString() === CURRENT_USER_ID;
+  const div     = document.createElement('div');
   div.className = 'qr-stamp';
-  div.id = `stamp-${signer._id}`;
-  div.dataset.id   = signer._id;
+  div.id = `stamp-${s._id}`; div.dataset.id = s._id;
   div.dataset.mine = isMe ? '1' : '0';
-  div.style.cssText = `left:${signer.position.x}px;top:${signer.position.y}px;width:${signer.position.width}px;height:${signer.position.height}px;`;
+  div.dataset.dm   = 'full'; div.dataset.showDate = '1';
+  div.dataset.dateStr = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  div.dataset.lokasi  = ''; div.dataset.name = s.userName; div.dataset.role = jabatan;
+  div.style.cssText = `left:${s.position.x}px;top:${s.position.y}px;width:${s.position.width}px;height:${s.position.height}px;`;
+  const dateStr = div.dataset.dateStr;
   div.innerHTML = `
-    <img src="${signer.qrDataUrl}" alt="QR" draggable="false">
+    <div class="qr-stamp-date">${dateStr}</div>
+    <img src="${s.qrDataUrl}" draggable="false">
     <div class="qr-stamp-sig"></div>
-    <div class="qr-stamp-name">${signer.userName}</div>
+    <div class="qr-stamp-name">${s.userName}</div>
     <div class="qr-stamp-role">${jabatan}</div>
-    <div class="qr-resize"></div>
-    ${(IS_CREATOR && signer.status === 'pending') ? `
-    <button class="qr-delete" onclick="removeSigner('${signer._id}', event)" title="Hapus">
-      <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-    </button>` : ''}
+    ${isMe ? '<div class="qr-resize"></div>' : ''}
+    ${IS_CREATOR ? `<button class="qr-delete" onclick="removeSigner('${s._id}',event)" title="Hapus"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>` : ''}
   `;
   wrap.appendChild(div);
   initStamp(div);
 }
 
-// ── ADD SIGNER TO PANEL ──
-function addSignerToPanel(signer, isMe) {
+function addSignerToPanel(s, isMe) {
   document.getElementById('emptySig')?.remove();
   const rl = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
-  const roleText = signer.jabatanDisplay || (signer.userRole ? (rl[signer.userRole]||signer.userRole) : (signer.userOrg||''));
-  const initials = (signer.userName||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-  const list = document.getElementById('signerList');
+  const jabatan  = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
+  const initials = (s.userName||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  const tglVal   = new Date().toISOString().slice(0,10);
   const item = document.createElement('div');
-  item.className = 'signer-item'; item.id = `si-${signer._id}`;
+  item.className = 'signer-item'; item.id = `si-${s._id}`;
   item.innerHTML = `
-    <div class="signer-av">${initials}</div>
-    <div class="signer-info">
-      <div class="signer-name">${signer.userName}</div>
-      <div class="signer-role">${roleText}</div>
+    <div class="signer-item-top">
+      <div class="signer-av">${initials}</div>
+      <div class="signer-info">
+        <div class="signer-name">${s.userName}</div>
+        <div class="signer-role" id="jlbl-${s._id}">${jabatan || '—'}</div>
+      </div>
+      <span style="font-size:9px;color:rgba(255,200,0,.7);font-weight:600;flex-shrink:0;">MENUNGGU</span>
+      ${(IS_CREATOR && !isMe) ? `<button class="signer-del" onclick="removeSigner('${s._id}',event)"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>` : ''}
     </div>
-    ${(IS_CREATOR && !isMe) ? `
-    <button class="signer-del" onclick="removeSigner('${signer._id}', event)" title="Hapus">
-      <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-    </button>` : ''}
-  `;
-  list.appendChild(item);
+    <div class="opts-label" style="margin-top:0;">Jabatan / Gelar</div>
+    <input type="text" class="jabatan-input" id="jab-${s._id}" placeholder="Jabatan atau gelar" value="${jabatan}" oninput="debounceJabatan('${s._id}',this.value)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+      <div><div class="opts-label" style="margin-top:0;">Lokasi</div>
+        <input type="text" class="jabatan-input" id="lokasi-${s._id}" placeholder="Jakarta" value="" oninput="debounceLokasi('${s._id}',this.value)"></div>
+      <div><div class="opts-label" style="margin-top:0;">Tanggal</div>
+        <input type="date" class="jabatan-input" id="tgl-${s._id}" value="${tglVal}" oninput="debounceTanggal('${s._id}',this.value)"></div>
+    </div>
+    <div>
+      <div class="opts-label">Tampilan:</div>
+      <div class="display-mode-row" id="dm-${s._id}">
+        <button type="button" class="dm-btn active" onclick="setDisplayMode('${s._id}','full',this.closest('.display-mode-row'))">QR + Nama<br>+ Jabatan</button>
+        <button type="button" class="dm-btn" onclick="setDisplayMode('${s._id}','name_only',this.closest('.display-mode-row'))">QR +<br>Nama</button>
+        <button type="button" class="dm-btn" onclick="setDisplayMode('${s._id}','qr_only',this.closest('.display-mode-row'))">QR<br>Saja</button>
+      </div>
+      <div class="opts-label">Opsi:</div>
+      <div class="display-mode-row">
+        <button type="button" class="dm-btn active" id="btnDate-${s._id}" onclick="toggleDate('${s._id}',this)">Tanggal &amp; Lokasi</button>
+      </div>
+    </div>`;
+  document.getElementById('signerList').appendChild(item);
   updateCount(1);
 }
 
-// ── REMOVE SIGNER ──
-async function removeSigner(signerId, e) {
+async function removeSigner(id, e) {
   if (e) { e.preventDefault(); e.stopPropagation(); }
-  if (!await showConfirm('Hapus penandatangan ini dari dokumen?', { title:'Hapus Penandatangan', type:'danger', confirmLabel:'Hapus' })) return;
-  const res  = await fetch(`/e-sign/${SESSION_ID}/signers/${signerId}`, { method: 'DELETE' });
+  if (!await showConfirm('Hapus penandatangan ini?', { title:'Hapus', type:'danger', confirmLabel:'Hapus' })) return;
+  const res  = await fetch(`/e-sign/${SESSION_ID}/signers/${id}`, { method:'DELETE' });
   const data = await res.json();
   if (data.ok) {
-    document.getElementById(`stamp-${signerId}`)?.remove();
-    document.getElementById(`si-${signerId}`)?.remove();
+    document.getElementById(`stamp-${id}`)?.remove();
+    document.getElementById(`si-${id}`)?.remove();
     updateCount(-1);
-    const list = document.getElementById('signerList');
-    if (!list.querySelector('.signer-item')) {
+    if (!document.getElementById('signerList').querySelector('.signer-item')) {
       const h = document.createElement('div');
       h.className = 'empty-signers'; h.id = 'emptySig';
       h.innerHTML = 'Belum ada penandatangan.<br>Tambahkan di atas.';
-      list.appendChild(h);
+      document.getElementById('signerList').appendChild(h);
     }
   }
 }
@@ -637,13 +769,13 @@ function updateCount(d) {
 
 // ── SIGN DOCUMENT ──
 async function signDocument() {
-  const btns = [document.getElementById('btnSign'), document.getElementById('btnSignToolbar')].filter(Boolean);
-  if (!await showConfirm('Tanda tangani dokumen ini? Posisi QR yang sudah diseret akan disimpan. Tindakan tidak dapat dibatalkan.', {
-    title: 'Konfirmasi Tanda Tangan', type: 'primary', confirmLabel: 'Tanda Tangani'
+  if (!await showConfirm('Tanda tangani dokumen ini? Posisi dan opsi tampilan yang sudah diatur akan disimpan. Tindakan tidak dapat dibatalkan.', {
+    title:'Konfirmasi Tanda Tangan', type:'primary', confirmLabel:'Tanda Tangani'
   })) return;
+  const btns = [document.getElementById('btnSign'), document.getElementById('btnSignToolbar')].filter(Boolean);
   btns.forEach(b => { b.disabled = true; b.textContent = 'Memproses...'; });
   try {
-    const res  = await fetch(`/e-sign/${SESSION_ID}/sign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+    const res  = await fetch(`/e-sign/${SESSION_ID}/sign`, { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
     const data = await res.json();
     if (data.ok) {
       showToast(data.allSigned ? 'Semua pihak sudah menandatangani!' : 'Berhasil ditandatangani!', true);
@@ -659,17 +791,14 @@ async function signDocument() {
 }
 
 async function saveToPersonalDocs() {
-  const res  = await fetch(`/e-sign/${SESSION_ID}/save`, { method: 'POST' });
+  const res  = await fetch(`/e-sign/${SESSION_ID}/save`, { method:'POST' });
   const data = await res.json();
-  showToast(data.ok ? 'Disimpan ke Dokumen Pribadi!' : (data.message || 'Gagal.'), data.ok);
+  showToast(data.ok ? 'Disimpan ke Dokumen Pribadi!' : (data.message||'Gagal.'), data.ok);
 }
 
-// ── TOAST ──
 function showToast(msg, ok) {
   const t = document.getElementById('esignToast');
-  t.textContent = msg;
-  t.style.background  = ok ? '#166534' : '#991b1b';
-  t.style.display = 'block';
+  t.textContent = msg; t.style.background = ok ? '#166534' : '#991b1b'; t.style.display = 'block';
   setTimeout(() => { t.style.display = 'none'; }, 3500);
 }
 
