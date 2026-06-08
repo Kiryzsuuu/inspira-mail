@@ -17,7 +17,7 @@
       <a href="/inbox" class="brand">
         <img src="<%= siteSettings && siteSettings.logoBase64 ? siteSettings.logoBase64 : '/img/Group 1597880519.png' %>" alt="Logo" class="brand-logo">
         <div class="brand-text">
-          <span class="brand-name"><%= siteSettings && siteSettings.siteName ? (siteSettings.siteName + (siteSettings.siteSub ? ' ' + siteSettings.siteSub : '')) : 'Inspira Mailer' %></span>
+          <span class="brand-name"><%= siteSettings && siteSettings.siteName ? siteSettings.siteName : 'Inspira' %></span>
           <span class="brand-sub"><%= siteSettings && siteSettings.siteTagline ? siteSettings.siteTagline : 'Sistem Surat Digital' %></span>
         </div>
       </a>
