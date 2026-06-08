@@ -17,8 +17,8 @@
       <a href="/inbox" class="brand">
         <img src="<%= siteSettings && siteSettings.logoBase64 ? siteSettings.logoBase64 : '/img/Group 1597880519.png' %>" alt="Logo" class="brand-logo">
         <div class="brand-text">
-          <span class="brand-name"><%= siteSettings && siteSettings.siteName ? siteSettings.siteName : 'Inspira' %></span>
-          <span class="brand-sub"><%= siteSettings && siteSettings.siteSub ? siteSettings.siteSub : 'Mailer' %></span>
+          <span class="brand-name"><%= siteSettings && siteSettings.siteName ? (siteSettings.siteName + (siteSettings.siteSub ? ' ' + siteSettings.siteSub : '')) : 'Inspira Mailer' %></span>
+          <span class="brand-sub"><%= siteSettings && siteSettings.siteTagline ? siteSettings.siteTagline : 'Sistem Surat Digital' %></span>
         </div>
       </a>
       <button class="sidebar-close" id="sidebarClose" aria-label="Tutup">
@@ -27,11 +27,11 @@
     </div>
 
     <nav class="sidebar-nav">
+      <!-- ── GRUP INTERNAL ── -->
       <a href="/compose/internal" class="nav-item <%= active === 'compose-internal' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M13 2H5a1 1 0 00-1 1v14a1 1 0 001 1h10a1 1 0 001-1V6l-3-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 2v4h4M8 10h4M8 13h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        Tulis Surat
+        Tulis Surat Internal
       </a>
-      <div class="nav-divider"></div>
       <a href="/inbox" class="nav-item <%= active === 'inbox' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M3 4h14a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Kotak Masuk
@@ -60,16 +60,16 @@
         Dokumen Tersimpan
       </a>
 
+      <!-- ── GRUP EKSTERNAL (admin/direktur) ── -->
       <% if(user && ['admin','superadmin','direktur'].includes(user.role)){ %>
       <div class="nav-divider"></div>
-
+      <a href="/compose/eksternal" class="nav-item <%= active === 'compose-eksternal' ? 'active' : '' %>">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M2 10h16M10 2c-2 2.5-3 5-3 8s1 5.5 3 8M10 2c2 2.5 3 5 3 8s-1 5.5-3 8" stroke="currentColor" stroke-width="1.5"/></svg>
+        Tulis Surat Eksternal
+      </a>
       <a href="/nomor-saja" class="nav-item <%= active === 'nomor-saja' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M6 4h8M6 8h8M6 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="15" cy="14" r="3.5" stroke="currentColor" stroke-width="1.5"/><path d="M15 12.5v1.5l1 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
         Generate Nomor Surat
-      </a>
-      <a href="/compose/eksternal" class="nav-item <%= active === 'compose-eksternal' ? 'active' : '' %>">
-        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M2 10h16M10 2c-2 2.5-3 5-3 8s1 5.5 3 8M10 2c2 2.5 3 5 3 8s-1 5.5-3 8" stroke="currentColor" stroke-width="1.5"/></svg>
-        Surat Eksternal
       </a>
       <a href="/arsip" class="nav-item <%= active === 'arsip' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><rect x="2" y="7" width="16" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l2-4h12l2 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>

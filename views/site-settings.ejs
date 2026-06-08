@@ -138,7 +138,7 @@
 
       <div class="ss-field">
         <label class="ss-label">Tagline</label>
-        <input type="text" name="siteTagline" class="form-control" value="<%= ss.siteTagline %>" placeholder="Sistem Surat Dinas Digital">
+        <input type="text" name="siteTagline" class="form-control" value="<%= ss.siteTagline %>" placeholder="Sistem Surat Dinas Digital" oninput="updatePreview()">
         <div class="ss-hint">Teks kecil di bawah nama pada panel kiri login</div>
       </div>
 
@@ -244,10 +244,11 @@ function previewLogo(input) {
   reader.readAsDataURL(input.files[0]);
 }
 function updatePreview() {
-  const name = document.querySelector('[name=siteName]').value || 'Nama';
-  const sub  = document.querySelector('[name=siteSub]').value  || '';
-  document.getElementById('previewName').textContent = name;
-  document.getElementById('previewSub').textContent  = sub;
+  const name    = document.querySelector('[name=siteName]').value || 'Nama';
+  const sub     = document.querySelector('[name=siteSub]').value  || '';
+  const tagline = document.querySelector('[name=siteTagline]')?.value || '';
+  document.getElementById('previewName').textContent = (name + (sub ? ' ' + sub : '')).trim();
+  document.getElementById('previewSub').textContent  = tagline;
 }
 function togglePass() {
   const el = document.getElementById('smtpPassInput');

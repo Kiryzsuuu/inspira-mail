@@ -351,10 +351,12 @@ app.post('/forgot-password', async (req, res) => {
       const resetUrl = `${process.env.APP_URL || 'http://localhost:3005'}/reset-password/${token}`;
       await log(req, 'password_reset_request', 'auth', `Permintaan reset kata sandi untuk: ${user.email}`, { email: user.email });
       if (transporter) {
+        const _rss = await SiteSettings.getSettings();
+        const _rName = _rss.mailerName || (_rss.siteName + ' ' + _rss.siteSub).trim() || 'Mailer';
         await transporter.sendMail({
-          from: `"Inspira Mailer" <${process.env.SMTP_USER}>`,
+          from: `"${_rName}" <${process.env.SMTP_USER}>`,
           to: user.email,
-          subject: 'Reset Kata Sandi — Inspira Mailer',
+          subject: `Reset Kata Sandi — ${_rName}`,
           html: `<p>Halo ${user.name},</p><p>Klik link berikut untuk mereset kata sandi Anda (berlaku 1 jam):</p><p><a href="${resetUrl}">${resetUrl}</a></p>`
         });
       } else {
@@ -1087,7 +1089,7 @@ app.post('/email/:id/send', requireAuth, async (req, res) => {
       const htmlBody = `<div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;">
         <div style="background:#071840;padding:24px 32px;border-radius:8px 8px 0 0;">
           <div style="color:#fff;font-size:18px;font-weight:700;">${mailerName}</div>
-          <div style="color:rgba(255,255,255,.6);font-size:12px;margin-top:2px;">Sistem Surat Digital</div>
+          <div style="color:rgba(255,255,255,.6);font-size:12px;margin-top:2px;">${_ss.siteTagline || 'Sistem Surat Digital'}</div>
         </div>
         <div style="border:1px solid #e2e8f0;border-top:none;padding:32px;border-radius:0 0 8px 8px;background:#fff;">
           <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #f1f5f9;">
