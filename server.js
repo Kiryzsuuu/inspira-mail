@@ -1166,7 +1166,7 @@ app.get('/email/:id', requireAuth, async (req, res) => {
                     || email.cc.some(t => t.userId?.toString() === uid);
     const isPrivileged = ['superadmin','admin','direktur'].includes(req.user.role);
     const isDisposisi  = email.disposisi?.some(d => d.userId?.toString() === uid);
-    if (!isSender && !isReceiver && !isPrivileged && !isDisposisi) return res.redirect('/inbox');
+    if (!isSender && !isOwner && !isReceiver && !isPrivileged && !isDisposisi) return res.redirect('/inbox');
     if (isReceiver && !email.readBy.map(String).includes(String(req.user._id))) {
       await Email.findByIdAndUpdate(email._id, { $addToSet: { readBy: req.user._id } });
     }
