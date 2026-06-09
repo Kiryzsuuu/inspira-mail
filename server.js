@@ -1881,6 +1881,13 @@ app.post('/shorturl/:id/toggle', requireAuth, async (req, res) => {
 
 // ── TUGAS ──
 
+app.get('/panduan', requireAuth, async (req, res) => {
+  try {
+    const ss = await SiteSettings.getSettings();
+    res.render('panduan', { title: 'Buku Panduan', ss, currentUser: req.user });
+  } catch (err) { console.error(err); res.redirect('/inbox'); }
+});
+
 app.get('/tugas', requireAuth, async (req, res) => {
   try {
     const myId = req.user._id;
