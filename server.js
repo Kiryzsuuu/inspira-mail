@@ -643,7 +643,7 @@ function getAllowedSifat(user) {
   return ['Biasa/Terbuka','Segera'];
 }
 // Dokumen khusus → nomor pakai tipe langsung
-const TIPE_KHUSUS = ['MoU','MoA','Contract','IA','PKS','SPK','SK'];
+const TIPE_KHUSUS = ['MoU','MoA','Contract','IA','PKS','SPK','SK','Surat Keputusan'];
 
 const TIPE_COUNTER_KEY = {
   'Nota Dinas':      'NOTA',
@@ -1426,6 +1426,25 @@ app.post('/admin/site-settings', requireAuth, requireAdmin, ssUpload.single('log
     const counts = await getMailCounts(req.user._id);
     res.render('site-settings', { active: 'admin', title: 'Pengaturan Situs', ss, success: null, error: 'Gagal menyimpan.', ...counts });
   }
+});
+
+// Patch ownerUserId for existing docs (admin only)
+app.post('/admin/patch-owner', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { emailId, ownerName } = req.body;
+    if (!emailId || !ownerName) return res.json({ ok: false, message: 'emailId dan ownerName wajib diisi' });
+    const ownerUser = await User.findOne({
+      name: { $regex: `^${ownerName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' },
+      isActive: true
+    }).select('_id name').lean();
+    if (!ownerUser) return res.json({ ok: false, message: `User "${ownerName}" tidak ditemukan` });
+    const email = await Email.findById(emailId);
+    if (!email) return res.json({ ok: false, message: 'Dokumen tidak ditemukan' });
+    email.ownerUserId = ownerUser._id;
+    if (!email.builtBy) email.builtBy = { userId: req.user._id, name: req.user.name };
+    await email.save();
+    res.json({ ok: true, message: `ownerUserId dokumen diset ke ${ownerUser.name}` });
+  } catch (err) { res.json({ ok: false, message: err.message }); }
 });
 
 // ── ADMIN ──
@@ -3073,6 +3092,27 @@ app.post('/e-sign/:id/add-signer', requireAuth, async (req, res) => {
     });
     await session.save();
     const newSigner = session.signers[session.signers.length - 1];
+
+    // Kirim notifikasi email ke signer
+    if (transporter && targetUser.email) {
+      try {
+        const _ss = await SiteSettings.getSettings();
+        const _mailerName = _ss.mailerName || _ss.siteName || 'PATRA';
+        const esignUrl = `${process.env.APP_URL || 'http://localhost:3005'}/e-sign/${session._id}`;
+        await transporter.sendMail({
+          from: `"${_mailerName}" <${process.env.SMTP_USER}>`,
+          to: targetUser.email,
+          subject: `Undangan Tanda Tangan Digital — ${session.title}`,
+          html: `<p>Halo ${targetUser.name},</p>
+<p>Anda diundang untuk menandatangani dokumen secara digital:</p>
+<p><strong>${session.title}</strong></p>
+<p>Klik link berikut untuk membuka dokumen dan menandatanganinya:</p>
+<p><a href="${esignUrl}">${esignUrl}</a></p>
+<p>Salam,<br>${_mailerName}</p>`
+        });
+      } catch (mailErr) { console.error('[E-Sign mail error]', mailErr.message); }
+    }
+
     res.json({ ok: true, signer: newSigner });
   } catch (err) { res.json({ ok: false, message: err.message }); }
 });
