@@ -2912,7 +2912,7 @@ const esignUpload = multer({
     if (file.mimetype === 'application/pdf') cb(null, true);
     else cb(new Error('Hanya file PDF yang diizinkan'));
   },
-  limits: { fileSize: 20 * 1024 * 1024 }
+  limits: { fileSize: 10 * 1024 * 1024 }
 });
 
 // Helper: generate QR stamp for a signer (same pattern as DocumentSignature)
@@ -3030,12 +3030,19 @@ app.get('/e-sign', requireAuth, async (req, res) => {
       title: 'E-Sign PDF',
       sessions, personalDocs, users,
       currentUser: req.user, active: 'e-sign',
+      uploadError: req.query.error || null,
       ...counts
     });
   } catch (err) { console.error(err); res.redirect('/inbox'); }
 });
 
-app.post('/e-sign/upload', requireAuth, esignUpload.single('pdf'), async (req, res) => {
+app.post('/e-sign/upload', requireAuth, (req, res, next) => {
+  esignUpload.single('pdf')(req, res, err => {
+    if (err && err.code === 'LIMIT_FILE_SIZE') return res.redirect('/e-sign?error=toobig');
+    if (err) return res.redirect('/e-sign?error=1');
+    next();
+  });
+}, async (req, res) => {
   try {
     if (!req.file) return res.redirect('/e-sign?error=nofile');
     const { title } = req.body;

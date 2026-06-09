@@ -131,12 +131,12 @@
       </div>
       <div class="form-group" style="margin-bottom:20px;">
         <label class="form-label">File PDF <span style="color:red;">*</span></label>
-        <input type="file" name="pdf" accept=".pdf,application/pdf" class="form-control" required style="padding:6px;">
-        <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">Maks. 20 MB</div>
+        <input type="file" name="pdf" accept=".pdf,application/pdf" class="form-control" required style="padding:6px;" onchange="checkPdfSize(this)">
+        <div style="font-size:11px;color:var(--gray-400);margin-top:4px;" id="pdfSizeHint">Maks. 10 MB</div>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button type="button" onclick="document.getElementById('uploadModal').style.display='none'" class="btn btn-secondary">Batal</button>
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" id="btnUploadSubmit">
           <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 15V5M6 9l4-4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Upload & Lanjut
         </button>
@@ -148,6 +148,32 @@
 <div class="admin-toast" id="esignToast"></div>
 
 <script>
+<% if (uploadError === 'toobig') { %>
+window.addEventListener('DOMContentLoaded', () => showToast('File PDF melebihi batas 10 MB. Silakan pilih file yang lebih kecil.', false));
+<% } else if (uploadError === 'nofile') { %>
+window.addEventListener('DOMContentLoaded', () => showToast('Tidak ada file yang dipilih.', false));
+<% } else if (uploadError) { %>
+window.addEventListener('DOMContentLoaded', () => showToast('Gagal upload. Silakan coba lagi.', false));
+<% } %>
+
+const MAX_PDF_MB = 10;
+function checkPdfSize(input) {
+  const hint = document.getElementById('pdfSizeHint');
+  const btn  = document.getElementById('btnUploadSubmit');
+  if (!input.files || !input.files[0]) return;
+  const mb = input.files[0].size / 1024 / 1024;
+  if (mb > MAX_PDF_MB) {
+    hint.textContent = `⚠ File terlalu besar (${mb.toFixed(1)} MB). Maks. ${MAX_PDF_MB} MB.`;
+    hint.style.color = '#dc2626';
+    btn.disabled = true;
+    input.value = '';
+  } else {
+    hint.textContent = `Maks. ${MAX_PDF_MB} MB — ${mb.toFixed(1)} MB terpilih`;
+    hint.style.color = 'var(--gray-400)';
+    btn.disabled = false;
+  }
+}
+
 function showToast(msg, ok) {
   const t = document.getElementById('esignToast');
   t.textContent = msg;
