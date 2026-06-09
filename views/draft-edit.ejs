@@ -92,50 +92,15 @@
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div class="form-group">
-          <label class="form-label">Klasifikasi / Berkas</label>
-          <div class="select-wrap">
-            <select name="berkas" class="form-control form-select">
-              <option value="">— Pilih Berkas —</option>
-              <optgroup label="OPS — Operasional">
-                <option value="OPS-INT" <%= email.berkas==='OPS-INT'?'selected':'' %>>OPS-INT — Internal / Memo / Nota Dinas</option>
-                <option value="OPS-ST"  <%= email.berkas==='OPS-ST'?'selected':'' %>>OPS-ST — Surat Tugas / SPPD</option>
-                <option value="OPS-SRT" <%= email.berkas==='OPS-SRT'?'selected':'' %>>OPS-SRT — Surat Keterangan</option>
-                <option value="OPS-EXT" <%= email.berkas==='OPS-EXT'?'selected':'' %>>OPS-EXT — Eksternal / PR / Undangan</option>
-                <option value="OPS-LPT" <%= email.berkas==='OPS-LPT'?'selected':'' %>>OPS-LPT — Learning Programs &amp; Training</option>
-                <option value="OPS-ARD" <%= email.berkas==='OPS-ARD'?'selected':'' %>>OPS-ARD — Academic &amp; Research Development</option>
-              </optgroup>
-              <optgroup label="TEK — Teknologi">
-                <option value="TEK-LMS" <%= email.berkas==='TEK-LMS'?'selected':'' %>>TEK-LMS — Digital Learning Platform</option>
-                <option value="TEK-LPT" <%= email.berkas==='TEK-LPT'?'selected':'' %>>TEK-LPT — Learning Programs &amp; Training</option>
-                <option value="TEK-ARD" <%= email.berkas==='TEK-ARD'?'selected':'' %>>TEK-ARD — Academic &amp; Research Development</option>
-                <option value="TEK-PSD" <%= email.berkas==='TEK-PSD'?'selected':'' %>>TEK-PSD — Professional Skill Development</option>
-              </optgroup>
-              <optgroup label="BIS — Bisnis &amp; Keuangan">
-                <option value="BIS-PKS" <%= email.berkas==='BIS-PKS'?'selected':'' %>>BIS-PKS — Perjanjian Kerja Sama / MOU</option>
-                <option value="BIS-SPK" <%= email.berkas==='BIS-SPK'?'selected':'' %>>BIS-SPK — Surat Perjanjian / Kontrak</option>
-                <option value="BIS-PSD" <%= email.berkas==='BIS-PSD'?'selected':'' %>>BIS-PSD — Professional Skill Development</option>
-                <option value="BIS-INV" <%= email.berkas==='BIS-INV'?'selected':'' %>>BIS-INV — Invoice / Tagihan</option>
-                <option value="BIS-KEU" <%= email.berkas==='BIS-KEU'?'selected':'' %>>BIS-KEU — Keuangan / Anggaran</option>
-              </optgroup>
-              <optgroup label="DIR — Direktorat">
-                <option value="DIR-SK"  <%= email.berkas==='DIR-SK'?'selected':'' %>>DIR-SK — Surat Keputusan</option>
-                <option value="DIR-PKS" <%= email.berkas==='DIR-PKS'?'selected':'' %>>DIR-PKS — Perjanjian Strategis Korporat</option>
-              </optgroup>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Tag / Prioritas</label>
-          <div class="select-wrap">
-            <select name="tag" class="form-control form-select">
-              <option value="Biasa"    <%= (email.tag==='Biasa'||email.tag==='Normal')?'selected':'' %>>Biasa</option>
-              <option value="Penting"  <%= email.tag==='Penting'?'selected':'' %>>Penting</option>
-              <option value="Segera"   <%= (email.tag==='Segera'||email.tag==='Info')?'selected':'' %>>Segera</option>
-              <option value="Mendesak" <%= (email.tag==='Mendesak'||email.tag==='Urgent')?'selected':'' %>>Mendesak</option>
-            </select>
-          </div>
+      <div class="form-group">
+        <label class="form-label">Tag / Prioritas</label>
+        <div class="select-wrap">
+          <select name="tag" class="form-control form-select">
+            <option value="Biasa"    <%= (email.tag==='Biasa'||email.tag==='Normal')?'selected':'' %>>Biasa</option>
+            <option value="Penting"  <%= email.tag==='Penting'?'selected':'' %>>Penting</option>
+            <option value="Segera"   <%= (email.tag==='Segera'||email.tag==='Info')?'selected':'' %>>Segera</option>
+            <option value="Mendesak" <%= (email.tag==='Mendesak'||email.tag==='Urgent')?'selected':'' %>>Mendesak</option>
+          </select>
         </div>
       </div>
 
