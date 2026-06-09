@@ -571,21 +571,25 @@ app.post('/draft/:id/update', requireAuth, lampiranUpload.single('lampiran'), as
       ...lampiranUpdate
     });
 
-    // Update ownerUserId jika pengirimResmi berubah
+    // Update ownerUserId dan from jika pengirimResmi berubah
     const updatedResmi = (pengirimResmi?.trim() || email.pengirimResmi || '').toLowerCase();
     if (updatedResmi && updatedResmi !== req.user.name.toLowerCase()) {
       const ownerUser = await User.findOne({
         name: { $regex: `^${(pengirimResmi?.trim() || email.pengirimResmi).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' },
         isActive: true
-      }).select('_id').lean();
+      }).select('_id name email').lean();
       if (ownerUser) {
         await Email.findByIdAndUpdate(email._id, {
           ownerUserId: ownerUser._id,
-          builtBy: { userId: req.user._id, name: req.user.name }
+          builtBy: { userId: req.user._id, name: req.user.name },
+          from: { userId: ownerUser._id, name: ownerUser.name, email: ownerUser.email }
         });
       }
     } else if (!updatedResmi || updatedResmi === req.user.name.toLowerCase()) {
-      await Email.findByIdAndUpdate(email._id, { ownerUserId: null, builtBy: null });
+      await Email.findByIdAndUpdate(email._id, {
+        ownerUserId: null, builtBy: null,
+        from: { userId: req.user._id, name: req.user.name, email: req.user.email }
+      });
     }
     if (action === 'draft') {
       res.redirect('/compose');
@@ -848,8 +852,15 @@ app.post('/compose', requireAuth, lampiranUpload.single('lampiran'), async (req,
       }
     }
 
+    // Jika dibuatkan untuk user lain, from menggunakan info pemilik
+    let ownerUser2 = null;
+    if (ownerUserId) ownerUser2 = await User.findById(ownerUserId).select('_id name email').lean();
+    const fromInfo = ownerUser2
+      ? { userId: ownerUser2._id, name: ownerUser2.name, email: ownerUser2.email }
+      : { userId: req.user._id, name: req.user.name, email: req.user.email };
+
     const email = await Email.create({
-      from:           { userId: req.user._id, name: req.user.name, email: req.user.email },
+      from:           fromInfo,
       to:             toUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
       cc:             ccUsers.map(u => ({ userId: u._id, name: u.name, email: u.email })),
       toExternal:     jenis === 'eksternal' ? extRecipients : [],
@@ -1870,6 +1881,10 @@ app.post('/shorturl', requireAuth, async (req, res) => {
     if (!originalUrl?.trim()) return fail('URL tidak boleh kosong.');
     let url = originalUrl.trim();
     if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    // Tolak URL internal PATRA — short URL hanya untuk link eksternal
+    const appHost = (process.env.APP_URL || '').replace(/^https?:\/\//i, '').replace(/\/$/, '').toLowerCase();
+    const urlHost = url.replace(/^https?:\/\//i, '').split('/')[0].toLowerCase();
+    if (appHost && urlHost === appHost) return fail('Short URL hanya dapat dibuat untuk link eksternal, bukan halaman PATRA.');
 
     let shortCode;
     if (customSlug?.trim()) {
