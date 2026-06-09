@@ -941,14 +941,16 @@ app.post('/email/:id/sign/add-self', requireAuth, async (req, res) => {
     const email = await Email.findById(req.params.id);
     if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
 
-    // Hanya pengirim, owner, atau co-signer yang diundang boleh tanda tangan
+    // Hanya pengirim, owner, pengirimResmi, atau co-signer yang diundang boleh tanda tangan
     const uid = req.user._id.toString();
-    const isSender = email.from.userId?.toString() === uid;
-    const isOwner  = email.ownerUserId?.toString() === uid;
+    const isSender       = email.from.userId?.toString() === uid;
+    const isOwner        = email.ownerUserId?.toString() === uid;
+    const isPengirimResmi = email.pengirimResmi &&
+      email.pengirimResmi.toLowerCase() === req.user.name.toLowerCase();
 
     let docSig = await DocumentSignature.findOne({ emailId: email._id });
     if (!docSig) {
-      if (!isSender && !isOwner) return res.json({ ok: false, message: 'Anda tidak memiliki akses.' });
+      if (!isSender && !isOwner && !isPengirimResmi) return res.json({ ok: false, message: 'Anda tidak memiliki akses.' });
       docSig = new DocumentSignature({ emailId: email._id, createdBy: req.user._id, signers: [] });
     }
 
@@ -956,8 +958,8 @@ app.post('/email/:id/sign/add-self', requireAuth, async (req, res) => {
     if (existing && existing.status === 'signed') return res.json({ ok: false, message: 'Anda sudah menandatangani.' });
     if (existing && existing.status === 'pending') {
       // Co-signer menandatangani dirinya sendiri
-    } else if (isSender || isOwner) {
-      // Pengirim atau pemilik menambah dirinya
+    } else if (isSender || isOwner || isPengirimResmi) {
+      // Pengirim, pemilik, atau pengirimResmi menambah dirinya
     } else {
       return res.json({ ok: false, message: 'Anda tidak diundang sebagai penandatangan.' });
     }
@@ -2920,7 +2922,7 @@ async function generateESignQR(sessionId, signerId) {
   const verifyUrl = `${appUrl}/verify/esign/${token}`;
   const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
     errorCorrectionLevel: 'H', margin: 2, width: 200,
-    color: { dark: '#000000', light: '#ffffff' }
+    color: { dark: '#000000', light: '#00000000' }
   });
   return { token, qrDataUrl };
 }
@@ -2943,16 +2945,21 @@ async function rebuildSignedPdf(session) {
     const { width: pw, height: ph } = page.getSize();
     const scale = pw / RENDER_W;
 
-    const pdfX = signer.position.x * scale;
-    const pdfW = signer.position.width  * scale;
-    const pdfH = signer.position.height * scale;
+    let pdfX = signer.position.x * scale;
+    let pdfW = signer.position.width  * scale;
+    let pdfH = signer.position.height * scale;
     // Convert from top-left origin (browser) to bottom-left origin (PDF)
-    const pdfY = ph - (signer.position.y * scale) - pdfH;
+    let pdfY = ph - (signer.position.y * scale) - pdfH;
 
-    // Background
+    // Clamp agar tidak keluar batas halaman
+    pdfX = Math.max(0, Math.min(pdfX, pw - pdfW));
+    pdfY = Math.max(0, Math.min(pdfY, ph - pdfH));
+    pdfW = Math.min(pdfW, pw - pdfX);
+    pdfH = Math.min(pdfH, ph - pdfY);
+
+    // Border saja, tanpa background putih (transparan)
     page.drawRectangle({
       x: pdfX, y: pdfY, width: pdfW, height: pdfH,
-      color: rgb(1, 1, 1),
       borderColor: rgb(0.1, 0.33, 0.67),
       borderWidth: 0.75,
     });
