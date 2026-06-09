@@ -678,26 +678,28 @@ app.get('/compose', requireAuth, async (req, res) => {
     const { q, tipe, status } = req.query;
     const userId = req.user._id;
 
-    // Query Email dokumen milik user (sebagai pembuat)
-    const filter = { 'from.userId': userId };
-    if (tipe === 'khusus') filter.tipeSurat = { $in: TIPE_KHUSUS };
-    else if (tipe) filter.tipeSurat = tipe;
-    if (status) filter.status = status;
-    if (q)      filter.$or = [
-      { subject: { $regex: q, $options: 'i' } },
+    // Query dokumen milik user — sebagai pembuat ATAU sebagai pemilik (dibuatkan admin)
+    const ownerClause = { $or: [{ 'from.userId': userId }, { ownerUserId: userId }] };
+    const conditions = [ownerClause];
+    if (tipe === 'khusus') conditions.push({ tipeSurat: { $in: TIPE_KHUSUS } });
+    else if (tipe)         conditions.push({ tipeSurat: tipe });
+    if (status)            conditions.push({ status });
+    if (q)                 conditions.push({ $or: [
+      { subject:    { $regex: q, $options: 'i' } },
       { nomorSurat: { $regex: q, $options: 'i' } },
-      { tipeSurat: { $regex: q, $options: 'i' } }
-    ];
+      { tipeSurat:  { $regex: q, $options: 'i' } }
+    ]});
+    const filter = conditions.length === 1 ? conditions[0] : { $and: conditions };
 
-    const base = { 'from.userId': userId };
+    const base = ownerClause;
     const [docs, totalAll, totalDraft, totalSent, tabNota, tabSurat, tabKhusus] = await Promise.all([
       Email.find(filter).sort({ createdAt: -1 }).limit(100).lean(),
       Email.countDocuments(base),
-      Email.countDocuments({ ...base, status: 'draft' }),
-      Email.countDocuments({ ...base, status: 'sent' }),
-      Email.countDocuments({ ...base, tipeSurat: 'Nota Dinas' }),
-      Email.countDocuments({ ...base, tipeSurat: 'Surat Eksternal' }),
-      Email.countDocuments({ ...base, tipeSurat: { $in: TIPE_KHUSUS } }),
+      Email.countDocuments({ $and: [base, { status: 'draft' }] }),
+      Email.countDocuments({ $and: [base, { status: 'sent'  }] }),
+      Email.countDocuments({ $and: [base, { tipeSurat: 'Nota Dinas' }] }),
+      Email.countDocuments({ $and: [base, { tipeSurat: 'Surat Eksternal' }] }),
+      Email.countDocuments({ $and: [base, { tipeSurat: { $in: TIPE_KHUSUS } }] }),
     ]);
 
     res.render('dokumen-overview', {
@@ -2974,9 +2976,10 @@ async function rebuildSignedPdf(session) {
       if (showName) {
         const name  = (signer.userName || '').slice(0, 30);
         const jabat = (signer.jabatanDisplay || signer.userOrg || '').slice(0, 32);
-        page.drawLine({ start: { x: pdfX + 4, y: pdfY + lh * 2 + 5 }, end: { x: pdfX + pdfW - 4, y: pdfY + lh * 2 + 5 }, thickness: 0.75, color: rgb(0,0,0) });
-        page.drawText(name, { x: pdfX + 2, y: pdfY + lh + 3, size: lh, font: boldFont, color: rgb(0,0,0), maxWidth: pdfW - 4 });
-        if (showRole && jabat) page.drawText(jabat, { x: pdfX + 2, y: pdfY + 2, size: lh - 1, font, color: rgb(0.3,0.3,0.3), maxWidth: pdfW - 4 });
+        const lineY = pdfY + lh * 2 + 8;
+        page.drawLine({ start: { x: pdfX + 4, y: lineY }, end: { x: pdfX + pdfW - 4, y: lineY }, thickness: 0.75, color: rgb(0,0,0) });
+        page.drawText(name, { x: pdfX + 4, y: pdfY + lh + 6, size: lh, font: boldFont, color: rgb(0,0,0), maxWidth: pdfW - 8 });
+        if (showRole && jabat) page.drawText(jabat, { x: pdfX + 4, y: pdfY + 5, size: lh - 1, font, color: rgb(0.3,0.3,0.3), maxWidth: pdfW - 8 });
       }
     } catch {}
   }
