@@ -1901,12 +1901,8 @@ app.post('/shorturl/:id/toggle', requireAuth, async (req, res) => {
 
 // ── TUGAS ──
 
-app.get('/panduan', requireAuth, async (req, res) => {
-  try {
-    const ss = await SiteSettings.getSettings();
-    const counts = await getMailCounts(req.user._id);
-    res.render('panduan', { title: 'Buku Panduan', ss, currentUser: req.user, active: 'panduan', ...counts });
-  } catch (err) { console.error(err); res.redirect('/inbox'); }
+app.get('/panduan', requireAuth, (req, res) => {
+  res.redirect('/panduan/print');
 });
 
 app.get('/panduan/print', requireAuth, async (req, res) => {
@@ -1916,29 +1912,8 @@ app.get('/panduan/print', requireAuth, async (req, res) => {
   } catch (err) { console.error(err); res.redirect('/inbox'); }
 });
 
-app.get('/panduan/download', requireAuth, async (req, res) => {
-  try {
-    const ss = await SiteSettings.getSettings();
-    const puppeteer = require('puppeteer');
-    const html = await new Promise((resolve, reject) => {
-      res.app.render('panduan-print', { ss }, (err, str) => {
-        if (err) reject(err); else resolve(str);
-      });
-    });
-    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox','--disable-setuid-sandbox'] });
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    const pdf = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: { top: '2.5cm', right: '3cm', bottom: '2.5cm', left: '3cm' }
-    });
-    await browser.close();
-    const filename = `Buku-Panduan-${ss.siteName.replace(/\s+/g,'-')}.pdf`;
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.send(pdf);
-  } catch (err) { console.error(err); res.status(500).send('Gagal generate PDF: ' + err.message); }
+app.get('/panduan/download', requireAuth, (req, res) => {
+  res.redirect('/panduan/print');
 });
 
 app.get('/tugas', requireAuth, async (req, res) => {

@@ -5,7 +5,19 @@
 <title>Buku Panduan — <%= ss.siteName %></title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; background: #fff; line-height: 1.8; }
+  body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; background: #f5f5f5; line-height: 1.8; }
+  .toolbar { position: fixed; top: 0; left: 0; right: 0; height: 48px; background: #071840; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 999; font-family: Arial, sans-serif; }
+  .toolbar-title { color: rgba(255,255,255,.7); font-size: 13px; }
+  .toolbar-btn { background: #fff; color: #071840; border: none; padding: 7px 18px; font-size: 13px; font-weight: 600; border-radius: 5px; cursor: pointer; }
+  .toolbar-btn:hover { background: #e8edf5; }
+  .a4-wrap { padding: 64px 0 40px; display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .a4-page { width: 210mm; min-height: 297mm; background: #fff; box-shadow: 0 2px 16px rgba(0,0,0,.13); padding: 2.5cm 3cm; margin-bottom: 12px; }
+  @media print {
+    .toolbar { display: none; }
+    body { background: #fff; }
+    .a4-wrap { padding: 0; }
+    .a4-page { box-shadow: none; margin: 0; width: 100%; padding: 0; min-height: unset; }
+  }
 
   @page { size: A4; margin: 2.5cm 3cm 2.5cm 3cm; }
   @page :first { margin: 0; }
@@ -46,6 +58,13 @@
 </head>
 <body>
 
+<div class="toolbar">
+  <span class="toolbar-title">Buku Panduan — <%= ss.siteName %></span>
+  <button class="toolbar-btn" onclick="window.print()">Simpan sebagai PDF</button>
+</div>
+
+<div class="a4-wrap">
+<div class="a4-page">
 <!-- COVER -->
 <div class="cover">
   <% if (ss.logoBase64) { %>
@@ -323,5 +342,7 @@
     </div>
   </div>
 </div>
+</div><!-- end a4-page -->
+</div><!-- end a4-wrap -->
 </body>
 </html>
