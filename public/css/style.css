@@ -148,6 +148,8 @@ body { font-family: var(--font); background: var(--gray-100); color: var(--gray-
 .nav-icon { width: 18px; height: 18px; flex-shrink: 0; opacity: .8; }
 .nav-item.active .nav-icon, .nav-item:hover .nav-icon { opacity: 1; }
 .nav-divider { height: 1px; background: rgba(255,255,255,.06); margin: 8px 4px; }
+.nav-subitem { padding-left: 28px; font-size: 12.5px; opacity: .85; }
+.nav-subitem .nav-icon { width: 14px; height: 14px; }
 
 .badge { margin-left: auto; background: var(--brand-accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
 .badge-muted { background: rgba(255,255,255,.12); color: rgba(255,255,255,.6); }
@@ -946,9 +948,11 @@ a.topbar-avatar:hover { background: var(--brand-600); transform: scale(1.05); }
   background: #fff; border-radius: var(--radius-xl);
   box-shadow: 0 20px 60px rgba(0,0,0,.2);
   width: 100%; max-width: 560px;
-  max-height: 90vh; overflow-y: auto;
+  max-height: 90vh; overflow: visible;
+  display: flex; flex-direction: column;
   animation: fadeInUp .2s ease;
 }
+.modal-card .compose-form { overflow-y: auto; max-height: calc(90vh - 60px); }
 .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
 .modal-title { font-size: 16px; font-weight: 600; color: var(--gray-900); }
 .modal-close { background: none; border: none; font-size: 22px; color: var(--gray-400); cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 6px; transition: all .15s; }

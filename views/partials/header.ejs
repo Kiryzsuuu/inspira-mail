@@ -27,20 +27,27 @@
     </div>
 
     <nav class="sidebar-nav">
+      <!-- ── TUGAS (semua user) ── -->
+      <a href="/tugas" class="nav-item <%= active === 'tugas' ? 'active' : '' %>">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M9 5H7a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h0a2 2 0 002-2M9 5a2 2 0 012-2h0a2 2 0 012 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12l1.5 1.5L13 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Tugas
+      </a>
+
       <!-- ── GRUP INTERNAL ── -->
       <a href="/compose/internal" class="nav-item <%= active === 'compose-internal' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M13 2H5a1 1 0 00-1 1v14a1 1 0 001 1h10a1 1 0 001-1V6l-3-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 2v4h4M8 10h4M8 13h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Tulis Surat Internal
       </a>
+      <% if(user && ['admin','superadmin','direktur'].includes(user.role)){ %>
+      <a href="/compose/eksternal" class="nav-item <%= active === 'compose-eksternal' ? 'active' : '' %>">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M2 10h16M10 2c-2 2.5-3 5-3 8s1 5.5 3 8M10 2c2 2.5 3 5 3 8s-1 5.5-3 8" stroke="currentColor" stroke-width="1.5"/></svg>
+        Tulis Surat Eksternal
+      </a>
+      <% } %>
       <a href="/inbox" class="nav-item <%= active === 'inbox' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M3 4h14a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Kotak Masuk
         <% if (inboxCount > 0) { %><span class="badge"><%= inboxCount %></span><% } %>
-      </a>
-      <a href="/surat-masuk" class="nav-item <%= active === 'surat-masuk' ? 'active' : '' %>">
-        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M3 4h14a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 11l-5 4M12 11l5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-        Surat Masuk
-        <% if (suratMasukCount > 0) { %><span class="badge"><%= suratMasukCount %></span><% } %>
       </a>
       <a href="/sent" class="nav-item <%= active === 'sent' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M18 2L9 11M18 2l-6 16-3-7-7-3 16-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -63,13 +70,13 @@
       <!-- ── GRUP EKSTERNAL (admin/direktur) ── -->
       <% if(user && ['admin','superadmin','direktur'].includes(user.role)){ %>
       <div class="nav-divider"></div>
-      <a href="/compose/eksternal" class="nav-item <%= active === 'compose-eksternal' ? 'active' : '' %>">
-        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M2 10h16M10 2c-2 2.5-3 5-3 8s1 5.5 3 8M10 2c2 2.5 3 5 3 8s-1 5.5-3 8" stroke="currentColor" stroke-width="1.5"/></svg>
-        Tulis Surat Eksternal
-      </a>
       <a href="/nomor-saja" class="nav-item <%= active === 'nomor-saja' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M6 4h8M6 8h8M6 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="15" cy="14" r="3.5" stroke="currentColor" stroke-width="1.5"/><path d="M15 12.5v1.5l1 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
         Generate Nomor Surat
+      </a>
+      <a href="/log-penomoran" class="nav-item <%= active === 'log-penomoran' ? 'active' : '' %>">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M4 4h12M4 8h8M4 12h8M4 16h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="14" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+        Log Penomoran
       </a>
       <a href="/arsip" class="nav-item <%= active === 'arsip' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><rect x="2" y="7" width="16" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M2 7l2-4h12l2 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -83,7 +90,6 @@
 
       <div class="nav-divider"></div>
 
-
       <a href="/e-sign" class="nav-item <%= active === 'e-sign' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><rect x="3" y="2" width="14" height="17" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 15l2-2 2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
         E-Sign PDF
@@ -92,17 +98,9 @@
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><rect x="3" y="2" width="14" height="17" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 11h4M7 15h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Dok. Pribadi
       </a>
-      <a href="/log-penomoran" class="nav-item <%= active === 'log-penomoran' ? 'active' : '' %>">
-        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M4 4h12M4 8h8M4 12h8M4 16h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="14" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
-        Log Penomoran
-      </a>
       <a href="/shorturl" class="nav-item <%= active === 'shorturl' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M8 12l-4 4a5.657 5.657 0 000-8l4-4M12 8l4-4a5.657 5.657 0 010 8l-4 4M8.5 11.5l3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Short URL
-      </a>
-      <a href="/tugas" class="nav-item <%= active === 'tugas' ? 'active' : '' %>">
-        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M9 5H7a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h0a2 2 0 002-2M9 5a2 2 0 012-2h0a2 2 0 012 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12l1.5 1.5L13 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Tugas
       </a>
       <a href="/panduan" target="_blank" class="nav-item <%= active === 'panduan' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M4 4h12a1 1 0 011 1v11a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M7 8h6M7 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -111,8 +109,6 @@
 
       <% if (user && (user.role === 'admin' || user.role === 'superadmin' || user.role === 'direktur')) { %>
       <div class="nav-divider"></div>
-      <% } %>
-      <% if (user && (user.role === 'admin' || user.role === 'superadmin' || user.role === 'direktur')) { %>
       <a href="/direktur/overview" class="nav-item <%= active === 'direktur' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Ringkasan Org
@@ -121,20 +117,20 @@
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
         Admin Dashboard
       </a>
-      <a href="/admin/direktorat" class="nav-item <%= active === 'direktorat' ? 'active' : '' %>">
+      <a href="/admin/direktorat" class="nav-item nav-subitem <%= active === 'direktorat' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M3 7h14M3 7V5a1 1 0 011-1h12a1 1 0 011 1v2M3 7v9a1 1 0 001 1h12a1 1 0 001-1V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 11h4M10 9v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Direktorat
       </a>
-      <a href="/admin/jabatan" class="nav-item <%= active === 'jabatan' ? 'active' : '' %>">
+      <a href="/admin/jabatan" class="nav-item nav-subitem <%= active === 'jabatan' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Jabatan
       </a>
-      <a href="/admin/organisasi" class="nav-item <%= active === 'organisasi' ? 'active' : '' %>">
+      <a href="/admin/organisasi" class="nav-item nav-subitem <%= active === 'organisasi' ? 'active' : '' %>">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M3 7h14M3 7V5a1 1 0 011-1h12a1 1 0 011 1v2M3 7v9a1 1 0 001 1h12a1 1 0 001-1V7M8 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Organisasi
       </a>
-      <a href="/admin/site-settings" class="nav-item <%= active === 'site-settings' ? 'active' : '' %>">
-        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><path d="M10 13a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5"/><path d="M17.66 10a7.58 7.58 0 00-.07-1l1.42-1.11a.34.34 0 00.08-.43l-1.35-2.34a.34.34 0 00-.41-.15l-1.67.67a7.6 7.6 0 00-.87-.5l-.25-1.78A.34.34 0 0014.16 3h-2.7a.34.34 0 00-.34.29l-.25 1.78a7.6 7.6 0 00-.87.5l-1.67-.67a.34.34 0 00-.41.15L6.57 7.46a.34.34 0 00.08.43L8.07 9a7.58 7.58 0 000 2l-1.42 1.11a.34.34 0 00-.08.43l1.35 2.34c.08.15.26.21.41.15l1.67-.67c.28.18.57.34.87.5l.25 1.78c.04.17.19.29.34.29h2.7c.16 0 .3-.12.34-.29l.25-1.78c.3-.16.59-.32.87-.5l1.67.67c.15.06.33 0 .41-.15l1.35-2.34a.34.34 0 00-.08-.43L17.66 11a7.58 7.58 0 00.07-1z" stroke="currentColor" stroke-width="1.5"/></svg>
+      <a href="/admin/site-settings" class="nav-item nav-subitem <%= active === 'site-settings' ? 'active' : '' %>">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Pengaturan Situs
       </a>
       <% } %>
