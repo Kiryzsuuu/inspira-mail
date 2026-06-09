@@ -941,13 +941,14 @@ app.post('/email/:id/sign/add-self', requireAuth, async (req, res) => {
     const email = await Email.findById(req.params.id);
     if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
 
-    // Hanya pengirim atau co-signer yang diundang boleh tanda tangan sendiri
+    // Hanya pengirim, owner, atau co-signer yang diundang boleh tanda tangan
     const uid = req.user._id.toString();
     const isSender = email.from.userId?.toString() === uid;
+    const isOwner  = email.ownerUserId?.toString() === uid;
 
     let docSig = await DocumentSignature.findOne({ emailId: email._id });
     if (!docSig) {
-      if (!isSender) return res.json({ ok: false, message: 'Anda tidak memiliki akses.' });
+      if (!isSender && !isOwner) return res.json({ ok: false, message: 'Anda tidak memiliki akses.' });
       docSig = new DocumentSignature({ emailId: email._id, createdBy: req.user._id, signers: [] });
     }
 
@@ -955,8 +956,8 @@ app.post('/email/:id/sign/add-self', requireAuth, async (req, res) => {
     if (existing && existing.status === 'signed') return res.json({ ok: false, message: 'Anda sudah menandatangani.' });
     if (existing && existing.status === 'pending') {
       // Co-signer menandatangani dirinya sendiri
-    } else if (isSender) {
-      // Pengirim menambah dirinya
+    } else if (isSender || isOwner) {
+      // Pengirim atau pemilik menambah dirinya
     } else {
       return res.json({ ok: false, message: 'Anda tidak diundang sebagai penandatangan.' });
     }
@@ -1453,10 +1454,12 @@ app.post('/admin/patch-owner', requireAuth, requireAdmin, async (req, res) => {
     if (!ownerUser) return res.json({ ok: false, message: `User "${ownerName}" tidak ditemukan` });
     const email = await Email.findById(emailId);
     if (!email) return res.json({ ok: false, message: 'Dokumen tidak ditemukan' });
-    email.ownerUserId = ownerUser._id;
+    const ownerFull = await User.findById(ownerUser._id).select('_id name email').lean();
+    email.ownerUserId = ownerFull._id;
+    email.from = { userId: ownerFull._id, name: ownerFull.name, email: ownerFull.email };
     if (!email.builtBy) email.builtBy = { userId: req.user._id, name: req.user.name };
     await email.save();
-    res.json({ ok: true, message: `ownerUserId dokumen diset ke ${ownerUser.name}` });
+    res.json({ ok: true, message: `Dokumen diset atas nama ${ownerFull.name}` });
   } catch (err) { res.json({ ok: false, message: err.message }); }
 });
 
