@@ -134,12 +134,21 @@
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Kode Direktorat <span class="req">*</span></label>
+          <label class="form-label" id="kodeDirLabel">Kode Direksi <span class="req">*</span></label>
           <div class="select-wrap">
             <select name="kodeDir" id="kodeDirSel" class="form-control form-select">
-              <% const kodeDirOpts=[{v:'KOM',l:'KOM — Dewan Komisaris'},{v:'DIR',l:'DIR — Direktur Utama'},{v:'PLAN',l:'PLAN — Business Strategy &amp; Finance'},{v:'TECH',l:'TECH — Technical &amp; Operations'},{v:'MP',l:'MP — Marketing &amp; Partnership'}]; %>
+              <% const kodeDirOpts=[
+                {v:'KOM',  l:'KOM — Dewan Komisaris', group:'divisi'},
+                {v:'CEO',  l:'CEO — Direktur Utama', group:'direksi'},
+                {v:'CTO',  l:'CTO — Direktur Teknik', group:'direksi'},
+                {v:'CMO',  l:'CMO — Direktur Marketing', group:'direksi'},
+                {v:'COO',  l:'COO — Direktur Operasional', group:'direksi'},
+                {v:'PLAN', l:'PLAN — Business Strategy &amp; Finance', group:'divisi'},
+                {v:'TECH', l:'TECH — Technical &amp; Operations', group:'divisi'},
+                {v:'MP',   l:'MP — Marketing &amp; Partnership', group:'divisi'},
+              ]; %>
               <% kodeDirOpts.forEach(function(o){ if(allowedKodeDir.includes(o.v)){ %>
-              <option value="<%= o.v %>" <%= (user.kodeDir===o.v||(allowedKodeDir.length===1&&allowedKodeDir[0]===o.v))?'selected':'' %>><%- o.l %></option>
+              <option value="<%= o.v %>" data-group="<%= o.group %>" <%= (user.kodeDir===o.v||(allowedKodeDir.length===1&&allowedKodeDir[0]===o.v))?'selected':'' %>><%- o.l %></option>
               <% }}); %>
             </select>
           </div>
@@ -966,13 +975,15 @@
       <div class="info-item"><span class="info-key">Sifat</span><span class="info-val" id="infoSifat">Biasa/Terbuka</span></div>
       <div class="info-item" style="border-bottom:none;"><span class="info-key">Penomoran</span><span class="info-val">Otomatis</span></div>
     </div>
+    <% if (jenisDefault !== 'eksternal') { %>
     <div class="info-card">
       <div class="info-card-title">Format Penomoran</div>
       <div style="font-family:monospace;font-size:11px;color:var(--brand-700);background:var(--gray-50);border-radius:6px;padding:8px 10px;line-height:1.8;border:1px solid var(--gray-200);">
-        <strong id="nomorPreview" style="font-size:12px;">NNN / DIV-LAY / NIT / BLN / THN</strong>
+        <strong id="nomorPreview" style="font-size:12px;">NNN / DIV / NIT / BLN / THN</strong>
         <div style="color:var(--gray-400);font-size:10px;margin-top:2px;">Nomor urut otomatis per tahun</div>
       </div>
     </div>
+    <% } %>
     <div class="info-card">
       <div class="info-card-title">Tipe Surat Tersedia</div>
       <div style="font-size:11.5px;color:var(--gray-500);line-height:1.9;">
@@ -1147,6 +1158,8 @@ const TIPE_SECS = {
   'Surat':['sec-surat-ext'],  'Surat Resmi':['sec-surat-ext'],  'Surat Formal':['sec-surat-ext'],
   'Surat Instruksi':['sec-surat-ext'],  'Surat Edaran':[],
   'Surat Rahasia':['sec-surat-ext'], 'Surat Konfidensial':['sec-surat-ext'],
+  // Format surat eksternal dihilangkan untuk sementara (pending docs)
+  'Surat Eksternal': [],
   'Memo':['sec-memo'], 'Nota Dinas':['sec-memo'],
   'SPPD':['sec-sppd'],
   'Surat Tugas':['sec-tugas'],
@@ -1156,6 +1169,7 @@ const TIPE_SECS = {
   'Surat Kuasa':['sec-kuasa'],
   'Surat Pengantar':['sec-pengantar'],
   'Surat Keputusan':['sec-keputusan'],
+  'SK':['sec-keputusan'],
   'Surat Undangan Dinas':['sec-undangan'],
   'Surat Statuta':['sec-statuta'],
   'MOU':['sec-pihak-kedua'],
@@ -1217,6 +1231,45 @@ const TIPE_TO_KODE = {
   'SPK':                        { div:'OPS', lay:'SPK', berkas:'BIS-SPK' },
   'Invoice':                    { div:'BIS', lay:'INV', berkas:'BIS-INV' },
 };
+// Kode direksi untuk SK; kode divisi untuk surat internal
+const KODE_DIREKSI = ['CEO','CTO','CMO','COO'];
+const KODE_DIVISI  = ['KOM','PLAN','TECH','MP'];
+
+function filterKodeDirOptions(isSK) {
+  const sel = document.getElementById('kodeDirSel');
+  const label = document.getElementById('kodeDirLabel');
+  if (!sel) return;
+  let firstVisible = null;
+  Array.from(sel.options).forEach(opt => {
+    const group = opt.dataset.group;
+    const show = isSK ? (group === 'direksi') : (group !== 'direksi');
+    opt.style.display = show ? '' : 'none';
+    if (show && !firstVisible) firstVisible = opt;
+  });
+  // Pilih opsi pertama yang terlihat jika opsi aktif tersembunyi
+  if (sel.selectedOptions.length && sel.selectedOptions[0].style.display === 'none') {
+    if (firstVisible) sel.value = firstVisible.value;
+  }
+  if (label) label.innerHTML = isSK
+    ? 'Kode Direksi <span class="req">*</span>'
+    : 'Kode Direksi <span class="req">*</span>';
+}
+
+function updateNomorPreview(val) {
+  const preview = document.getElementById('nomorPreview');
+  if (!preview) return;
+  if (val === 'SK' || val === 'Surat Keputusan') {
+    preview.textContent = 'NNN / SK / CEO|CTO|CMO|COO / NIT / BLN / THN';
+  } else if (['MoU','MoA','Contract','IA','PKS','SPK'].includes(val)) {
+    const codeMap = {'MoU':'MOU','MoA':'MOA','Contract':'CONTRACT','IA':'IA','PKS':'PKS','SPK':'SPK'};
+    preview.textContent = `NNN / ${codeMap[val]||val} / NIT / BLN / THN`;
+  } else if (val === 'Surat Eksternal') {
+    preview.textContent = '— (belum ditentukan) —';
+  } else {
+    preview.textContent = 'NNN / DIV / NIT / BLN / THN';
+  }
+}
+
 function onTipeChange(val) {
   currentTipe = val;
   document.getElementById('tipeSuratHidden').value = val;
@@ -1228,15 +1281,15 @@ function onTipeChange(val) {
   if (notaBudget) notaBudget.style.display = val === 'Nota Dinas' ? '' : 'none';
   const nilaiKontrak = document.getElementById('sec-nilai-kontrak');
   if (nilaiKontrak) nilaiKontrak.style.display = val === 'Kontrak' ? '' : 'none';
-  // Auto-suggest kode divisi, jenis, dan berkas
-  const kode = TIPE_TO_KODE[val];
-  if (kode) {
-    // auto-suggest kodeDir sudah tidak diperlukan — user pilih manual
-  }
+  // Filter kodeDir options: direksi untuk SK, divisi untuk lainnya
+  const isSK = (val === 'SK' || val === 'Surat Keputusan');
+  filterKodeDirOptions(isSK);
   // Tampilkan form Pihak Kedua untuk dokumen khusus
-  const TIPE_KHUSUS_JS = ['MoU','MoA','Contract','IA','PKS','SPK','SK'];
+  const TIPE_KHUSUS_JS = ['MoU','MoA','Contract','IA','PKS','SPK','SK','Surat Keputusan'];
   const p2form = document.getElementById('sec-pihak-kedua-form');
   if (p2form) p2form.style.display = TIPE_KHUSUS_JS.includes(val) ? '' : 'none';
+  // Update preview nomor surat di sidebar
+  updateNomorPreview(val);
   // Update quill placeholder
   const ph = BODY_PLACEHOLDER[val] || 'Tulis isi surat di sini...';
   quill.root.dataset.placeholder = ph;

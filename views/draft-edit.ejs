@@ -75,10 +75,19 @@
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
         <div class="form-group">
-          <label class="form-label">Kode Direktorat <span class="req">*</span></label>
+          <label class="form-label">Kode Direksi <span class="req">*</span></label>
           <div class="select-wrap">
             <select name="kodeDir" class="form-control form-select">
-              <% const kdOpts=[{v:'KOM',l:'KOM — Dewan Komisaris'},{v:'DIR',l:'DIR — Direktur Utama'},{v:'PLAN',l:'PLAN — Business Strategy &amp; Finance'},{v:'TECH',l:'TECH — Technical &amp; Operations'},{v:'MP',l:'MP — Marketing &amp; Partnership'}]; %>
+              <% const kdOpts=[
+                {v:'KOM',  l:'KOM — Dewan Komisaris'},
+                {v:'CEO',  l:'CEO — Direktur Utama'},
+                {v:'CTO',  l:'CTO — Direktur Teknik'},
+                {v:'CMO',  l:'CMO — Direktur Marketing'},
+                {v:'COO',  l:'COO — Direktur Operasional'},
+                {v:'PLAN', l:'PLAN — Business Strategy &amp; Finance'},
+                {v:'TECH', l:'TECH — Technical &amp; Operations'},
+                {v:'MP',   l:'MP — Marketing &amp; Partnership'},
+              ]; %>
               <% kdOpts.forEach(function(o){ if(allowedKodeDir.includes(o.v)){ %>
               <option value="<%= o.v %>" <%= (email.kodeDir===o.v)?'selected':'' %>><%- o.l %></option>
               <% }}); %>

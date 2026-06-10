@@ -631,14 +631,19 @@ app.post('/draft/bulk-delete', requireAuth, async (req, res) => {
   }
 });
 
-// Kode direktorat per spesifikasi
+// Kode divisi & kode direksi per spesifikasi
 const KODE_DIR_MAP = {
-  'KOM':'KOM','DIR':'DIR','PLAN':'PLAN','TECH':'TECH','MP':'MP'
+  'KOM':'KOM',
+  // Kode direksi (untuk SK)
+  'CEO':'CEO','CTO':'CTO','CMO':'CMO','COO':'COO',
+  // Kode divisi (untuk surat internal)
+  'PLAN':'PLAN','TECH':'TECH','MP':'MP'
 };
 // Hierarki akses kodeDir berdasarkan role & kodeDir user
 function getAllowedKodeDir(user) {
-  if (['admin','superadmin','direktur'].includes(user.role)) return ['KOM','DIR','PLAN','TECH','MP'];
-  // role user: hanya kodeDir yang ditugaskan, fallback ke kode non-pimpinan
+  if (['admin','superadmin','direktur'].includes(user.role))
+    return ['KOM','CEO','CTO','CMO','COO','PLAN','TECH','MP'];
+  // role user: hanya kodeDir yang ditugaskan, fallback ke kode divisi
   return user.kodeDir ? [user.kodeDir] : ['PLAN','TECH','MP'];
 }
 // Sifat surat yang diizinkan per role
@@ -646,33 +651,62 @@ function getAllowedSifat(user) {
   if (['superadmin','admin','direktur'].includes(user.role)) return ['Biasa/Terbuka','Segera','Terbatas','Rahasia'];
   return ['Biasa/Terbuka','Segera'];
 }
-// Dokumen khusus → nomor pakai tipe langsung
+// Dokumen khusus → nomor pakai kode tipe langsung
 const TIPE_KHUSUS = ['MoU','MoA','Contract','IA','PKS','SPK','SK','Surat Keputusan'];
 
+// Kode resmi per jenis dokumen (sesuai pedoman tata naskah)
+const TIPE_TO_CODE = {
+  'SK':'SK', 'Surat Keputusan':'SK',
+  'MoU':'MOU', 'MoA':'MOA', 'Contract':'CONTRACT',
+  'IA':'IA', 'PKS':'PKS', 'SPK':'SPK',
+};
+
 const TIPE_COUNTER_KEY = {
-  'Nota Dinas':      'NOTA',
-  'Surat Eksternal': 'SURAT-EKSTERNAL',
-  'Surat':       'SURAT',
-  'MoU':         'MOU',
-  'MoA':         'MOA',
-  'Contract':    'CONTRACT',
-  'SK':          'SK',
-  'IA':          'IA',
-  'PKS':         'PKS',
-  'SPK':         'SPK',
+  'Nota Dinas':          'ND',
+  'Surat Eksternal':     'SU',
+  'Surat':               'SU',
+  'Surat Umum':          'SU',
+  'SK':                  'SK',
+  'Surat Keputusan':     'SK',
+  'Risalah Rapat':       'RR',
+  'Berita Acara':        'BA',
+  'Surat Undangan':      'UND',
+  'Surat Tugas':         'ST',
+  'Surat Kuasa':         'SKU',
+  'MoU':                 'MOU',
+  'MoA':                 'MOA',
+  'Contract':            'CONTRACT',
+  'IA':                  'IA',
+  'PKS':                 'PKS',
+  'SPK':                 'SPK',
+  'NDA':                 'NDA',
+  'SOP':                 'SOP',
+  'Pedoman':             'PED',
+  'Kebijakan':           'KEB',
+  'Laporan':             'LAP',
+  'Proposal':            'PROP',
+  'Invoice':             'INV',
+  'Quotation':           'QTN',
 };
 function getTipeCounterKey(tipeSurat) {
-  return TIPE_COUNTER_KEY[tipeSurat] || 'SURAT';
+  return TIPE_COUNTER_KEY[tipeSurat] || 'SU';
 }
 
 function buildNomorSurat(seq, tipeSurat, kodeDir, jenis, roman, year) {
   const s = String(seq).padStart(3,'0');
-  if (TIPE_KHUSUS.includes(tipeSurat)) {
-    return `${s}/${tipeSurat}/NIT/${roman}/${year}`;
+  // Format SK: 001/SK/{kodeDir}/NIT/{bulan}/{tahun}
+  if (tipeSurat === 'SK' || tipeSurat === 'Surat Keputusan') {
+    const kd = KODE_DIR_MAP[kodeDir] || kodeDir || 'CEO';
+    return `${s}/SK/${kd}/NIT/${roman}/${year}`;
   }
-  const kd = KODE_DIR_MAP[kodeDir] || kodeDir || 'DIR';
-  const ei = jenis === 'internal' ? 'I' : 'E';
-  return `${s}/${kd}-${ei}/NIT/${roman}/${year}`;
+  // Format MoU/PKS/dll: 001/MOU/NIT/{bulan}/{tahun}
+  if (TIPE_KHUSUS.includes(tipeSurat)) {
+    const tCode = TIPE_TO_CODE[tipeSurat] || tipeSurat.toUpperCase();
+    return `${s}/${tCode}/NIT/${roman}/${year}`;
+  }
+  // Format internal: 001/{kodeDiv}/NIT/{bulan}/{tahun}
+  const kd = KODE_DIR_MAP[kodeDir] || kodeDir || 'PLAN';
+  return `${s}/${kd}/NIT/${roman}/${year}`;
 }
 
 // Manajemen Dokumen — Overview
