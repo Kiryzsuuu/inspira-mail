@@ -119,17 +119,6 @@
                 <option value="Surat Eksternal" selected>Surat Eksternal</option>
               </optgroup>
               <% } %>
-              <% if (jenisDefault === 'eksternal' && user && (['superadmin','admin','direktur'].includes(user.role))) { %>
-              <optgroup label="— Perjanjian &amp; Legal —">
-                <option value="MoU">MoU (Memorandum of Understanding)</option>
-                <option value="MoA">MoA (Memorandum of Agreement)</option>
-                <option value="Contract">Contract (Kontrak)</option>
-                <option value="IA">IA (Implementation Agreement)</option>
-                <option value="PKS">PKS (Perjanjian Kerja Sama)</option>
-                <option value="SPK">SPK (Surat Perintah Kerja)</option>
-                <option value="SK">SK (Surat Keputusan)</option>
-              </optgroup>
-              <% } %>
             </select>
           </div>
         </div>
