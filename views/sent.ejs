@@ -38,6 +38,15 @@
   </div>
 </div>
 
+<div id="bulkBar" style="display:none;position:sticky;top:0;z-index:50;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px 16px;margin-bottom:12px;align-items:center;gap:12px;">
+  <span id="bulkCount" style="font-size:13px;font-weight:600;color:#b91c1c;"></span>
+  <button onclick="bulkDelete()" class="btn" style="background:#ef4444;color:#fff;font-size:12px;padding:5px 14px;border:none;">
+    <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="margin-right:4px"><path d="M6 4h8M4 6h12M7 6v10h6V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Hapus Dipilih
+  </button>
+  <button onclick="clearSelection()" class="btn btn-secondary" style="font-size:12px;padding:5px 12px;">Batal</button>
+</div>
+
 <div class="stats-bar">
   <div class="stat-card">
     <div class="stat-icon green">
@@ -84,12 +93,14 @@
     <table class="dok-table" id="mailTable">
       <thead>
         <tr>
+          <th style="width:32px;"><input type="checkbox" id="checkAll" onchange="toggleAll(this)" style="cursor:pointer;"></th>
           <th style="width:120px;">Jenis</th>
           <th>Nomor Surat</th>
           <th>Perihal / Subjek</th>
           <th style="width:130px;">Penerima</th>
           <th style="width:90px;">Prioritas</th>
           <th style="width:100px;">Tanggal</th>
+          <th style="width:50px;"></th>
         </tr>
       </thead>
       <tbody>
@@ -104,18 +115,24 @@
          }
       %>
       <% mails.forEach(function(m) { %>
-      <tr data-tag="<%= (m.tag||'biasa').toLowerCase() %>"
+      <tr id="row-<%= m._id %>"
+          data-id="<%= m._id %>"
+          data-tag="<%= (m.tag||'biasa').toLowerCase() %>"
           data-jenis="<%= (m.jenis||'internal').toLowerCase() %>"
           data-date="<%= m.dateISO||'' %>"
-          data-search="<%= (m.subject+' '+(m.to||'')+' '+(m.nomorSurat||'')).toLowerCase() %>"
-          onclick="window.location='/email/<%= m._id %>'"
-          style="cursor:pointer;">
-        <td><span class="dok-tipe-badge <%= tipeCls(m.tipeSurat) %>"><%= m.tipeSurat||'—' %></span></td>
-        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;"><%= m.nomorSurat||'—' %></td>
-        <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;"><%= m.subject %></td>
-        <td style="font-size:12px;color:var(--gray-500);"><%= m.to||'—' %></td>
-        <td><span class="mail-tag <%= tagCls[m.tag]||'tag-normal' %>" style="font-size:11px;"><%= m.tag||'Biasa' %></span></td>
-        <td style="font-size:12px;color:var(--gray-400);white-space:nowrap;"><%= m.date %></td>
+          data-search="<%= (m.subject+' '+(m.to||'')+' '+(m.nomorSurat||'')).toLowerCase() %>">
+        <td onclick="event.stopPropagation()"><input type="checkbox" class="row-check" value="<%= m._id %>" onchange="updateBulkBar()" style="cursor:pointer;"></td>
+        <td onclick="window.location='/email/<%= m._id %>'" style="cursor:pointer;"><span class="dok-tipe-badge <%= tipeCls(m.tipeSurat) %>"><%= m.tipeSurat||'—' %></span></td>
+        <td onclick="window.location='/email/<%= m._id %>'" style="cursor:pointer;font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;"><%= m.nomorSurat||'—' %></td>
+        <td onclick="window.location='/email/<%= m._id %>'" style="cursor:pointer;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;"><%= m.subject %></td>
+        <td onclick="window.location='/email/<%= m._id %>'" style="cursor:pointer;font-size:12px;color:var(--gray-500);"><%= m.to||'—' %></td>
+        <td onclick="window.location='/email/<%= m._id %>'" style="cursor:pointer;"><span class="mail-tag <%= tagCls[m.tag]||'tag-normal' %>" style="font-size:11px;"><%= m.tag||'Biasa' %></span></td>
+        <td onclick="window.location='/email/<%= m._id %>'" style="cursor:pointer;font-size:12px;color:var(--gray-400);white-space:nowrap;"><%= m.date %></td>
+        <td onclick="event.stopPropagation()">
+          <button onclick="deleteSingle('<%= m._id %>')" title="Hapus" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--gray-400);border-radius:4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--gray-400)'">
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M6 4h8M4 6h12M7 6v10h6V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </td>
       </tr>
       <% }); %>
       </tbody>
@@ -147,6 +164,49 @@ function filterSearch() {
     if (show && q) show = search.includes(q);
     row.style.display = show ? '' : 'none';
   });
+}
+
+function toggleAll(cb) {
+  document.querySelectorAll('.row-check').forEach(c => c.checked = cb.checked);
+  updateBulkBar();
+}
+function updateBulkBar() {
+  const checked = document.querySelectorAll('.row-check:checked');
+  const bar = document.getElementById('bulkBar');
+  if (checked.length > 0) {
+    bar.style.display = 'flex';
+    document.getElementById('bulkCount').textContent = checked.length + ' surat dipilih';
+  } else {
+    bar.style.display = 'none';
+    document.getElementById('checkAll').checked = false;
+  }
+}
+function clearSelection() {
+  document.querySelectorAll('.row-check').forEach(c => c.checked = false);
+  document.getElementById('checkAll').checked = false;
+  updateBulkBar();
+}
+async function deleteSingle(id) {
+  if (!confirm('Hapus surat ini dari Terkirim?')) return;
+  const res = await fetch('/sent/' + id, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.ok) {
+    document.getElementById('row-' + id)?.remove();
+  } else alert('Gagal menghapus.');
+}
+async function bulkDelete() {
+  const ids = Array.from(document.querySelectorAll('.row-check:checked')).map(c => c.value);
+  if (!ids.length) return;
+  if (!confirm('Hapus ' + ids.length + ' surat dari Terkirim?')) return;
+  const res = await fetch('/sent/bulk-delete', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    ids.forEach(id => document.getElementById('row-' + id)?.remove());
+    clearSelection();
+  } else alert('Gagal menghapus.');
 }
 </script>
 

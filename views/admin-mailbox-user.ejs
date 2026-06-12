@@ -1,0 +1,180 @@
+<%- include('./partials/header') %>
+<style>
+.dok-tabs { display:flex; gap:0; border-bottom:2px solid var(--gray-100); margin-bottom:0; overflow-x:auto; scrollbar-width:none; }
+.dok-tabs::-webkit-scrollbar { display:none; }
+.dok-tab { padding:12px 18px; font-size:13px; font-weight:500; color:var(--gray-500); cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent; margin-bottom:-2px; text-decoration:none; transition:color .15s; display:inline-flex; align-items:center; }
+.dok-tab:hover { color:var(--gray-700); }
+.dok-tab.active { color:var(--brand-600); border-bottom-color:var(--brand-600); font-weight:600; }
+.dok-tab .tab-count { display:inline-block; background:var(--gray-100); color:var(--gray-500); font-size:10.5px; font-weight:600; padding:1px 6px; border-radius:10px; margin-left:5px; }
+.dok-tab.active .tab-count { background:#dbeafe; color:#1d4ed8; }
+.dok-table { width:100%; border-collapse:collapse; font-size:13px; }
+.dok-table th { padding:10px 14px; text-align:left; font-size:11.5px; font-weight:600; color:var(--gray-500); background:var(--gray-50); border-bottom:1px solid var(--gray-200); text-transform:uppercase; letter-spacing:.4px; }
+.dok-table td { padding:11px 14px; border-bottom:1px solid var(--gray-100); color:var(--gray-700); vertical-align:middle; }
+.dok-table tr:last-child td { border-bottom:none; }
+.dok-tipe-badge { font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; white-space:nowrap; }
+.tipe-nota { background:#f0fdf4; color:#15803d; }
+.tipe-surat { background:#eff6ff; color:#1d4ed8; }
+.tipe-lain { background:var(--gray-100); color:var(--gray-600); }
+.deleted-row { opacity:.45; }
+</style>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/admin">Admin</a> / <a href="/admin/mailbox">Kotak Surat</a> / <%= targetUser.name %></div>
+    <h1 class="page-title">Kotak Surat — <%= targetUser.name %></h1>
+    <p class="page-subtitle" style="color:var(--gray-500);font-size:13px;"><%= targetUser.email %> &nbsp;·&nbsp; <%= targetUser.jabatan || targetUser.role %></p>
+  </div>
+  <div class="page-actions">
+    <a href="/admin/mailbox" class="btn btn-secondary">← Kembali</a>
+  </div>
+</div>
+
+<div id="bulkBar" style="display:none;position:sticky;top:0;z-index:50;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px 16px;margin-bottom:12px;align-items:center;gap:12px;">
+  <span id="bulkCount" style="font-size:13px;font-weight:600;color:#b91c1c;"></span>
+  <button onclick="bulkDelete()" class="btn" style="background:#ef4444;color:#fff;font-size:12px;padding:5px 14px;border:none;">
+    <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="margin-right:4px"><path d="M6 4h8M4 6h12M7 6v10h6V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Hapus Dipilih dari Kotak User
+  </button>
+  <button onclick="clearSelection()" class="btn btn-secondary" style="font-size:12px;padding:5px 12px;">Batal</button>
+</div>
+
+<div class="mail-list-wrap">
+  <div class="dok-tabs" style="padding:0 16px;">
+    <a href="/admin/mailbox/<%= targetUser._id %>?tab=inbox" class="dok-tab <%= tab==='inbox'?'active':'' %>">
+      Kotak Masuk <span class="tab-count"><%= inboxTotal %></span>
+    </a>
+    <a href="/admin/mailbox/<%= targetUser._id %>?tab=sent" class="dok-tab <%= tab==='sent'?'active':'' %>">
+      Terkirim <span class="tab-count"><%= sentTotal %></span>
+    </a>
+  </div>
+
+  <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);">
+    <input type="text" id="searchBox" class="form-control" style="font-size:13px;max-width:340px;" placeholder="Cari perihal / nomor surat..." oninput="filterSearch()">
+  </div>
+
+  <% if (mails.length === 0) { %>
+  <div class="empty-state">
+    <svg width="40" height="40" viewBox="0 0 48 48" fill="none"><path d="M6 10h36a2 2 0 012 2v24a2 2 0 01-2 2H6a2 2 0 01-2-2V12a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5"/><path d="M4 14l20 14L44 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <p>Tidak ada surat.</p>
+  </div>
+  <% } else { %>
+  <div style="overflow-x:auto;">
+    <table class="dok-table" id="mailTable">
+      <thead>
+        <tr>
+          <th style="width:32px;"><input type="checkbox" id="checkAll" onchange="toggleAll(this)" style="cursor:pointer;"></th>
+          <th style="width:110px;">Jenis</th>
+          <th>Nomor Surat</th>
+          <th>Perihal</th>
+          <th style="width:120px;"><%= tab==='inbox'?'Dari':'Kepada' %></th>
+          <th style="width:100px;">Tanggal</th>
+          <th style="width:90px;">Status</th>
+          <th style="width:50px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+      <% mails.forEach(function(m) { %>
+      <tr id="row-<%= m._id %>" class="<%= m.deletedByUser ? 'deleted-row' : '' %>"
+          data-search="<%= (m.subject+' '+(m.nomorSurat||'')).toLowerCase() %>">
+        <td onclick="event.stopPropagation()">
+          <% if (!m.deletedByUser) { %>
+          <input type="checkbox" class="row-check" value="<%= m._id %>" onchange="updateBulkBar()" style="cursor:pointer;">
+          <% } %>
+        </td>
+        <td><span class="dok-tipe-badge <%= m.tipeSurat==='Nota Dinas'?'tipe-nota':m.tipeSurat==='Surat Dinas'?'tipe-surat':'tipe-lain' %>"><%= m.tipeSurat||'—' %></span></td>
+        <td style="font-family:monospace;font-size:12px;color:var(--brand-700);font-weight:600;"><%= m.nomorSurat||'—' %></td>
+        <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= m.subject %></td>
+        <td style="font-size:12px;color:var(--gray-500);"><%= tab==='inbox' ? m.from : m.to %></td>
+        <td style="font-size:12px;color:var(--gray-400);white-space:nowrap;"><%= m.date %></td>
+        <td>
+          <% if (m.deletedByUser) { %>
+          <span style="font-size:11px;color:var(--gray-400);font-style:italic;">Dihapus</span>
+          <% } else { %>
+          <span style="font-size:11px;color:var(--green-600);font-weight:600;">Aktif</span>
+          <% } %>
+        </td>
+        <td onclick="event.stopPropagation()">
+          <% if (!m.deletedByUser) { %>
+          <button onclick="deleteSingle('<%= m._id %>')" title="Hapus dari kotak user" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--gray-400);border-radius:4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--gray-400)'">
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M6 4h8M4 6h12M7 6v10h6V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <% } %>
+        </td>
+      </tr>
+      <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<script>
+const TARGET_USER_ID = '<%= targetUser._id %>';
+const CURRENT_TAB    = '<%= tab %>';
+
+function filterSearch() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  document.querySelectorAll('#mailTable tbody tr').forEach(row => {
+    row.style.display = !q || row.dataset.search.includes(q) ? '' : 'none';
+  });
+}
+function toggleAll(cb) {
+  document.querySelectorAll('.row-check').forEach(c => c.checked = cb.checked);
+  updateBulkBar();
+}
+function updateBulkBar() {
+  const checked = document.querySelectorAll('.row-check:checked');
+  const bar = document.getElementById('bulkBar');
+  if (checked.length > 0) {
+    bar.style.display = 'flex';
+    document.getElementById('bulkCount').textContent = checked.length + ' surat dipilih';
+  } else {
+    bar.style.display = 'none';
+    document.getElementById('checkAll').checked = false;
+  }
+}
+function clearSelection() {
+  document.querySelectorAll('.row-check').forEach(c => c.checked = false);
+  document.getElementById('checkAll').checked = false;
+  updateBulkBar();
+}
+async function deleteSingle(id) {
+  if (!confirm('Hapus surat ini dari kotak ' + '<%= targetUser.name %>' + '?')) return;
+  const res = await fetch('/admin/mailbox/' + TARGET_USER_ID + '/email/' + id, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.ok) {
+    const row = document.getElementById('row-' + id);
+    if (row) {
+      row.classList.add('deleted-row');
+      row.querySelector('.row-check')?.remove();
+      row.querySelector('button[onclick]')?.remove();
+      row.querySelector('td:last-child').innerHTML = '';
+      row.querySelectorAll('td')[6].innerHTML = '<span style="font-size:11px;color:var(--gray-400);font-style:italic;">Dihapus</span>';
+    }
+  } else alert('Gagal menghapus.');
+}
+async function bulkDelete() {
+  const ids = Array.from(document.querySelectorAll('.row-check:checked')).map(c => c.value);
+  if (!ids.length) return;
+  if (!confirm('Hapus ' + ids.length + ' surat dari kotak ' + '<%= targetUser.name %>' + '?')) return;
+  const res = await fetch('/admin/mailbox/' + TARGET_USER_ID + '/bulk-delete', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    ids.forEach(id => {
+      const row = document.getElementById('row-' + id);
+      if (row) {
+        row.classList.add('deleted-row');
+        row.querySelector('.row-check')?.remove();
+        row.querySelector('button[onclick]')?.remove();
+        row.querySelectorAll('td')[6].innerHTML = '<span style="font-size:11px;color:var(--gray-400);font-style:italic;">Dihapus</span>';
+      }
+    });
+    clearSelection();
+  } else alert('Gagal menghapus.');
+}
+</script>
+
+<%- include('./partials/footer') %>

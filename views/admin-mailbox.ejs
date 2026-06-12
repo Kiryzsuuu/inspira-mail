@@ -1,0 +1,77 @@
+<%- include('./partials/header') %>
+<style>
+.user-card-table { width:100%; border-collapse:collapse; font-size:13px; }
+.user-card-table th { padding:10px 14px; text-align:left; font-size:11.5px; font-weight:600; color:var(--gray-500); background:var(--gray-50); border-bottom:1px solid var(--gray-200); text-transform:uppercase; letter-spacing:.4px; }
+.user-card-table td { padding:12px 14px; border-bottom:1px solid var(--gray-100); vertical-align:middle; }
+.user-card-table tbody tr:hover { background:var(--gray-50); cursor:pointer; }
+.avatar-circle { width:34px; height:34px; border-radius:50%; background:var(--brand-100); color:var(--brand-700); font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.role-badge { font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:10px; }
+.role-superadmin { background:#fdf4ff; color:#7e22ce; }
+.role-admin { background:#eff6ff; color:#1d4ed8; }
+.role-direktur { background:#f0fdf4; color:#15803d; }
+.role-user { background:var(--gray-100); color:var(--gray-600); }
+.count-pill { font-size:11px; font-weight:700; background:var(--gray-100); color:var(--gray-600); padding:2px 8px; border-radius:10px; }
+.count-pill.has { background:#dbeafe; color:#1d4ed8; }
+</style>
+
+<div class="page-header">
+  <div class="page-title-group">
+    <div class="page-breadcrumb"><a href="/admin">Admin Dashboard</a> / Kelola Kotak Surat</div>
+    <h1 class="page-title">Kelola Kotak Surat</h1>
+    <p class="page-subtitle">Pilih pengguna untuk melihat dan membersihkan kotak suratnya</p>
+  </div>
+</div>
+
+<div class="mail-list-wrap">
+  <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);">
+    <input type="text" id="searchUser" class="form-control" style="font-size:13px;max-width:340px;" placeholder="Cari nama / email pengguna..." oninput="filterUsers()">
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table class="user-card-table" id="userTable">
+      <thead>
+        <tr>
+          <th style="width:40px;"></th>
+          <th>Nama</th>
+          <th>Email</th>
+          <th>Jabatan</th>
+          <th>Role</th>
+          <th style="text-align:center;">Kotak Masuk</th>
+          <th style="text-align:center;">Terkirim</th>
+          <th style="width:100px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+      <% users.forEach(function(u) { %>
+      <tr data-search="<%= (u.name+' '+u.email).toLowerCase() %>" onclick="window.location='/admin/mailbox/<%= u._id %>'">
+        <td>
+          <div class="avatar-circle">
+            <% if(u.avatar) { %><img src="<%= u.avatar %>" style="width:34px;height:34px;border-radius:50%;object-fit:cover;"><% } else { %><%= u.name.charAt(0).toUpperCase() %><% } %>
+          </div>
+        </td>
+        <td style="font-weight:600;color:var(--gray-900);"><%= u.name %></td>
+        <td style="color:var(--gray-500);font-size:12px;"><%= u.email %></td>
+        <td style="color:var(--gray-500);font-size:12px;"><%= u.jabatan || '—' %></td>
+        <td><span class="role-badge role-<%= u.role %>"><%= u.role %></span></td>
+        <td style="text-align:center;"><span class="count-pill <%= u.inboxCount > 0 ? 'has' : '' %>"><%= u.inboxCount %></span></td>
+        <td style="text-align:center;"><span class="count-pill <%= u.sentCount > 0 ? 'has' : '' %>"><%= u.sentCount %></span></td>
+        <td>
+          <a href="/admin/mailbox/<%= u._id %>" class="btn btn-secondary" style="font-size:12px;padding:5px 12px;" onclick="event.stopPropagation()">Buka</a>
+        </td>
+      </tr>
+      <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function filterUsers() {
+  const q = document.getElementById('searchUser').value.toLowerCase();
+  document.querySelectorAll('#userTable tbody tr').forEach(row => {
+    row.style.display = !q || row.dataset.search.includes(q) ? '' : 'none';
+  });
+}
+</script>
+
+<%- include('./partials/footer') %>

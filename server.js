@@ -477,6 +477,159 @@ app.get('/sent', requireAuth, async (req, res) => {
   }
 });
 
+// ── SOFT DELETE INBOX / SENT ──
+app.delete('/inbox/:id', requireAuth, async (req, res) => {
+  try {
+    const email = await Email.findOne({ _id: req.params.id, 'to.userId': req.user._id, status: 'sent' });
+    if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
+    await Email.findByIdAndUpdate(email._id, { $addToSet: { deletedBy: req.user._id } });
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.post('/inbox/bulk-delete', requireAuth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids || !ids.length) return res.json({ ok: false });
+    await Email.updateMany(
+      { _id: { $in: ids }, 'to.userId': req.user._id, status: 'sent' },
+      { $addToSet: { deletedBy: req.user._id } }
+    );
+    res.json({ ok: true, deleted: ids.length });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.delete('/sent/:id', requireAuth, async (req, res) => {
+  try {
+    const email = await Email.findOne({
+      _id: req.params.id,
+      $or: [{ 'from.userId': req.user._id }, { ownerUserId: req.user._id }],
+      status: 'sent'
+    });
+    if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
+    await Email.findByIdAndUpdate(email._id, { $addToSet: { deletedBy: req.user._id } });
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.post('/sent/bulk-delete', requireAuth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids || !ids.length) return res.json({ ok: false });
+    await Email.updateMany(
+      { _id: { $in: ids }, $or: [{ 'from.userId': req.user._id }, { ownerUserId: req.user._id }], status: 'sent' },
+      { $addToSet: { deletedBy: req.user._id } }
+    );
+    res.json({ ok: true, deleted: ids.length });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+// ── ADMIN MAILBOX MANAGEMENT ──
+app.get('/admin/mailbox', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const users = await User.find({ isActive: true }).sort('name').select('name email role jabatan kodeDir organization avatar').lean();
+    const userIds = users.map(u => u._id);
+
+    const [inboxCounts, sentCounts] = await Promise.all([
+      Email.aggregate([
+        { $match: { 'to.userId': { $in: userIds }, status: 'sent' } },
+        { $unwind: '$to' },
+        { $match: { 'to.userId': { $in: userIds } } },
+        { $group: { _id: '$to.userId', count: { $sum: 1 } } }
+      ]),
+      Email.aggregate([
+        { $match: { 'from.userId': { $in: userIds }, status: 'sent' } },
+        { $group: { _id: '$from.userId', count: { $sum: 1 } } }
+      ])
+    ]);
+
+    const inboxMap = Object.fromEntries(inboxCounts.map(x => [x._id.toString(), x.count]));
+    const sentMap  = Object.fromEntries(sentCounts.map(x => [x._id.toString(), x.count]));
+
+    const usersWithCounts = users.map(u => ({
+      ...u,
+      inboxCount: inboxMap[u._id.toString()] || 0,
+      sentCount:  sentMap[u._id.toString()]  || 0,
+    }));
+
+    res.render('admin-mailbox', { title: 'Kelola Kotak Surat', active: 'admin', users: usersWithCounts, ...counts });
+  } catch (err) { console.error(err); res.redirect('/admin'); }
+});
+
+app.get('/admin/mailbox/:userId', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const counts = await getMailCounts(req.user._id);
+    const targetUser = await User.findById(req.params.userId).select('name email role jabatan kodeDir organization').lean();
+    if (!targetUser) return res.redirect('/admin/mailbox');
+
+    const uid = targetUser._id;
+    const tab = req.query.tab || 'inbox';
+
+    let mails;
+    if (tab === 'sent') {
+      mails = await Email.find({ $or: [{ 'from.userId': uid }, { ownerUserId: uid }], status: 'sent' })
+        .sort({ createdAt: -1 }).lean();
+    } else {
+      mails = await Email.find({ 'to.userId': uid, status: 'sent' })
+        .sort({ createdAt: -1 }).lean();
+    }
+
+    const formatted = mails.map(m => ({
+      _id: m._id,
+      from: m.from?.name || '—',
+      to: (m.to||[]).map(t => t.name).join(', ') || (m.toExternal||[]).map(r=>r.name||r.email).join(', ') || '—',
+      subject: m.subject,
+      date: formatDate(m.createdAt),
+      nomorSurat: m.nomorSurat || '—',
+      tipeSurat: m.tipeSurat || 'Surat',
+      jenis: m.jenis || 'internal',
+      deletedByUser: (m.deletedBy||[]).some(id => id.toString() === uid.toString()),
+    }));
+
+    const inboxTotal = await Email.countDocuments({ 'to.userId': uid, status: 'sent' });
+    const sentTotal  = await Email.countDocuments({ $or: [{ 'from.userId': uid }, { ownerUserId: uid }], status: 'sent' });
+
+    res.render('admin-mailbox-user', {
+      title: `Kotak Surat — ${targetUser.name}`,
+      active: 'admin',
+      targetUser, mails: formatted, tab,
+      inboxTotal, sentTotal,
+      ...counts
+    });
+  } catch (err) { console.error(err); res.redirect('/admin/mailbox'); }
+});
+
+app.delete('/admin/mailbox/:userId/email/:emailId', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const targetUser = await User.findById(req.params.userId);
+    if (!targetUser) return res.json({ ok: false, message: 'User tidak ditemukan.' });
+    const email = await Email.findById(req.params.emailId);
+    if (!email) return res.json({ ok: false, message: 'Surat tidak ditemukan.' });
+    await Email.findByIdAndUpdate(email._id, { $addToSet: { deletedBy: targetUser._id } });
+    await log(req, 'email_deleted', 'email',
+      `Admin ${req.user.name} menghapus surat "${email.subject}" dari kotak ${targetUser.name}`,
+      { emailId: email._id, targetUserId: targetUser._id }
+    );
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+app.post('/admin/mailbox/:userId/bulk-delete', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids || !ids.length) return res.json({ ok: false });
+    const targetUser = await User.findById(req.params.userId);
+    if (!targetUser) return res.json({ ok: false });
+    await Email.updateMany({ _id: { $in: ids } }, { $addToSet: { deletedBy: targetUser._id } });
+    await log(req, 'email_deleted', 'email',
+      `Admin ${req.user.name} menghapus ${ids.length} surat dari kotak ${targetUser.name}`,
+      { count: ids.length, targetUserId: targetUser._id }
+    );
+    res.json({ ok: true, deleted: ids.length });
+  } catch (err) { res.json({ ok: false }); }
+});
+
 app.get('/draft', requireAuth, async (req, res) => {
   try {
     const mails = await Email.find({
