@@ -47,6 +47,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Prevent HTML page caching so EJS changes take effect immediately
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  next();
+});
+
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/inspira-mailer';
 
 app.use(session({
