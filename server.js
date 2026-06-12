@@ -3187,13 +3187,6 @@ async function rebuildSignedPdf(session) {
     pdfW = Math.min(pdfW, pw - pdfX);
     pdfH = Math.min(pdfH, ph - pdfY);
 
-    // Border saja, tanpa background putih (transparan)
-    page.drawRectangle({
-      x: pdfX, y: pdfY, width: pdfW, height: pdfH,
-      borderColor: rgb(0.1, 0.33, 0.67),
-      borderWidth: 0.75,
-    });
-
     const dm       = signer.displayMode || 'full';
     const showDate = signer.showDate !== false;
     const showName = dm !== 'qr_only';
