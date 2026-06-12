@@ -2337,6 +2337,17 @@ app.delete('/digsig', requireAuth, async (req, res) => {
 
 // ── VERIFY (public) ──
 
+app.get('/verify/esign/:token', async (req, res) => {
+  try {
+    const session = await ESignSession.findOne({ 'signers.token': req.params.token });
+    if (!session) return res.render('verify-esign', { valid: false, signer: null, session: null, scanTime: new Date() });
+    const signer = session.signers.find(s => s.token === req.params.token);
+    res.render('verify-esign', { valid: true, signer, session, scanTime: new Date() });
+  } catch (err) {
+    res.render('verify-esign', { valid: false, signer: null, session: null, scanTime: new Date() });
+  }
+});
+
 // PENTING: route /verify/doc/:token harus SEBELUM /verify/:token
 // agar Express tidak salah cocokkan "doc" sebagai :token
 app.get('/verify/doc/:token', async (req, res) => {
