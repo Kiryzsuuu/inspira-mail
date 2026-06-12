@@ -815,37 +815,55 @@ function addSignerToPanel(s, isMe) {
   const rl = { superadmin:'Super Admin', admin:'Admin', direktur:'Direktur', user:'Pengguna' };
   const jabatan  = s.jabatanDisplay || (s.userRole ? (rl[s.userRole]||s.userRole) : (s.userOrg||''));
   const initials = (s.userName||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-  const tglVal   = new Date().toISOString().slice(0,10);
+  const now = new Date();
+  const tglDay = now.getDate();
+  const tglMon = now.getMonth() + 1;
+  const tglYear = now.getFullYear();
+  const monNames = BULAN;
+  const monOptions = monNames.map((m,i) => `<option value="${i+1}"${tglMon===i+1?' selected':''}>${m}</option>`).join('');
+  const id = s._id;
   const item = document.createElement('div');
-  item.className = 'signer-item'; item.id = `si-${s._id}`;
+  item.className = 'signer-item'; item.id = `si-${id}`;
+  dateFmtState[id] = 'full';
   item.innerHTML = `
     <div class="signer-item-top">
       <div class="signer-av">${initials}</div>
       <div class="signer-info">
         <div class="signer-name">${s.userName}</div>
-        <div class="signer-role" id="jlbl-${s._id}">${jabatan || '—'}</div>
+        <div class="signer-role" id="jlbl-${id}">${jabatan || '—'}</div>
       </div>
       <span style="font-size:9px;color:rgba(255,200,0,.7);font-weight:600;flex-shrink:0;">MENUNGGU</span>
-      ${(IS_CREATOR && !isMe) ? `<button class="signer-del" onclick="removeSigner('${s._id}',event)"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>` : ''}
+      ${(IS_CREATOR && !isMe) ? `<button class="signer-del" onclick="removeSigner('${id}',event)"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>` : ''}
     </div>
     <div class="opts-label" style="margin-top:0;">Jabatan / Gelar</div>
-    <input type="text" class="jabatan-input" id="jab-${s._id}" placeholder="Jabatan atau gelar" value="${jabatan}" oninput="debounceJabatan('${s._id}',this.value)">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+    <input type="text" class="jabatan-input" id="jab-${id}" placeholder="Jabatan atau gelar" value="${jabatan}" oninput="debounceJabatan('${id}',this.value)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
       <div><div class="opts-label" style="margin-top:0;">Lokasi</div>
-        <input type="text" class="jabatan-input" id="lokasi-${s._id}" placeholder="Jakarta" value="" oninput="debounceLokasi('${s._id}',this.value)"></div>
-      <div><div class="opts-label" style="margin-top:0;">Tanggal</div>
-        <input type="date" class="jabatan-input" id="tgl-${s._id}" value="${tglVal}" oninput="debounceTanggal('${s._id}',this.value)"></div>
+        <input type="text" class="jabatan-input" id="lokasi-${id}" placeholder="Jakarta" value="" oninput="debounceLokasi('${id}',this.value)"></div>
+    </div>
+    <div class="opts-label" style="margin-top:0;">Tanggal Ditandatangani</div>
+    <div style="display:grid;grid-template-columns:44px 1fr 60px;gap:4px;margin-bottom:6px;">
+      <input type="number" class="jabatan-input" id="tgl-day-${id}" placeholder="Tgl" min="1" max="31" value="${tglDay}" oninput="onDatePartChange('${id}')">
+      <select class="jabatan-input" id="tgl-mon-${id}" style="color:#1e293b;background:#fff;" onchange="onDatePartChange('${id}')">${monOptions}</select>
+      <input type="number" class="jabatan-input" id="tgl-year-${id}" placeholder="Tahun" min="2000" max="2099" value="${tglYear}" oninput="onDatePartChange('${id}')">
+    </div>
+    <div class="opts-label">Format tampilan:</div>
+    <div class="display-mode-row" id="dfmt-${id}" style="flex-wrap:wrap;margin-bottom:6px;">
+      <button type="button" class="dm-btn active" data-fmt="full" onclick="setDateFmt('${id}','full',this)">Lengkap</button>
+      <button type="button" class="dm-btn" data-fmt="month_year" onclick="setDateFmt('${id}','month_year',this)">Bulan &amp; Tahun</button>
+      <button type="button" class="dm-btn" data-fmt="year_only" onclick="setDateFmt('${id}','year_only',this)">Tahun Saja</button>
+      <button type="button" class="dm-btn" data-fmt="custom" onclick="setDateFmt('${id}','custom',this)">Custom</button>
     </div>
     <div>
       <div class="opts-label">Tampilan:</div>
-      <div class="display-mode-row" id="dm-${s._id}">
-        <button type="button" class="dm-btn active" onclick="setDisplayMode('${s._id}','full',this.closest('.display-mode-row'))">QR + Nama<br>+ Jabatan</button>
-        <button type="button" class="dm-btn" onclick="setDisplayMode('${s._id}','name_only',this.closest('.display-mode-row'))">QR +<br>Nama</button>
-        <button type="button" class="dm-btn" onclick="setDisplayMode('${s._id}','qr_only',this.closest('.display-mode-row'))">QR<br>Saja</button>
+      <div class="display-mode-row" id="dm-${id}">
+        <button type="button" class="dm-btn active" onclick="setDisplayMode('${id}','full',this.closest('.display-mode-row'))">QR + Nama<br>+ Jabatan</button>
+        <button type="button" class="dm-btn" onclick="setDisplayMode('${id}','name_only',this.closest('.display-mode-row'))">QR +<br>Nama</button>
+        <button type="button" class="dm-btn" onclick="setDisplayMode('${id}','qr_only',this.closest('.display-mode-row'))">QR<br>Saja</button>
       </div>
       <div class="opts-label">Opsi:</div>
       <div class="display-mode-row">
-        <button type="button" class="dm-btn active" id="btnDate-${s._id}" onclick="toggleDate('${s._id}',this)">Tanggal &amp; Lokasi</button>
+        <button type="button" class="dm-btn active" id="btnDate-${id}" onclick="toggleDate('${id}',this)">Tanggal &amp; Lokasi</button>
       </div>
     </div>`;
   document.getElementById('signerList').appendChild(item);
