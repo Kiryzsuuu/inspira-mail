@@ -288,7 +288,7 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
 %>
 
 <div class="pdf-toolbar">
-  <a href="<%= isSender ? '/compose' : '/email/' + email._id %>" class="toolbar-back">
+  <a href="javascript:void(0)" onclick="(function(){if(window.opener||history.length<=1){window.close();}else{history.back();}})()" class="toolbar-back">
     <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M12 4l-8 8 8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Kembali
   </a>

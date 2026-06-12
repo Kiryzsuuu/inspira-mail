@@ -1724,7 +1724,7 @@ app.post('/admin/counters/set', requireAuth, requireAdmin, async (req, res) => {
     if (isNaN(n) || n < 0) return res.json({ ok: false, message: 'Nomor tidak valid.' });
     const counter = await DocCounter.findOneAndUpdate(
       { key },
-      { seq: n },
+      { $set: { seq: n } },
       { upsert: true, new: true }
     );
     await log(req, 'system', 'user_management',
