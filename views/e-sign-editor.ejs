@@ -561,22 +561,6 @@ document.querySelectorAll('.qr-stamp').forEach(el => {
   initStamp(el);
 });
 
-// Detect initial date format for each signer from their tanggalDisplay value
-<% session.signers.forEach(function(s) {
-  const disp = s.tanggalDisplay || '';
-%>
-(function() {
-  const disp = '<%= disp.replace(/'/g,"\'") %>';
-  const id   = '<%= s._id %>';
-  if (!disp) { dateFmtState[id] = 'full'; return; }
-  if (/^\d{4}$/.test(disp.trim())) { dateFmtState[id] = 'year_only'; return; }
-  const parts = disp.trim().split(' ');
-  if (parts.length === 2) { dateFmtState[id] = 'month_year'; return; }
-  if (parts.length === 3 && !isNaN(parts[0])) { dateFmtState[id] = 'full'; return; }
-  dateFmtState[id] = 'custom';
-})();
-<% }); %>
-
 async function savePosition(el) {
   await fetch(`/e-sign/${SESSION_ID}/update-position`, {
     method:'POST', headers:{'Content-Type':'application/json'},
@@ -670,6 +654,22 @@ function debounceLokasi(id, val) {
 
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const dateFmtState = {}; // id → 'full' | 'month_year' | 'year_only' | 'custom'
+
+// Init format state per signer (must be AFTER dateFmtState declaration)
+<% session.signers.forEach(function(s) {
+  const disp = s.tanggalDisplay || '';
+%>
+(function() {
+  const disp = '<%- (s.tanggalDisplay||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'") %>';
+  const id   = '<%= s._id %>';
+  if (!disp) { dateFmtState[id] = 'full'; return; }
+  if (/^\d{4}$/.test(disp.trim())) { dateFmtState[id] = 'year_only'; return; }
+  const parts = disp.trim().split(' ');
+  if (parts.length === 2) { dateFmtState[id] = 'month_year'; return; }
+  if (parts.length === 3 && !isNaN(parts[0])) { dateFmtState[id] = 'full'; return; }
+  dateFmtState[id] = 'custom';
+})();
+<% }); %>
 
 function buildDateDisplay(id) {
   const fmt  = dateFmtState[id] || 'full';
