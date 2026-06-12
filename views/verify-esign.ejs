@@ -143,12 +143,18 @@ const fdt = dt => { const d = new Date(dt); return `${d.getDate()} ${M[d.getMont
     </div>
 
     <div style="margin-bottom:16px;">
-      <% if (signer.signedAt) { %>
+      <% if (signer.tanggalDisplay || signer.tanggalTtd || signer.signedAt) { %>
       <div class="info-row">
         <div class="info-dot dot-amber"></div>
         <div>
-          <div class="info-label">Waktu Ditandatangani</div>
-          <div class="info-value"><%= fdt(signer.signedAt) %> WIB</div>
+          <div class="info-label">Tanggal Ditandatangani</div>
+          <div class="info-value">
+            <% if (signer.tanggalDisplay) { %>
+              <%= signer.tanggalDisplay %>
+            <% } else { %>
+              <%= fdt(signer.tanggalTtd || signer.signedAt) %> WIB
+            <% } %>
+          </div>
         </div>
       </div>
       <% } %>
