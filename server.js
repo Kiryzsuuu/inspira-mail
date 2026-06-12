@@ -3416,11 +3416,12 @@ app.post('/e-sign/:id/update-jabatan', requireAuth, async (req, res) => {
 
 app.post('/e-sign/:id/update-lokasi-tanggal', requireAuth, async (req, res) => {
   try {
-    const { signerId, lokasi, tanggal, showDate } = req.body;
+    const { signerId, lokasi, tanggal, tanggalDisplay, showDate } = req.body;
     const update = {};
-    if (lokasi    !== undefined) update['signers.$.lokasiTtd']  = lokasi;
-    if (tanggal   !== undefined) update['signers.$.tanggalTtd'] = tanggal ? new Date(tanggal) : null;
-    if (showDate  !== undefined) update['signers.$.showDate']   = showDate;
+    if (lokasi          !== undefined) update['signers.$.lokasiTtd']     = lokasi;
+    if (tanggal         !== undefined) update['signers.$.tanggalTtd']    = tanggal ? new Date(tanggal) : null;
+    if (tanggalDisplay  !== undefined) update['signers.$.tanggalDisplay'] = tanggalDisplay;
+    if (showDate        !== undefined) update['signers.$.showDate']      = showDate;
     await ESignSession.updateOne(
       { _id: req.params.id, 'signers._id': signerId },
       { $set: update }

@@ -13,6 +13,7 @@ const signerSchema = new mongoose.Schema({
   showDate:       { type: Boolean, default: true },
   lokasiTtd:     { type: String, default: '' },
   tanggalTtd:    { type: Date },
+  tanggalDisplay: { type: String, default: '' },
   position: {
     page:   { type: Number, default: 0 },
     x:      { type: Number, default: 60 },

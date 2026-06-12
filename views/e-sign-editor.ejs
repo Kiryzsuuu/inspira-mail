@@ -213,15 +213,19 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
           const isMe = s.userId.toString() === currentUser._id.toString();
           const canDrag = isMe && s.status !== 'signed';
         %>
+        <%
+          const displayDateStr = s.tanggalDisplay || dateStr;
+          const fullDateDisplay = lokasi ? lokasi + ', ' + displayDateStr : displayDateStr;
+        %>
         <div class="qr-stamp" id="stamp-<%= s._id %>"
           data-id="<%= s._id %>"
           data-mine="<%= canDrag ? '1' : '0' %>"
           data-dm="<%= dm %>"
           data-show-date="<%= showDate ? '1' : '0' %>"
-          data-date-str="<%= dateStr %>"
+          data-date-str="<%= displayDateStr %>"
           data-lokasi="<%= lokasi %>"
           style="left:<%= s.position.x %>px;top:<%= s.position.y %>px;width:<%= s.position.width %>px;height:<%= s.position.height %>px;">
-          <% if (showDate) { %><div class="qr-stamp-date"><%= fullDate %></div><% } %>
+          <% if (showDate) { %><div class="qr-stamp-date"><%= fullDateDisplay %></div><% } %>
           <img src="<%= s.qrDataUrl %>" alt="QR" draggable="false">
           <% if (dm !== 'qr_only') { %>
           <div class="qr-stamp-sig"></div>
@@ -349,23 +353,62 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: #1e293b; 
             <%= signed ? 'disabled' : '' %>
             oninput="debounceJabatan('<%= s._id %>', this.value)">
 
-          <!-- Lokasi & Tanggal -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            <div>
-              <div class="opts-label" style="margin-top:0;">Lokasi</div>
-              <input type="text" class="jabatan-input" id="lokasi-<%= s._id %>"
-                placeholder="Jakarta"
-                value="<%= s.lokasiTtd || '' %>"
+          <!-- Lokasi -->
+          <div style="margin-bottom:4px;">
+            <div class="opts-label" style="margin-top:0;">Lokasi</div>
+            <input type="text" class="jabatan-input" id="lokasi-<%= s._id %>"
+              placeholder="Jakarta"
+              value="<%= s.lokasiTtd || '' %>"
+              <%= signed ? 'disabled' : '' %>
+              oninput="debounceLokasi('<%= s._id %>', this.value)">
+          </div>
+
+          <!-- Tanggal Custom -->
+          <%
+            const tglDate2  = s.tanggalTtd ? new Date(s.tanggalTtd) : new Date();
+            const tglDay    = tglDate2.getDate();
+            const tglMonth  = tglDate2.getMonth() + 1;
+            const tglYear   = tglDate2.getFullYear();
+            const tglDisplaySaved = s.tanggalDisplay || '';
+          %>
+          <div>
+            <div class="opts-label" style="margin-top:0;">Tanggal Ditandatangani</div>
+            <div style="display:grid;grid-template-columns:44px 1fr 60px;gap:4px;margin-bottom:6px;">
+              <input type="number" class="jabatan-input" id="tgl-day-<%= s._id %>"
+                placeholder="Tgl" min="1" max="31"
+                value="<%= tglDay %>"
                 <%= signed ? 'disabled' : '' %>
-                oninput="debounceLokasi('<%= s._id %>', this.value)">
-            </div>
-            <div>
-              <div class="opts-label" style="margin-top:0;">Tanggal</div>
-              <input type="date" class="jabatan-input" id="tgl-<%= s._id %>"
-                value="<%= tglVal %>"
+                oninput="onDatePartChange('<%= s._id %>')">
+              <select class="jabatan-input" id="tgl-mon-<%= s._id %>"
                 <%= signed ? 'disabled' : '' %>
-                oninput="debounceTanggal('<%= s._id %>', this.value)">
+                onchange="onDatePartChange('<%= s._id %>')">
+                <% ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'].forEach(function(m,i){ %>
+                <option value="<%= i+1 %>" <%= (tglMonth===i+1)?'selected':'' %>><%= m %></option>
+                <% }); %>
+              </select>
+              <input type="number" class="jabatan-input" id="tgl-year-<%= s._id %>"
+                placeholder="Tahun" min="2000" max="2099"
+                value="<%= tglYear %>"
+                <%= signed ? 'disabled' : '' %>
+                oninput="onDatePartChange('<%= s._id %>')">
             </div>
+            <div class="opts-label">Format tampilan:</div>
+            <div class="display-mode-row" id="dfmt-<%= s._id %>" style="flex-wrap:wrap;">
+              <button type="button" class="dm-btn <%= (!tglDisplaySaved||tglDisplaySaved.includes(' ')&&tglDisplaySaved.split(' ').length===3)?'active':'' %>"
+                data-fmt="full" onclick="setDateFmt('<%= s._id %>','full',this)" <%= signed?'disabled':'' %>>Lengkap</button>
+              <button type="button" class="dm-btn <%= (tglDisplaySaved&&!tglDisplaySaved.match(/^\d/)&&tglDisplaySaved.split(' ').length===2)?'active':'' %>"
+                data-fmt="month_year" onclick="setDateFmt('<%= s._id %>','month_year',this)" <%= signed?'disabled':'' %>>Bulan & Tahun</button>
+              <button type="button" class="dm-btn <%= (tglDisplaySaved&&/^\d{4}$/.test(tglDisplaySaved.trim()))?'active':'' %>"
+                data-fmt="year_only" onclick="setDateFmt('<%= s._id %>','year_only',this)" <%= signed?'disabled':'' %>>Tahun Saja</button>
+              <button type="button" class="dm-btn <%= (tglDisplaySaved&&!['full','month_year','year_only'].includes(tglDisplaySaved)&&tglDisplaySaved.split(' ').length>3)?'active':'' %>"
+                data-fmt="custom" onclick="setDateFmt('<%= s._id %>','custom',this)" <%= signed?'disabled':'' %>>Custom</button>
+            </div>
+            <input type="text" class="jabatan-input" id="tgl-custom-<%= s._id %>"
+              placeholder="Tulis format tanggal bebas..."
+              value="<%= tglDisplaySaved %>"
+              style="margin-top:5px;display:<%= (tglDisplaySaved&&tglDisplaySaved.split(' ').length>3)?'block':'none' %>"
+              <%= signed ? 'disabled' : '' %>
+              oninput="debounceCustomDate('<%= s._id %>', this.value)">
           </div>
 
           <!-- Display mode -->
@@ -511,13 +554,28 @@ function initStamp(el) {
 }
 
 document.querySelectorAll('.qr-stamp').forEach(el => {
-  // Clamp initial position to stay within PDF canvas
   const maxX = wrap.offsetWidth  - el.offsetWidth;
   const maxY = wrap.offsetHeight - el.offsetHeight;
   el.style.left = Math.max(0, Math.min(parseInt(el.style.left)||0, maxX)) + 'px';
   el.style.top  = Math.max(0, Math.min(parseInt(el.style.top) ||0, maxY)) + 'px';
   initStamp(el);
 });
+
+// Detect initial date format for each signer from their tanggalDisplay value
+<% session.signers.forEach(function(s) {
+  const disp = s.tanggalDisplay || '';
+%>
+(function() {
+  const disp = '<%= disp.replace(/'/g,"\'") %>';
+  const id   = '<%= s._id %>';
+  if (!disp) { dateFmtState[id] = 'full'; return; }
+  if (/^\d{4}$/.test(disp.trim())) { dateFmtState[id] = 'year_only'; return; }
+  const parts = disp.trim().split(' ');
+  if (parts.length === 2) { dateFmtState[id] = 'month_year'; return; }
+  if (parts.length === 3 && !isNaN(parts[0])) { dateFmtState[id] = 'full'; return; }
+  dateFmtState[id] = 'custom';
+})();
+<% }); %>
 
 async function savePosition(el) {
   await fetch(`/e-sign/${SESSION_ID}/update-position`, {
@@ -610,20 +668,62 @@ function debounceLokasi(id, val) {
   }, 600);
 }
 
-function debounceTanggal(id, val) {
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const dateFmtState = {}; // id → 'full' | 'month_year' | 'year_only' | 'custom'
+
+function buildDateDisplay(id) {
+  const fmt  = dateFmtState[id] || 'full';
+  const day  = parseInt(document.getElementById('tgl-day-'+id)?.value)  || 1;
+  const mon  = parseInt(document.getElementById('tgl-mon-'+id)?.value)  || 1;
+  const year = parseInt(document.getElementById('tgl-year-'+id)?.value) || new Date().getFullYear();
+  const monStr = BULAN[mon - 1] || BULAN[0];
+  if (fmt === 'year_only')   return String(year);
+  if (fmt === 'month_year')  return `${monStr} ${year}`;
+  return `${day} ${monStr} ${year}`;
+}
+
+function onDatePartChange(id) {
+  const fmt = dateFmtState[id] || 'full';
+  if (fmt === 'custom') return;
   clearTimeout(tglTimers[id]);
-  tglTimers[id] = setTimeout(async () => {
-    await fetch(`/e-sign/${SESSION_ID}/update-lokasi-tanggal`, {
+  tglTimers[id] = setTimeout(() => saveDateDisplay(id), 600);
+}
+
+function setDateFmt(id, fmt, btn) {
+  dateFmtState[id] = fmt;
+  // Update active button in format row
+  btn.closest('.display-mode-row').querySelectorAll('.dm-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const customInput = document.getElementById('tgl-custom-'+id);
+  if (customInput) customInput.style.display = fmt === 'custom' ? 'block' : 'none';
+  if (fmt !== 'custom') saveDateDisplay(id);
+}
+
+function debounceCustomDate(id, val) {
+  clearTimeout(tglTimers[id]);
+  tglTimers[id] = setTimeout(() => {
+    const stamp = document.getElementById('stamp-'+id);
+    if (stamp) { stamp.dataset.dateStr = val; rebuildStamp(id); }
+    fetch(`/e-sign/${SESSION_ID}/update-lokasi-tanggal`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ signerId:id, tanggal:val })
+      body: JSON.stringify({ signerId:id, tanggalDisplay: val })
     });
-    if (val) {
-      const d = new Date(val);
-      const dateStr = d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-      const stamp = document.getElementById('stamp-'+id);
-      if (stamp) { stamp.dataset.dateStr = dateStr; rebuildStamp(id); }
-    }
   }, 600);
+}
+
+async function saveDateDisplay(id) {
+  const display = buildDateDisplay(id);
+  const stamp = document.getElementById('stamp-'+id);
+  if (stamp) { stamp.dataset.dateStr = display; rebuildStamp(id); }
+  // Also build ISO date for storage (use day/mon/year)
+  const day  = parseInt(document.getElementById('tgl-day-'+id)?.value)  || 1;
+  const mon  = parseInt(document.getElementById('tgl-mon-'+id)?.value)  || 1;
+  const year = parseInt(document.getElementById('tgl-year-'+id)?.value) || new Date().getFullYear();
+  const iso  = `${year}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  await fetch(`/e-sign/${SESSION_ID}/update-lokasi-tanggal`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ signerId:id, tanggal: iso, tanggalDisplay: display })
+  });
 }
 
 // ── ADD SELF ──
