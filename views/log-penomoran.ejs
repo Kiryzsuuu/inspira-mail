@@ -9,8 +9,8 @@
 </div>
 
 <div class="mail-list-wrap">
-  <div class="mail-list-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-    <span class="mail-list-title"><%= docs.length %> dokumen</span>
+  <div class="mail-list-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <span class="mail-list-title"><%= docs.length %> entri</span>
     <form method="GET" action="/log-penomoran" style="display:flex;gap:8px;">
       <input type="text" name="q" value="<%= q %>" class="form-control" style="width:240px;padding:7px 12px;font-size:13px;" placeholder="Cari nomor, perihal, jenis...">
       <button type="submit" class="btn btn-secondary" style="padding:7px 16px;font-size:13px;">Cari</button>
@@ -33,35 +33,66 @@
           <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Nomor Surat</th>
           <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Jenis Dokumen</th>
           <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Perihal</th>
-          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Pengirim</th>
+          <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Oleh</th>
           <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Status</th>
           <th style="padding:10px 14px;text-align:left;color:var(--gray-600);font-weight:600;">Tanggal</th>
         </tr>
       </thead>
       <tbody>
       <% docs.forEach((d, i) => { %>
-      <tr style="border-bottom:1px solid var(--gray-100);transition:background .1s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+      <tr style="border-bottom:1px solid var(--gray-100);transition:background .1s;<%= d.isDeleted ? 'opacity:.55;' : '' %>"
+          onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
         <td style="padding:10px 14px;color:var(--gray-400);"><%= i+1 %></td>
         <td style="padding:10px 14px;">
+          <% if (d.source === 'email') { %>
           <a href="/email/<%= d._id %>" style="font-family:monospace;font-weight:700;color:var(--brand-700);font-size:12.5px;text-decoration:none;"><%= d.nomorSurat %></a>
-        </td>
-        <td style="padding:10px 14px;">
-          <span style="font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:4px;background:#eff6ff;color:#1d4ed8;"><%= d.tipeSurat || '—' %></span>
-        </td>
-        <td style="padding:10px 14px;color:var(--gray-700);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= d.subject %></td>
-        <td style="padding:10px 14px;color:var(--gray-600);">
-          <div style="font-size:12.5px;font-weight:500;"><%= d.from?.name || '—' %></div>
-          <% if (d.pengirimResmi && d.pengirimResmi !== d.from?.name) { %>
-            <div style="font-size:11px;color:var(--gray-400);">atas nama: <%= d.pengirimResmi %></div>
+          <% } else { %>
+          <span style="font-family:monospace;font-weight:700;color:var(--brand-700);font-size:12.5px;"><%= d.nomorSurat %></span>
+          <span style="font-size:10px;font-weight:600;background:#f0fdf4;color:#15803d;padding:1px 6px;border-radius:4px;margin-left:5px;">Nomor Saja</span>
           <% } %>
         </td>
         <td style="padding:10px 14px;">
-          <span class="admin-status-badge admin-status-<%= d.status === 'sent' ? 'active' : 'inactive' %>">
-            <span class="admin-status-dot"></span>
-            <%= d.status === 'sent' ? 'Terkirim' : 'Draf' %>
-          </span>
+          <span style="font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:4px;background:#eff6ff;color:#1d4ed8;"><%= d.tipeSurat %></span>
         </td>
-        <td style="padding:10px 14px;color:var(--gray-500);white-space:nowrap;font-size:12px;"><%= formatDate(d.createdAt) %></td>
+        <td style="padding:10px 14px;color:var(--gray-700);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= d.perihal %></td>
+        <td style="padding:10px 14px;color:var(--gray-600);">
+          <div style="font-size:12.5px;font-weight:500;"><%= d.pengirim %></div>
+          <% if (d.pengirimResmi && d.pengirimResmi !== d.pengirim) { %>
+            <div style="font-size:11px;color:var(--gray-400);">atas nama: <%= d.pengirimResmi %></div>
+          <% } %>
+          <% if (d.isDeleted && d.deletedBy) { %>
+            <div style="font-size:11px;color:#ef4444;margin-top:2px;">dihapus oleh: <%= d.deletedBy.name %></div>
+          <% } %>
+        </td>
+        <td style="padding:10px 14px;">
+          <% if (d.isDeleted) { %>
+          <span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:10px;background:#fef2f2;color:#b91c1c;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block;"></span>
+            Dihapus
+          </span>
+          <% } else if (d.status === 'Terkirim') { %>
+          <span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:10px;background:#f0fdf4;color:#15803d;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block;"></span>
+            Terkirim
+          </span>
+          <% } else if (d.status === 'Generate Nomor') { %>
+          <span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:10px;background:#eff6ff;color:#1d4ed8;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#3b82f6;display:inline-block;"></span>
+            Generate Nomor
+          </span>
+          <% } else { %>
+          <span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--gray-100);color:var(--gray-600);">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gray-400);display:inline-block;"></span>
+            <%= d.status %>
+          </span>
+          <% } %>
+        </td>
+        <td style="padding:10px 14px;color:var(--gray-500);white-space:nowrap;font-size:12px;">
+          <%= formatDate(d.createdAt) %>
+          <% if (d.isDeleted && d.deletedAt) { %>
+          <div style="font-size:11px;color:#ef4444;"><%= formatDate(d.deletedAt) %></div>
+          <% } %>
+        </td>
       </tr>
       <% }) %>
       </tbody>

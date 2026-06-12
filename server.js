@@ -1695,14 +1695,43 @@ app.get('/log-penomoran', requireAuth, async (req, res) => {
   try {
     const counts = await getMailCounts(req.user._id);
     const q = req.query.q || '';
-    const filter = { nomorSurat: { $exists: true, $ne: '' } };
-    if (q) filter.$or = [
-      { nomorSurat: { $regex: q, $options: 'i' } },
-      { subject: { $regex: q, $options: 'i' } },
-      { tipeSurat: { $regex: q, $options: 'i' } }
-    ];
-    const docs = await Email.find(filter).sort({ createdAt: -1 }).limit(100).lean();
-    res.render('log-penomoran', { active: 'log-penomoran', title: 'Log Penomoran', docs, q, formatDate, ...counts });
+
+    const emailFilter = { nomorSurat: { $exists: true, $ne: '' } };
+    const nomorFilter = {};
+    if (q) {
+      const rx = { $regex: q, $options: 'i' };
+      emailFilter.$or = [{ nomorSurat: rx }, { subject: rx }, { tipeSurat: rx }];
+      nomorFilter.$or = [{ nomorSurat: rx }, { perihal: rx }, { tipeSurat: rx }];
+    }
+
+    const [emailDocs, nomorDocs] = await Promise.all([
+      Email.find(emailFilter).sort({ createdAt: -1 }).limit(200).lean(),
+      NomorSaja.find(nomorFilter).sort({ createdAt: -1 }).limit(200).lean(),
+    ]);
+
+    // Gabungkan dan urutkan berdasarkan createdAt terbaru
+    const allDocs = [
+      ...emailDocs.map(d => ({
+        _id: d._id, source: 'email',
+        nomorSurat: d.nomorSurat, tipeSurat: d.tipeSurat || '—',
+        perihal: d.subject, pengirim: d.from?.name || '—',
+        pengirimResmi: d.pengirimResmi || '',
+        status: d.status === 'sent' ? 'Terkirim' : 'Draf',
+        isDeleted: false, deletedBy: null, deletedAt: null,
+        createdAt: d.createdAt,
+      })),
+      ...nomorDocs.map(d => ({
+        _id: d._id, source: 'nomor-saja',
+        nomorSurat: d.nomorSurat, tipeSurat: d.tipeSurat || '—',
+        perihal: d.perihal || '—', pengirim: d.createdBy?.name || '—',
+        pengirimResmi: '',
+        status: d.isDeleted ? 'Dihapus' : 'Generate Nomor',
+        isDeleted: d.isDeleted, deletedBy: d.deletedBy, deletedAt: d.deletedAt,
+        createdAt: d.createdAt,
+      })),
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 200);
+
+    res.render('log-penomoran', { active: 'log-penomoran', title: 'Log Penomoran', docs: allDocs, q, formatDate, ...counts });
   } catch (err) {
     console.error(err);
     res.redirect('/inbox');
@@ -2676,17 +2705,24 @@ app.post('/nomor-saja', requireAuth, requireDirektur, async (req, res) => {
   } catch (err) { console.error(err); res.redirect('/nomor-saja'); }
 });
 
-app.delete('/nomor-saja/:id', requireAuth, async (req, res) => {
+app.delete('/nomor-saja/:id', requireAuth, requireDirektur, async (req, res) => {
   try {
-    if (req.user.role !== 'superadmin') return res.json({ ok: false, message: 'Hanya superadmin yang dapat menghapus.' });
     const doc = await NomorSaja.findById(req.params.id);
     if (!doc) return res.json({ ok: false, message: 'Data tidak ditemukan.' });
+    if (doc.isDeleted) return res.json({ ok: false, message: 'Nomor sudah dihapus.' });
     const { konfirmasi } = req.body;
     if (!konfirmasi || konfirmasi.trim() !== (doc.nomorSurat || '').trim()) {
       return res.json({ ok: false, message: 'Nomor surat tidak cocok. Hapus dibatalkan.' });
     }
-    await NomorSaja.findByIdAndDelete(req.params.id);
-    await log(req, 'nomor_delete', 'surat', `Nomor ${doc.nomorSurat} dihapus oleh ${req.user.name}`, { nomorSurat: doc.nomorSurat });
+    await NomorSaja.findByIdAndUpdate(doc._id, {
+      isDeleted: true,
+      deletedAt: new Date(),
+      deletedBy: { userId: req.user._id, name: req.user.name },
+    });
+    await log(req, 'nomor_delete', 'surat',
+      `Nomor ${doc.nomorSurat} dihapus oleh ${req.user.name}`,
+      { nomorSurat: doc.nomorSurat, tipeSurat: doc.tipeSurat }
+    );
     res.json({ ok: true });
   } catch { res.json({ ok: false }); }
 });

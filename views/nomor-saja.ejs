@@ -1,5 +1,36 @@
 <%- include('./partials/header') %>
 
+<!-- Modal Konfirmasi Hapus -->
+<div id="modalHapus" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px 32px;width:420px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <div style="width:40px;height:40px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 3a7 7 0 100 14A7 7 0 0010 3z" stroke="#ef4444" stroke-width="1.5"/><path d="M10 7v4M10 13h.01" stroke="#ef4444" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--gray-900);">Hapus Nomor Surat</div>
+        <div style="font-size:12px;color:var(--gray-500);margin-top:2px;">Tindakan ini tidak dapat dibatalkan</div>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--gray-600);margin-bottom:6px;">Ketik nomor surat berikut untuk konfirmasi:</p>
+    <div id="modalNomorLabel" style="font-family:monospace;font-size:13px;font-weight:700;color:var(--brand-700);background:var(--gray-50);border:1px solid var(--gray-200);padding:8px 12px;border-radius:6px;margin-bottom:12px;"></div>
+    <input id="modalKonfirmasi" type="text" class="form-control" placeholder="Ketik nomor surat di atas..." autocomplete="off"
+           style="margin-bottom:16px;font-family:monospace;font-size:13px;"
+           oninput="checkKonfirmasi()">
+    <div id="modalError" style="display:none;font-size:12px;color:#ef4444;margin-bottom:12px;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="tutupModal()" class="btn btn-secondary" style="font-size:13px;">Batal</button>
+      <button id="btnHapusOk" onclick="konfirmasiHapus()" class="btn" style="background:#ef4444;color:#fff;font-size:13px;opacity:.5;cursor:not-allowed;" disabled>
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="margin-right:4px"><path d="M6 4h8M4 6h12M7 6v10h6V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Hapus
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toastMsg" style="display:none;position:fixed;bottom:24px;right:24px;z-index:9998;background:#1e293b;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:320px;"></div>
+
 <div class="page-header">
   <div class="page-title-group">
     <div class="page-breadcrumb"><a href="/inbox">Dashboard</a> / Generate Nomor Surat</div>
@@ -94,17 +125,25 @@
           </thead>
           <tbody>
           <% list.forEach((d, i) => { %>
-          <tr style="border-bottom:1px solid var(--gray-100);" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+          <tr id="row-<%= d._id %>" style="border-bottom:1px solid var(--gray-100);<%= d.isDeleted ? 'opacity:.45;' : '' %>"
+              onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
             <td style="padding:10px 14px;color:var(--gray-400);"><%= i+1 %></td>
-            <td style="padding:10px 14px;font-family:monospace;font-weight:700;color:var(--brand-700);font-size:12.5px;"><%= d.nomorSurat %></td>
+            <td style="padding:10px 14px;font-family:monospace;font-weight:700;color:var(--brand-700);font-size:12.5px;">
+              <%= d.nomorSurat %>
+              <% if (d.isDeleted) { %>
+              <span style="font-size:10.5px;font-weight:600;background:#fef2f2;color:#b91c1c;padding:1px 6px;border-radius:4px;margin-left:5px;">Dihapus</span>
+              <% } %>
+            </td>
             <td style="padding:10px 14px;">
               <span style="font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:4px;background:#eff6ff;color:#1d4ed8;"><%= d.tipeSurat %></span>
             </td>
             <td style="padding:10px 14px;color:var(--gray-700);max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= d.perihal %></td>
             <td style="padding:10px 14px;color:var(--gray-500);white-space:nowrap;"><%= formatDate(d.tanggal) %></td>
             <td style="padding:10px 14px;text-align:center;">
-              <% if(user.role === 'superadmin'){ %>
-              <button onclick="hapusNomor('<%= d._id %>','<%= d.nomorSurat %>')" style="background:none;border:none;cursor:pointer;color:var(--gray-400);padding:4px;" title="Hapus">
+              <% if(!d.isDeleted && ['direktur','admin','superadmin'].includes(user.role)){ %>
+              <button onclick="bukaBukaModal('<%= d._id %>','<%= d.nomorSurat.replace(/'/g, '') %>')"
+                      style="background:none;border:none;cursor:pointer;color:var(--gray-400);padding:4px;border-radius:4px;transition:color .15s;"
+                      title="Hapus" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--gray-400)'">
                 <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 6h12M8 6V4h4v2M7 6v10h6V6H7z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
               <% } else { %>—<% } %>
@@ -120,19 +159,68 @@
 </div>
 
 <script>
-async function hapusNomor(id, nomor) {
-  const input = prompt('Ketik nomor surat untuk konfirmasi penghapusan:\n\n' + nomor);
-  if (input === null) return;
-  if (input.trim() !== nomor.trim()) { alert('Nomor surat tidak cocok. Hapus dibatalkan.'); return; }
-  const r = await fetch('/nomor-saja/' + id, {
+let _hapusId = '', _hapusNomor = '';
+
+function bukaBukaModal(id, nomor) {
+  _hapusId = id;
+  _hapusNomor = nomor;
+  document.getElementById('modalNomorLabel').textContent = nomor;
+  document.getElementById('modalKonfirmasi').value = '';
+  document.getElementById('modalError').style.display = 'none';
+  checkKonfirmasi();
+  const m = document.getElementById('modalHapus');
+  m.style.display = 'flex';
+  setTimeout(() => document.getElementById('modalKonfirmasi').focus(), 50);
+}
+function tutupModal() {
+  document.getElementById('modalHapus').style.display = 'none';
+}
+function checkKonfirmasi() {
+  const val = document.getElementById('modalKonfirmasi').value.trim();
+  const btn = document.getElementById('btnHapusOk');
+  const match = val === _hapusNomor;
+  btn.disabled = !match;
+  btn.style.opacity = match ? '1' : '.5';
+  btn.style.cursor  = match ? 'pointer' : 'not-allowed';
+}
+async function konfirmasiHapus() {
+  const konfirmasi = document.getElementById('modalKonfirmasi').value.trim();
+  const errEl = document.getElementById('modalError');
+  errEl.style.display = 'none';
+  const r = await fetch('/nomor-saja/' + _hapusId, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ konfirmasi: input.trim() })
+    body: JSON.stringify({ konfirmasi })
   });
   const j = await r.json();
-  if (j.ok) location.reload();
-  else alert(j.message || 'Gagal menghapus.');
+  tutupModal();
+  if (j.ok) {
+    const row = document.getElementById('row-' + _hapusId);
+    if (row) {
+      row.style.opacity = '.45';
+      const nomorCell = row.querySelector('td:nth-child(2)');
+      if (nomorCell) nomorCell.innerHTML += '<span style="font-size:10.5px;font-weight:600;background:#fef2f2;color:#b91c1c;padding:1px 6px;border-radius:4px;margin-left:5px;">Dihapus</span>';
+      row.querySelector('td:last-child').innerHTML = '—';
+    }
+    showToast('Nomor ' + _hapusNomor + ' berhasil dihapus.', true);
+  } else {
+    showToast(j.message || 'Gagal menghapus.', false);
+  }
 }
+function showToast(msg, ok) {
+  const t = document.getElementById('toastMsg');
+  t.textContent = msg;
+  t.style.background = ok ? '#1e293b' : '#ef4444';
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+document.getElementById('modalHapus').addEventListener('click', function(e) {
+  if (e.target === this) tutupModal();
+});
+document.getElementById('modalKonfirmasi').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !document.getElementById('btnHapusOk').disabled) konfirmasiHapus();
+  if (e.key === 'Escape') tutupModal();
+});
 </script>
 
 <%- include('./partials/footer') %>

@@ -12,6 +12,12 @@ const nomorSajaSchema = new mongoose.Schema({
     name:   String,
     email:  String,
   },
+  isDeleted:   { type: Boolean, default: false },
+  deletedAt:   { type: Date },
+  deletedBy:   {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    name:   String,
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('NomorSaja', nomorSajaSchema);
